@@ -1757,7 +1757,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.18',
+        version: '1.0.19',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -1800,6 +1800,18 @@ function loadFromLocalStorage() {
         nextCourseId = data.nextCourseId || 1;
         nextCalendarId = data.nextCalendarId || 1;
         nextPlanId = data.nextPlanId || 1;
+
+        // Migrate old single calendar ID to array format (v1.0.19+)
+        resources.forEach(resource => {
+            if (resource.regionalCalendarId !== undefined && !resource.regionalCalendarIds) {
+                resource.regionalCalendarIds = resource.regionalCalendarId ? [resource.regionalCalendarId] : [];
+                delete resource.regionalCalendarId;
+            }
+            // Ensure regionalCalendarIds exists as an array
+            if (!resource.regionalCalendarIds) {
+                resource.regionalCalendarIds = [];
+            }
+        });
 
         // Validate AI model for provider (ensures backward compatibility)
         validateAIModelForProvider();
@@ -3182,12 +3194,21 @@ function filterResources() {
 }
 
 function showAddResourceForm() {
-    // Build calendar dropdown options
-    let calendarOptions = '<option value="">No Calendar</option>';
-    regionalCalendars.forEach(cal => {
-        const isDefault = settings.defaultRegionalCalendar === cal.id;
-        calendarOptions += `<option value="${cal.id}" ${isDefault ? 'selected' : ''}>${escapeHtml(cal.name)} (${escapeHtml(cal.region)} ${cal.year})</option>`;
-    });
+    // Build calendar checkbox options
+    let calendarOptions = '';
+    if (regionalCalendars.length === 0) {
+        calendarOptions = '<div style="color: var(--text-muted); font-style: italic;">No calendars available. Create calendars in the Calendars tab.</div>';
+    } else {
+        regionalCalendars.forEach(cal => {
+            const isDefault = settings.defaultRegionalCalendar === cal.id;
+            calendarOptions += `
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <input type="checkbox" id="newResourceCalendar_${cal.id}" value="${cal.id}" ${isDefault ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="newResourceCalendar_${cal.id}" style="cursor: pointer; margin: 0; flex: 1;">${escapeHtml(cal.name)} (${escapeHtml(cal.region)} ${cal.year})</label>
+                </div>
+            `;
+        });
+    }
 
     const html = `
         <div class="form-group">
@@ -3216,11 +3237,11 @@ function showAddResourceForm() {
         </div>
 
         <div class="form-group">
-            <label class="form-label">Regional Calendar</label>
-            <select class="form-input" id="newResourceCalendar">
+            <label class="form-label">Calendars (Regional & Corporate)</label>
+            <div style="border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 12px; max-height: 200px; overflow-y: auto; background: var(--bg-card);">
                 ${calendarOptions}
-            </select>
-            <div class="form-help">Select the holiday calendar for this resource's location</div>
+            </div>
+            <div class="form-help">Select all calendars that apply (regional holidays, corporate events, etc.). Holidays will aggregate to reduce available training days.</div>
         </div>
 
         <div class="form-group">
@@ -3265,7 +3286,15 @@ function saveNewResource() {
         return;
     }
 
-    const calendarId = document.getElementById('newResourceCalendar').value;
+    // Collect all selected calendars
+    const selectedCalendarIds = [];
+    regionalCalendars.forEach(cal => {
+        const checkbox = document.getElementById(`newResourceCalendar_${cal.id}`);
+        if (checkbox && checkbox.checked) {
+            selectedCalendarIds.push(cal.id);
+        }
+    });
+
     const newResource = {
         id: nextResourceId++,
         name: name,
@@ -3286,7 +3315,7 @@ function saveNewResource() {
         preferredTrainingDays: [],
         learningPace: settings.defaultLearningPace,
         formatPreference: 'Online',
-        regionalCalendarId: calendarId ? parseInt(calendarId) : null,
+        regionalCalendarIds: selectedCalendarIds,
         personalTimeOff: [],
         blackoutPeriods: [],
         assignedCourses: [],
@@ -3308,14 +3337,33 @@ function viewResourceDetail(resourceId) {
     const resource = resources.find(r => r.id === resourceId);
     if (!resource) return;
 
-    // Get calendar name
-    let calendarInfo = '<span style="color: #999;">No Calendar Assigned</span>';
-    if (resource.regionalCalendarId) {
-        const calendar = regionalCalendars.find(c => c.id === resource.regionalCalendarId);
-        if (calendar) {
-            calendarInfo = `<a href="#" onclick="event.preventDefault(); closeModal(); switchTab(6); setTimeout(() => viewCalendarDetail(${calendar.id}), 100);" style="color: #044d4b; text-decoration: underline;">${escapeHtml(calendar.name)} (${escapeHtml(calendar.region)} ${calendar.year})</a>`;
+    // Migrate old single calendar ID to array format if needed
+    if (resource.regionalCalendarId !== undefined && !resource.regionalCalendarIds) {
+        resource.regionalCalendarIds = resource.regionalCalendarId ? [resource.regionalCalendarId] : [];
+        delete resource.regionalCalendarId;
+        triggerSave();
+    }
+
+    // Ensure regionalCalendarIds exists as an array
+    if (!resource.regionalCalendarIds) {
+        resource.regionalCalendarIds = [];
+    }
+
+    // Get calendar names
+    let calendarInfo = '<span style="color: #999;">No Calendars Assigned</span>';
+    if (resource.regionalCalendarIds && resource.regionalCalendarIds.length > 0) {
+        const calendarLinks = resource.regionalCalendarIds.map(calId => {
+            const calendar = regionalCalendars.find(c => c.id === calId);
+            if (calendar) {
+                return `<a href="#" onclick="event.preventDefault(); closeModal(); switchTab(6); setTimeout(() => viewCalendarDetail(${calendar.id}), 100);" style="color: #044d4b; text-decoration: underline;">${escapeHtml(calendar.name)} (${escapeHtml(calendar.region)} ${calendar.year})</a>`;
+            }
+            return null;
+        }).filter(link => link !== null);
+
+        if (calendarLinks.length > 0) {
+            calendarInfo = calendarLinks.join('<br>');
         } else {
-            calendarInfo = '<span style="color: #999;">Calendar Not Found</span>';
+            calendarInfo = '<span style="color: #999;">Calendars Not Found</span>';
         }
     }
 
@@ -3787,12 +3835,32 @@ function editResource(resourceId) {
     const resource = resources.find(r => r.id === resourceId);
     if (!resource) return;
 
-    // Build calendar dropdown options
-    let calendarOptions = '<option value="">No Calendar</option>';
-    regionalCalendars.forEach(cal => {
-        const isSelected = resource.regionalCalendarId === cal.id;
-        calendarOptions += `<option value="${cal.id}" ${isSelected ? 'selected' : ''}>${escapeHtml(cal.name)} (${escapeHtml(cal.region)} ${cal.year})</option>`;
-    });
+    // Migrate old single calendar ID to array format if needed
+    if (resource.regionalCalendarId !== undefined && !resource.regionalCalendarIds) {
+        resource.regionalCalendarIds = resource.regionalCalendarId ? [resource.regionalCalendarId] : [];
+        delete resource.regionalCalendarId;
+    }
+
+    // Ensure regionalCalendarIds exists as an array
+    if (!resource.regionalCalendarIds) {
+        resource.regionalCalendarIds = [];
+    }
+
+    // Build calendar checkbox options
+    let calendarOptions = '';
+    if (regionalCalendars.length === 0) {
+        calendarOptions = '<div style="color: var(--text-muted); font-style: italic;">No calendars available. Create calendars in the Calendars tab.</div>';
+    } else {
+        regionalCalendars.forEach(cal => {
+            const isSelected = resource.regionalCalendarIds.includes(cal.id);
+            calendarOptions += `
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <input type="checkbox" id="editResourceCalendar_${cal.id}" value="${cal.id}" ${isSelected ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="editResourceCalendar_${cal.id}" style="cursor: pointer; margin: 0; flex: 1;">${escapeHtml(cal.name)} (${escapeHtml(cal.region)} ${cal.year})</label>
+                </div>
+            `;
+        });
+    }
 
     const html = `
         <div class="form-group">
@@ -3821,11 +3889,11 @@ function editResource(resourceId) {
         </div>
 
         <div class="form-group">
-            <label class="form-label">Regional Calendar</label>
-            <select class="form-input" id="editResourceCalendar">
+            <label class="form-label">Calendars (Regional & Corporate)</label>
+            <div style="border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 12px; max-height: 200px; overflow-y: auto; background: var(--bg-card);">
                 ${calendarOptions}
-            </select>
-            <div class="form-help">Select the holiday calendar for this resource's location</div>
+            </div>
+            <div class="form-help">Select all calendars that apply (regional holidays, corporate events, etc.). Holidays will aggregate to reduce available training days.</div>
         </div>
 
         <div class="form-group">
@@ -3885,7 +3953,14 @@ function saveResourceEdits(resourceId) {
     const resource = resources.find(r => r.id === resourceId);
     if (!resource) return;
 
-    const calendarId = document.getElementById('editResourceCalendar').value;
+    // Collect all selected calendars
+    const selectedCalendarIds = [];
+    regionalCalendars.forEach(cal => {
+        const checkbox = document.getElementById(`editResourceCalendar_${cal.id}`);
+        if (checkbox && checkbox.checked) {
+            selectedCalendarIds.push(cal.id);
+        }
+    });
 
     // Update resource fields
     resource.name = name;
@@ -3893,7 +3968,9 @@ function saveResourceEdits(resourceId) {
     resource.jobTitle = document.getElementById('editResourceTitle').value.trim();
     resource.department = document.getElementById('editResourceDepartment').value.trim();
     resource.location = document.getElementById('editResourceLocation').value.trim();
-    resource.regionalCalendarId = calendarId ? parseInt(calendarId) : null;
+    resource.regionalCalendarIds = selectedCalendarIds;
+    // Remove old single calendar ID if it exists
+    delete resource.regionalCalendarId;
     resource.canAttendInPerson = document.getElementById('editResourceCanAttendInPerson').checked;
     resource.annualTrainingBudget = parseFloat(document.getElementById('editResourceBudget').value) || 0;
     resource.budgetSpent = parseFloat(document.getElementById('editResourceBudgetSpent').value) || 0;
@@ -6651,7 +6728,14 @@ function renderCalendarsList() {
     html += '</tr></thead><tbody>';
 
     regionalCalendars.forEach(cal => {
-        const useCount = resources.filter(r => r.regionalCalendarId === cal.id).length;
+        const useCount = resources.filter(r => {
+            // Handle both old single ID and new array format
+            if (r.regionalCalendarIds && Array.isArray(r.regionalCalendarIds)) {
+                return r.regionalCalendarIds.includes(cal.id);
+            }
+            // Legacy support for old format
+            return r.regionalCalendarId === cal.id;
+        }).length;
 
         html += `
             <tr>
@@ -6736,7 +6820,14 @@ function viewCalendarDetail(calendarId) {
     if (!cal) return;
 
     // Get resources using this calendar
-    const assignedResources = resources.filter(r => r.regionalCalendarId === calendarId);
+    const assignedResources = resources.filter(r => {
+        // Handle both old single ID and new array format
+        if (r.regionalCalendarIds && Array.isArray(r.regionalCalendarIds)) {
+            return r.regionalCalendarIds.includes(calendarId);
+        }
+        // Legacy support for old format
+        return r.regionalCalendarId === calendarId;
+    });
 
     let resourcesHtml = '';
     if (assignedResources.length === 0) {
@@ -6779,7 +6870,14 @@ function viewCalendarDetail(calendarId) {
 }
 
 function deleteCalendar(calendarId) {
-    const useCount = resources.filter(r => r.regionalCalendarId === calendarId).length;
+    const useCount = resources.filter(r => {
+        // Handle both old single ID and new array format
+        if (r.regionalCalendarIds && Array.isArray(r.regionalCalendarIds)) {
+            return r.regionalCalendarIds.includes(calendarId);
+        }
+        // Legacy support for old format
+        return r.regionalCalendarId === calendarId;
+    }).length;
 
     if (useCount > 0 && settings.confirmBeforeDelete) {
         if (!confirm(`This calendar is used by ${useCount} resources. Continue?`)) {
@@ -6945,7 +7043,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.18',
+        version: '1.0.19',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -7456,7 +7554,7 @@ function loadSampleResources() {
             preferredTrainingDays: ['Tuesday', 'Thursday'],
             learningPace: 'Moderate',
             formatPreference: 'Online',
-            regionalCalendarId: data.location.includes('US') ? 1 : (data.location.includes('UK') ? 2 : null),
+            regionalCalendarIds: data.location.includes('US') ? [1] : (data.location.includes('UK') ? [2] : []),
             personalTimeOff: [],
             blackoutPeriods: [],
             assignedCourses: [],

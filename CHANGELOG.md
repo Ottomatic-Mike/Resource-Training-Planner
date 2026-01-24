@@ -7,6 +7,203 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.19] - 2026-01-24
+
+### Added - Multiple Calendar Support for Resources
+
+This release adds the ability for resources to have multiple calendars assigned, allowing for proper aggregation of regional holidays, corporate events, and other calendar-based constraints that impact training availability.
+
+#### Problem Addressed
+
+**Original Limitation:**
+- Resources could only have ONE calendar assigned (regional OR corporate)
+- Real-world scenario: UK employee with both UK holidays AND corporate-wide events
+- No way to aggregate holidays from multiple sources
+- Training scheduling didn't account for all applicable non-working days
+- Managers had to manually track multiple calendar impacts
+
+**User Request:**
+> "It is possible for multiple calendars to be applied to a given resource in terms of what will impact their scheduling. As an example, a user may have UK specific holidays and may also have specific corporate calendars that overlay on their ability to train."
+
+#### New Multi-Calendar Architecture
+
+**Data Model Changes:**
+- **Old**: `regionalCalendarId` (single number or null)
+- **New**: `regionalCalendarIds` (array of calendar IDs)
+- Supports unlimited calendars per resource
+- Automatic migration from old format to new format
+- Backward compatible with existing data
+
+**Add Resource Form:**
+- Changed from dropdown to checkbox list
+- Select multiple calendars simultaneously
+- Visual container with scrollable list
+- Clear labels showing calendar name, region, and year
+- Checkboxes for intuitive multi-select
+- Help text explains aggregation behavior
+
+**Edit Resource Form:**
+- Same checkbox interface for consistency
+- Pre-selects all currently assigned calendars
+- Easy to add or remove calendars
+- Migration happens automatically when editing old resources
+
+**Resource Detail View:**
+- Displays ALL assigned calendars (not just one)
+- Each calendar is a clickable link to calendar detail
+- Multiple calendars shown on separate lines
+- Clear "No Calendars Assigned" message if none
+
+#### Calendar Aggregation Logic
+
+**How Multiple Calendars Work:**
+
+1. **Holiday Aggregation**:
+   - All holidays from ALL assigned calendars are combined
+   - Duplicate dates are automatically handled
+   - Total non-working days = union of all calendar holidays
+   - Impacts training schedule availability calculations
+
+2. **Example Scenarios**:
+   - **UK Employee**: UK National Holidays + Corporate Events = Comprehensive non-working days
+   - **US Employee**: US Federal Holidays + Company Shutdown Periods
+   - **Remote Team**: Country-specific holidays + Global company events
+   - **Department-specific**: Regional calendar + Department training blackout dates
+
+3. **Flexible Configuration**:
+   - Choose 0, 1, or unlimited calendars per resource
+   - Mix regional, corporate, department, and custom calendars
+   - Different resources can have different calendar combinations
+   - Easy to update as calendars change
+
+#### User Interface Enhancements
+
+**Checkbox Selection Interface:**
+- Clean, scrollable container (max-height: 200px)
+- 18px checkboxes for easy clicking
+- Full calendar name visible: "UK National Holidays (UK 2024)"
+- Visual styling with borders and padding
+- Consistent design across add and edit forms
+
+**Help Text Updates:**
+- "Select all calendars that apply (regional holidays, corporate events, etc.)"
+- Explains aggregation: "Holidays will aggregate to reduce available training days"
+- Clear guidance on when to use multiple calendars
+
+**Empty State Handling:**
+- Shows helpful message when no calendars exist
+- Directs users to Calendars tab to create calendars
+- Graceful degradation for resources with no calendars
+
+#### Backend Logic Updates
+
+**Calendar Usage Tracking:**
+- Counts resources using each calendar across arrays
+- Calendar detail view shows all resources using that calendar
+- Delete warnings accurate for multi-calendar usage
+- Handles both old single-ID and new array formats
+
+**Display Logic:**
+- Resource detail shows all calendar names
+- Each calendar is individually linked
+- Proper handling of deleted/missing calendars
+- Clear visual presentation of multiple calendars
+
+**Migration & Compatibility:**
+- Automatic migration on data load
+- Converts old `regionalCalendarId` to `regionalCalendarIds` array
+- Preserves existing single calendar as single-element array
+- No data loss during migration
+- Legacy support in all filtering/counting logic
+
+#### Sample Data Updates
+
+**Sample Resources:**
+- US locations: [US Federal Holidays]
+- UK locations: [UK National Holidays]
+- Ready for multi-calendar demonstration
+- Consistent with new data model
+
+#### Technical Implementation
+
+**Files Modified:**
+- training-plan-manager.html:
+  - `showAddResourceForm()` - Checkbox interface instead of dropdown
+  - `saveNewResource()` - Collects multiple calendar IDs
+  - `editResource()` - Checkbox interface with migration
+  - `saveResourceEdits()` - Saves array of calendar IDs
+  - `viewResourceDetail()` - Displays multiple calendars
+  - `loadFromLocalStorage()` - Migration logic for existing data
+  - Calendar usage counting - Updated for array format
+  - `viewCalendarDetail()` - Shows resources with array support
+  - `deleteCalendar()` - Validates array usage
+  - `loadSampleResources()` - Uses new array format
+
+**Migration Strategy:**
+- Runs automatically on data load
+- Checks for old `regionalCalendarId` field
+- Converts to `regionalCalendarIds` array
+- Deletes old field to prevent confusion
+- Ensures all resources have `regionalCalendarIds` array
+- Triggers save to persist migration
+
+**Legacy Support:**
+- All filtering logic supports both formats
+- Usage counting handles both single ID and arrays
+- Graceful fallback for old data
+- No breaking changes for existing functionality
+
+#### User Benefits
+
+**For Managers:**
+- Accurate training availability calculations
+- Account for ALL holidays and events
+- No more manual tracking of multiple calendars
+- Better scheduling accuracy
+- Realistic training timeline planning
+
+**For Resources:**
+- All applicable holidays respected
+- Regional holidays honored
+- Corporate events accounted for
+- Department-specific blackout periods included
+- Comprehensive work-life balance support
+
+**For Organizations:**
+- Support diverse, distributed teams
+- Different calendar needs per employee
+- Flexible calendar management
+- Scalable across regions and departments
+- Enterprise-ready holiday tracking
+
+#### Breaking Changes
+
+None - all changes are backward compatible. Existing data automatically migrates.
+
+#### Migration Notes
+
+**Automatic Migration:**
+- Happens transparently on first load after upgrade
+- Old `regionalCalendarId` converted to `regionalCalendarIds` array
+- Single calendar ID becomes single-element array
+- Null/undefined becomes empty array
+- No user action required
+
+**Data Safety:**
+- Original calendar assignments preserved
+- No data loss during migration
+- Migration is idempotent (safe to run multiple times)
+- Automatic save after migration
+
+**Testing Recommendations:**
+- Verify all resources show correct calendars in edit form
+- Check resource detail view displays all calendars
+- Confirm calendar usage counts are accurate
+- Test adding/removing multiple calendars
+- Validate holiday aggregation in training schedules
+
+---
+
 ## [1.0.18] - 2026-01-24
 
 ### Fixed - Resources Tab Edit Button Functionality
