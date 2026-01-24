@@ -1783,7 +1783,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '2.0.0',
+        version: '2.0.1',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -5435,10 +5435,13 @@ Find real, currently available courses from major training providers. Ensure var
 
     } catch (error) {
         console.error('Online course search failed:', error);
+
+        // Format error message, preserving line breaks
+        const formattedError = escapeHtml(error.message).replace(/\n/g, '<br>');
+
         resultsContainer.innerHTML = `<div class="alert alert-danger">
             <strong>Search Failed</strong>
-            <p>${escapeHtml(error.message)}</p>
-            <p style="font-size: 12px; margin-top: 8px;">Please check your API configuration and try again.</p>
+            <p style="margin-top: 8px;">${formattedError}</p>
         </div>`;
 
         document.getElementById('modalFooter').innerHTML = `
@@ -7576,7 +7579,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '2.0.0',
+        version: '2.0.1',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -7853,7 +7856,13 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
             let errorMessage = `AI API request failed (${response.status})`;
             try {
                 const error = await response.json();
-                errorMessage = error.error || error.message || errorMessage;
+                // Use the improved error messages from server
+                if (error.message && error.error) {
+                    // Server returned structured error with guidance
+                    errorMessage = `${error.error}\n\n${error.message}`;
+                } else {
+                    errorMessage = error.error || error.message || errorMessage;
+                }
             } catch (e) {
                 errorMessage = response.statusText || errorMessage;
             }

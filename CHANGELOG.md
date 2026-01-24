@@ -7,6 +7,118 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1] - 2025-01-24
+
+### Fixed - Improved AI API Error Handling
+
+**Issue Resolved:** Users experiencing "API returned 529" errors when searching for courses
+
+#### Problem
+
+When users searched for courses using AI features, they encountered unhelpful error messages like:
+```
+Search Failed
+API returned 529
+
+Please check your API configuration and try again.
+```
+
+HTTP status code 529 is returned by Anthropic (and other AI providers) when their service is temporarily overloaded or experiencing high demand. The error handling provided no context or actionable guidance to users.
+
+#### Root Cause
+
+1. **Server-side (`app/server.js`)**: The CORS proxy endpoint passed through raw HTTP status codes from AI providers without interpreting them or providing user-friendly messages.
+2. **Client-side (`app/public/training-plan-manager.html`)**: Error messages displayed raw status codes without explaining what they mean or how to resolve them.
+
+#### Solution
+
+**Enhanced Server Error Handling (`app/server.js` lines 48-105):**
+- Added intelligent error detection for common AI API status codes:
+  - **429**: Rate limit exceeded
+  - **529**: Service temporarily overloaded (Anthropic-specific)
+  - **503**: Service unavailable
+  - **401**: Invalid API key
+  - **400**: Bad request
+  - **500/502**: Internal server errors
+- Parse error responses from AI providers (Anthropic, OpenAI, Google) to extract meaningful error messages
+- Return structured error responses with:
+  - User-friendly error message
+  - Actionable guidance (what to do next)
+  - Technical details for debugging
+
+**Example improved error response:**
+```json
+{
+  "error": "AI service temporarily overloaded",
+  "message": "The AI provider is experiencing high demand. Please wait 30-60 seconds and try again.",
+  "details": "overloaded_error",
+  "statusCode": 529
+}
+```
+
+**Enhanced Frontend Error Display (`app/public/training-plan-manager.html`):**
+- Updated `callClaudeAPI()` function (lines 7852-7865) to use structured error messages from server
+- Combines error title and guidance into readable multi-line message
+- Updated `executeOnlineCourseSearch()` error handler (lines 5436-5448) to preserve line breaks for better readability
+- Error messages now show both what went wrong AND how to fix it
+
+#### Files Modified
+
+**Backend:**
+- `app/server.js`: Enhanced error handling in `/api/proxy` endpoint (~60 lines of improved error handling)
+- `app/package.json`: Version updated to 2.0.1
+
+**Frontend:**
+- `app/public/training-plan-manager.html`:
+  - Improved error message parsing in `callClaudeAPI()`
+  - Better error display formatting in course search
+  - Version updated to 2.0.1
+
+**Configuration:**
+- `docker-compose.yml`: Version tags updated to 2.0.1
+- `README.md`: Version badge updated to 2.0.1
+
+#### Testing
+
+**Tested Error Scenarios:**
+- ✅ 529 (Overloaded): Clear message + "wait 30-60 seconds" guidance
+- ✅ 429 (Rate limit): Clear message + "wait a few minutes" guidance
+- ✅ 401 (Auth error): Clear message + "check API key" guidance
+- ✅ 503 (Unavailable): Clear message + "try again later" guidance
+
+#### Impact
+
+**Before:**
+```
+Search Failed
+API returned 529
+
+Please check your API configuration and try again.
+```
+
+**After:**
+```
+Search Failed
+AI service temporarily overloaded
+
+The AI provider is experiencing high demand. Please wait 30-60 seconds and try again.
+```
+
+Users now receive:
+- Clear explanation of what happened
+- Specific guidance on how to resolve the issue
+- No need to search documentation or report bugs for temporary service issues
+
+#### Version Bump Rationale
+
+**Why 2.0.1 (Patch):**
+- Bug fix: Improved error messaging (no new features)
+- No breaking changes
+- No API changes
+- Maintains backward compatibility
+
+---
+
 ## [2.0.0] - 2025-01-24
 
 ### **MAJOR RELEASE** - Web Service Architecture with Embedded CORS Proxy

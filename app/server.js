@@ -1,6 +1,6 @@
 /**
  * Training Plan Manager - Express Server with Embedded CORS Proxy
- * Version: 2.0.0
+ * Version: 2.0.1
  *
  * This server provides:
  * 1. Static file serving for the Training Plan Manager HTML application
@@ -25,7 +25,7 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
         service: 'training-plan-manager',
-        version: '2.0.0',
+        version: '2.0.1',
         timestamp: new Date().toISOString()
     });
 });
@@ -56,11 +56,59 @@ app.post('/api/proxy', async (req, res) => {
 
         // Check if response is ok
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`[PROXY ERROR] ${response.status}: ${errorText}`);
+            let errorMessage = `API returned ${response.status}`;
+            let errorDetails = '';
+            let userGuidance = '';
+
+            // Try to parse error response
+            try {
+                const errorData = await response.json();
+                console.error(`[PROXY ERROR] ${response.status}:`, errorData);
+
+                // Extract error message based on provider format
+                if (errorData.error) {
+                    if (typeof errorData.error === 'string') {
+                        errorDetails = errorData.error;
+                    } else if (errorData.error.message) {
+                        errorDetails = errorData.error.message;
+                    } else if (errorData.error.type) {
+                        errorDetails = errorData.error.type;
+                    }
+                }
+            } catch (e) {
+                // If JSON parsing fails, get text
+                const errorText = await response.text();
+                console.error(`[PROXY ERROR] ${response.status}: ${errorText}`);
+                errorDetails = errorText;
+            }
+
+            // Provide user-friendly guidance based on status code
+            if (response.status === 429) {
+                errorMessage = 'Rate limit exceeded';
+                userGuidance = 'You have made too many requests. Please wait a few minutes and try again.';
+            } else if (response.status === 529) {
+                errorMessage = 'AI service temporarily overloaded';
+                userGuidance = 'The AI provider is experiencing high demand. Please wait 30-60 seconds and try again.';
+            } else if (response.status === 503) {
+                errorMessage = 'AI service temporarily unavailable';
+                userGuidance = 'The AI provider is currently unavailable. Please try again in a few minutes.';
+            } else if (response.status === 401) {
+                errorMessage = 'Invalid API key';
+                userGuidance = 'Please check your API key in Settings and ensure it is correct and active.';
+            } else if (response.status === 400) {
+                errorMessage = 'Bad request to AI service';
+                userGuidance = 'The request format was invalid. This may be a configuration issue.';
+            } else if (response.status === 500 || response.status === 502) {
+                errorMessage = 'AI service internal error';
+                userGuidance = 'The AI provider encountered an internal error. Please try again in a few minutes.';
+            }
+
+            // Return structured error response
             return res.status(response.status).json({
-                error: `API returned ${response.status}`,
-                details: errorText
+                error: errorMessage,
+                message: userGuidance || errorDetails || 'An error occurred with the AI service',
+                details: errorDetails,
+                statusCode: response.status
             });
         }
 

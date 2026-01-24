@@ -4,7 +4,7 @@
 
 A powerful web service that enables engineering managers to create comprehensive, AI-assisted training plans for their technical team members. Built with Node.js + Express and Docker for easy deployment.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-blue.svg)
 
@@ -46,7 +46,7 @@ npm start
 - **Embedded CORS Proxy** - Secure AI API calls without browser restrictions
 - **Docker Support** - Easy deployment with Docker Compose
 
-**New in v2.0.0:** Web service architecture with embedded CORS proxy eliminates all browser security restrictions.
+**New in v2.0.1:** Web service architecture with embedded CORS proxy eliminates all browser security restrictions.
 
 ---
 
@@ -75,4 +75,4 @@ MIT License - Copyright (c) 2025 Training Plan Manager
 
 ---
 
-*Version 2.0.0 - Web Service Architecture*
+*Version 2.0.1 - Web Service Architecture*
