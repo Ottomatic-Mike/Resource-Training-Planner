@@ -2,7 +2,7 @@
 
 **Complete guide to setting up and using AI features in the Training Plan Manager.**
 
-Version 1.0.6 | Last Updated: January 24, 2026
+Version 1.0.9 | Last Updated: January 24, 2026
 
 ---
 
@@ -359,11 +359,13 @@ Each model displays:
 - Claude 3.5 Haiku - Fast and cost-effective ($1/$5 per 1M tokens)
 
 *OpenAI:*
-- **GPT-4.1** ⭐ RECOMMENDED - Latest flagship, superior reasoning ($2/$8 per 1M tokens)
-- **GPT-4.1 Mini** ⭐ RECOMMENDED - Fast and cost-effective ($0.40/$1.60 per 1M tokens)
-- GPT-4o - Multimodal capabilities ($2.50/$10 per 1M tokens)
-- GPT-4o Mini - Fast multimodal ($0.15/$0.60 per 1M tokens)
-- GPT-4 Turbo (Legacy) - Consider upgrading to GPT-4.1 ($10/$30 per 1M tokens)
+- **GPT-5.2** ⭐ RECOMMENDED - Latest flagship, revolutionary reasoning ($1.50/$6 per 1M tokens)
+- **GPT-5.2 Mini** ⭐ RECOMMENDED - Fast and highly capable ($0.30/$1.20 per 1M tokens)
+- GPT-4.1 - Previous generation, still capable ($2/$8 per 1M tokens)
+- GPT-4.1 Mini - Previous generation, cost-effective ($0.40/$1.60 per 1M tokens)
+- GPT-4o (Legacy) - Multimodal capabilities ($2.50/$10 per 1M tokens)
+- GPT-4o Mini (Legacy) - Fast multimodal ($0.15/$0.60 per 1M tokens)
+- GPT-4 Turbo (Legacy) - Consider upgrading to GPT-5.2 ($10/$30 per 1M tokens)
 - GPT-3.5 Turbo (Legacy) - Limited for complex tasks ($0.50/$1.50 per 1M tokens)
 
 *Google Gemini:*
@@ -409,23 +411,24 @@ Each model displays:
 
 **For Most Users (Recommended ⭐):**
 - **Claude Sonnet 4.5** - Best overall balance of capability and cost ($3/$15 per 1M)
-- **GPT-4.1** - Excellent reasoning and instruction following ($2/$8 per 1M)
+- **GPT-5.2** - Revolutionary reasoning and analytical capabilities ($1.50/$6 per 1M)
 - **Gemini 3 Flash** - Frontier performance at excellent value ($0.50/$3 per 1M)
 
 **For Maximum Quality:**
 - **Claude Opus 4.5** - Highest intelligence, best for complex frameworks ($5/$25 per 1M)
+- **GPT-5.2** - Superior reasoning for sophisticated training programs ($1.50/$6 per 1M)
 - Use when accuracy is paramount and cost is secondary
-- 67% cheaper than previous Claude Opus 4 while being more capable
 
 **For Cost-Effectiveness:**
-- **GPT-4.1 Mini** - Excellent quality at low cost ($0.40/$1.60 per 1M)
+- **GPT-5.2 Mini** - Excellent quality at very low cost ($0.30/$1.20 per 1M)
 - **Gemini 2.5 Flash** - Fast and capable for most tasks ($0.15/$0.60 per 1M)
 - **Gemini 2.5 Flash-Lite** - Ultra low cost for simple queries ($0.10/$0.40 per 1M)
 - **Claude 3.5 Haiku** - Fast Claude model for quick suggestions ($1/$5 per 1M)
 
 **Legacy Models (Consider Upgrading):**
 - Claude 3 Opus → Upgrade to **Claude Opus 4.5** (better + cheaper)
-- GPT-4 Turbo → Upgrade to **GPT-4.1** (better + cheaper)
+- GPT-4.1 → Upgrade to **GPT-5.2** (better + cheaper)
+- GPT-4 Turbo → Upgrade to **GPT-5.2** (significantly better + cheaper)
 - Gemini 1.5 Pro → Upgrade to **Gemini 3 Flash** (better + cheaper)
 
 **Selection Tips:**

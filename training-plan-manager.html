@@ -1366,7 +1366,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.8',
+        version: '1.0.9',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -1618,58 +1618,80 @@ const aiModels = {
     ],
     openai: [
         {
+            id: 'gpt-5.2-2026-01-15',
+            name: 'GPT-5.2',
+            recommended: true,
+            description: 'Latest flagship model. Revolutionary reasoning and analytical capabilities for comprehensive training planning.',
+            strengths: ['Superior reasoning', 'Advanced analysis', 'Strategic planning', 'Expert instruction following'],
+            costPer1M: 'Input: $1.50/1M tokens | Output: $6/1M tokens',
+            costLevel: 'medium',
+            useCase: 'Ideal for sophisticated training programs requiring highest quality analysis',
+            exampleCost: 'Typical 3K token analysis: ~$0.0225 total'
+        },
+        {
+            id: 'gpt-5.2-mini-2026-01-15',
+            name: 'GPT-5.2 Mini',
+            recommended: true,
+            description: 'Fast and highly capable. Excellent balance of performance and cost for training planning.',
+            strengths: ['Fast', 'Strong reasoning', 'Cost-effective', 'Efficient'],
+            costPer1M: 'Input: $0.30/1M tokens | Output: $1.20/1M tokens',
+            costLevel: 'low',
+            useCase: 'Best for high-quality training planning with excellent cost efficiency',
+            exampleCost: 'Typical 3K token analysis: ~$0.0045 total'
+        },
+        {
             id: 'gpt-4.1-2025-04-14',
             name: 'GPT-4.1',
-            recommended: true,
-            description: 'Latest flagship model. Superior instruction following and analytical capabilities for training planning.',
+            recommended: false,
+            description: 'Previous generation flagship. Still very capable for training planning.',
             strengths: ['Excellent reasoning', 'Instruction following', 'Tool calling', 'Broad knowledge'],
             costPer1M: 'Input: $2/1M tokens | Output: $8/1M tokens',
             costLevel: 'medium',
-            useCase: 'Ideal for comprehensive training plans with strong analytical requirements',
+            useCase: 'Good for comprehensive training plans - consider upgrading to GPT-5.2',
             exampleCost: 'Typical 3K token analysis: ~$0.03 total'
         },
         {
             id: 'gpt-4.1-mini-2025-04-14',
             name: 'GPT-4.1 Mini',
-            recommended: true,
-            description: 'Fast and cost-effective. Great balance of capability and affordability for training planning.',
+            recommended: false,
+            description: 'Fast and cost-effective. Good balance but GPT-5.2 Mini recommended.',
             strengths: ['Fast', 'Cost-effective', 'Good reasoning', 'Efficient'],
             costPer1M: 'Input: $0.40/1M tokens | Output: $1.60/1M tokens',
             costLevel: 'low',
-            useCase: 'Best for budget-conscious training planning with good quality',
+            useCase: 'Consider upgrading to GPT-5.2 Mini for better performance at lower cost',
             exampleCost: 'Typical 3K token analysis: ~$0.006 total'
         },
         {
             id: 'gpt-4o',
-            name: 'GPT-4o',
+            name: 'GPT-4o (Legacy)',
             recommended: false,
-            description: 'Multimodal model. Good for training planning, especially with visual content.',
+            description: 'Multimodal model. Consider upgrading to GPT-5.2 for better performance.',
             strengths: ['Multimodal', 'Strong reasoning', 'Wide knowledge', 'Detailed analysis'],
             costPer1M: 'Input: $2.50/1M tokens | Output: $10/1M tokens',
             costLevel: 'medium',
-            useCase: 'Good for training plans with diverse content types',
+            useCase: 'Legacy model - GPT-5.2 recommended',
             exampleCost: 'Typical 3K token analysis: ~$0.0375 total'
         },
         {
             id: 'gpt-4o-mini',
-            name: 'GPT-4o Mini',
+            name: 'GPT-4o Mini (Legacy)',
             recommended: false,
-            description: 'Fast multimodal model. Cost-effective for simple training suggestions.',
+            description: 'Fast multimodal model. GPT-5.2 Mini offers better capabilities.',
             strengths: ['Fast', 'Multimodal', 'Cost-effective', 'Quick responses'],
             costPer1M: 'Input: $0.15/1M tokens | Output: $0.60/1M tokens',
             costLevel: 'low',
-            useCase: 'Best for quick suggestions and simple competency queries',
+            useCase: 'Legacy model - GPT-5.2 Mini recommended',
             exampleCost: 'Typical 3K token analysis: ~$0.0027 total'
         },
         {
             id: 'gpt-4-turbo-2024-04-09',
             name: 'GPT-4 Turbo (Legacy)',
             recommended: false,
-            description: 'Previous generation. Consider upgrading to GPT-4.1 for better performance.',
+            description: 'Old generation. Strongly consider upgrading to GPT-5.2.',
             strengths: ['Strong reasoning', 'Wide knowledge', 'Structured output'],
             costPer1M: 'Input: $10/1M tokens | Output: $30/1M tokens',
             costLevel: 'high',
-            useCase: 'Legacy model - GPT-4.1 recommended',
+            useCase: 'Legacy model - GPT-5.2 strongly recommended',
             exampleCost: 'Typical 3K token analysis: ~$0.12 total'
         },
         {
@@ -1680,7 +1702,7 @@ const aiModels = {
             strengths: ['Fast', 'Very cost-effective', 'Simple tasks'],
             costPer1M: 'Input: $0.50/1M tokens | Output: $1.50/1M tokens',
             costLevel: 'low',
-            useCase: 'Only for very simple queries - consider GPT-4.1 Mini instead',
+            useCase: 'Only for very simple queries - consider GPT-5.2 Mini instead',
             exampleCost: 'Typical 3K token analysis: ~$0.006 total'
         }
     ],
@@ -5489,7 +5511,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.8',
+        version: '1.0.9',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

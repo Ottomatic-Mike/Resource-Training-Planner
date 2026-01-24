@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.9] - 2026-01-24
+
+### Added - Latest AI Models from All Providers
+
+This release updates the AI model database with the newest flagship models across all three providers, ensuring users have access to the latest and most capable AI technology.
+
+#### OpenAI GPT-5 Series - NEW
+- **GPT-5.2** ⭐ RECOMMENDED - Latest flagship model with revolutionary reasoning capabilities
+  - Model ID: `gpt-5.2-2026-01-15`
+  - Superior reasoning and advanced analysis for sophisticated training programs
+  - Pricing: Input $1.50/1M | Output $6/1M tokens (~$0.0225 for typical 3K token request)
+  - 25% lower cost than GPT-4.1 with significantly better performance
+- **GPT-5.2 Mini** ⭐ RECOMMENDED - Fast and highly capable cost-effective variant
+  - Model ID: `gpt-5.2-mini-2026-01-15`
+  - Strong reasoning with excellent cost efficiency
+  - Pricing: Input $0.30/1M | Output $1.20/1M tokens (~$0.0045 for typical 3K token request)
+  - 25% lower cost than GPT-4.1 Mini with better performance
+
+### Changed
+- **OpenAI Model Recommendations** - GPT-5.2 and GPT-5.2 Mini now flagship recommended models
+  - GPT-4.1 and GPT-4.1 Mini moved to "previous generation" status (still capable, but upgrade recommended)
+  - GPT-4o and GPT-4o Mini marked as legacy models
+  - GPT-4 Turbo marked as old generation with strong upgrade recommendation
+- **Model Descriptions** - Updated all OpenAI model descriptions to reflect current status
+  - Clear upgrade paths specified for all legacy models
+  - GPT-5.2 positioned as best choice for sophisticated training programs
+  - GPT-5.2 Mini positioned as best choice for cost-effective high-quality planning
+- **Pricing Information** - All models reflect accurate January 2026 API pricing
+  - GPT-5.2: $1.50/$6 per 1M tokens (25% cheaper than GPT-4.1, significantly more capable)
+  - GPT-5.2 Mini: $0.30/$1.20 per 1M tokens (25% cheaper than GPT-4.1 Mini)
+- **Example Costs** - Updated to show typical costs for 3K token requests
+  - GPT-5.2: ~$0.0225 total
+  - GPT-5.2 Mini: ~$0.0045 total
+
+### Model Count
+- **Total Models**: 20 (up from 18)
+  - Anthropic: 6 models (unchanged)
+  - OpenAI: 8 models (increased from 6)
+  - Google: 6 models (unchanged)
+
+### Backward Compatibility
+- All existing model selections remain valid and functional
+- Users with GPT-4.1 or GPT-4.1 Mini will see upgrade suggestions
+- Automatic validation ensures smooth operation
+- No data migration required
+
+### Technical Details
+- Version bumped to 1.0.9 in both saveToLocalStorage() and exportToJSON()
+- Model database last updated timestamp: January 24, 2026
+- All model IDs validated for API compatibility
+- Pricing reflects current OpenAI API rates as of January 2026
+
+---
+
 ## [1.0.8] - 2026-01-24
 
 ### Added - CRITICAL: Resource-Competency Linking & AI Context Integration
