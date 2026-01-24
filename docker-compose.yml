@@ -1,0 +1,39 @@
+# Training Plan Manager - Docker Compose Configuration
+# Version: 2.0.0
+#
+# Quick Start:
+#   docker-compose up -d        # Start in background
+#   docker-compose logs -f      # View logs
+#   docker-compose down         # Stop and remove containers
+
+version: '3.8'
+
+services:
+  training-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: training-plan-manager
+    image: training-plan-manager:2.0.0
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    labels:
+      - "com.training-manager.description=Training Plan Manager Web Service"
+      - "com.training-manager.version=2.0.0"
+    networks:
+      - training-manager-network
+
+networks:
+  training-manager-network:
+    driver: bridge
+    name: training-manager-network

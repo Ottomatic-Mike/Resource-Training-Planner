@@ -7,6 +7,236 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2025-01-24
+
+### **MAJOR RELEASE** - Web Service Architecture with Embedded CORS Proxy
+
+**Breaking Change:** This is a major architectural change from standalone HTML file to web service.
+
+#### Overview
+
+Transformed the Training Plan Manager from a standalone HTML file into a professional web service with Node.js + Express backend and Docker containerization. This eliminates all CORS restrictions for AI features while maintaining clean, simple deployment.
+
+#### What Changed
+
+**New Architecture:**
+- **Backend:** Node.js + Express server with embedded CORS proxy
+- **Frontend:** Modified HTML to use `/api/proxy` endpoint
+- **Deployment:** Docker + Docker Compose for one-command deployment
+- **AI Integration:** All AI API calls now routed through backend proxy (eliminates browser CORS restrictions)
+
+#### New Files Created
+
+1. **`app/server.js`** (120 lines)
+   - Express web server
+   - CORS proxy endpoint at `/api/proxy`
+   - Health check endpoint at `/health`
+   - Static file serving
+   - Production-ready error handling
+
+2. **`app/package.json`**
+   - Node.js dependencies (express, cors, node-fetch)
+   - npm scripts (start, dev)
+   - Engine requirements (Node 18+)
+
+3. **`Dockerfile`** (Multi-stage build)
+   - Production-optimized Docker image
+   - Non-root user for security
+   - Health check integration
+   - Alpine Linux base (~150MB image)
+
+4. **`docker-compose.yml`**
+   - One-command deployment
+   - Port mapping (3000:3000)
+   - Health monitoring
+   - Auto-restart policy
+
+5. **`.dockerignore`**
+   - Optimized Docker build context
+   - Excludes documentation, tests, git files
+
+6. **`.env.example`**
+   - Environment variable template
+   - PORT and NODE_ENV configuration
+
+#### Modified Files
+
+**`app/public/training-plan-manager.html`** (Modified from root `training-plan-manager.html`):
+- **Version:** Updated to 2.0.0
+- **`callClaudeAPI()` function:** Completely rewritten (~95 lines)
+  - Removed all direct API call logic
+  - Removed CORS proxy retry logic
+  - Now calls `/api/proxy` endpoint with provider-specific payloads
+  - Simplified error handling
+  - Reduced from 186 lines to ~95 lines
+- **Settings UI:** Removed CORS Proxy setting (line 2375-2379 deleted)
+- **Settings initialization:** Removed `corsProxy` field (line 1250 deleted)
+- **`saveSettings()` function:** Removed `corsProxy` save logic (line 2438 deleted)
+
+**`README.md`:**
+- Complete rewrite for web service architecture
+- Docker-first quick start instructions
+- Updated architecture section
+- Cloud deployment guides (AWS, GCP, Azure)
+- New troubleshooting for Docker/Node.js
+- Removed standalone HTML references
+
+#### Breaking Changes
+
+**❌ Standalone Mode No Longer Supported:**
+- The application now REQUIRES a web server to run
+- Double-clicking the HTML file will NOT work
+- Users must deploy with Docker or Node.js
+
+**Migration Path for Existing Users:**
+
+**Option 1 - Docker (Recommended):**
+```bash
+docker-compose up -d
+# Access at http://localhost:3000
+```
+
+**Option 2 - Node.js:**
+```bash
+cd app && npm install && npm start
+# Access at http://localhost:3000
+```
+
+**Data Migration:**
+- All localStorage data is preserved (no migration needed)
+- Export JSON backups remain compatible
+- API keys and settings transfer automatically
+
+#### New Features
+
+✅ **Embedded CORS Proxy:**
+- All AI API calls routed through backend
+- Zero browser CORS restrictions
+- No external CORS proxy needed
+- Works from `file://` protocol (though not recommended)
+
+✅ **Docker Support:**
+- One-command deployment (`docker-compose up -d`)
+- Production-ready containerization
+- Health monitoring
+- Auto-restart on failure
+
+✅ **Health Monitoring:**
+- `/health` endpoint for load balancers
+- Returns service status, version, timestamp
+- Used by Docker healthcheck
+
+✅ **Professional Logging:**
+- Server startup banner
+- Request logging for proxy calls
+- Error logging with details
+- Graceful shutdown handling
+
+#### Improvements
+
+**Security:**
+- API keys never exposed to browser CORS restrictions
+- Non-root user in Docker container
+- Regular security updates (Alpine base)
+
+**Performance:**
+- Faster AI API calls (no CORS retry loops)
+- Efficient proxy implementation
+- Production-optimized Docker build
+
+**Developer Experience:**
+- Simple `docker-compose up -d` deployment
+- Clear error messages
+- Comprehensive logging
+- Easy debugging
+
+**Deployment:**
+- Works anywhere Docker runs (Windows/Mac/Linux)
+- Cloud-ready (AWS ECS, Google Cloud Run, Azure ACI)
+- Development mode with `npm run dev` (nodemon)
+
+#### Technical Implementation Details
+
+**CORS Proxy Architecture:**
+```
+Browser → /api/proxy → Express Server → AI Provider API
+         ↑ No CORS     ↑ Backend      ↑ Direct call
+         ↑ restrictions ↑ handles CORS
+```
+
+**Request Flow:**
+1. Frontend calls `/api/proxy` with: `{ url, method, headers, body }`
+2. Express server validates request
+3. Server makes direct call to AI provider
+4. Response proxied back to frontend
+5. Frontend extracts text based on provider format
+
+**Simplified callClaudeAPI():**
+- Before: 186 lines (direct call + CORS proxy retry + extensive error handling)
+- After: ~95 lines (simple proxy call + provider-specific parsing)
+- Reduction: ~48% less code
+
+#### Files Affected
+
+**New:**
+- `app/server.js`
+- `app/package.json`
+- `app/public/training-plan-manager.html` (copy of root, modified)
+- `Dockerfile`
+- `docker-compose.yml`
+- `.dockerignore`
+- `.env.example`
+
+**Modified:**
+- `README.md` (complete rewrite)
+- `CHANGELOG.md` (this entry)
+
+**Deprecated:**
+- `training-plan-manager.html` (root) - kept for reference, but not functional
+- `DEPLOYMENT.md` - no longer needed (Docker handles deployment)
+
+#### Deployment Verification
+
+**Quick Test:**
+```bash
+# Start service
+docker-compose up -d
+
+# Check health
+curl http://localhost:3000/health
+
+# Expected response:
+# {"status":"healthy","service":"training-plan-manager","version":"2.0.0","timestamp":"2025-01-24T..."}
+
+# Access application
+# Open http://localhost:3000 in browser
+
+# Test AI features (requires API key in Settings)
+```
+
+#### Version Bump Rationale
+
+**Why 2.0.0 (Major):**
+- **Breaking change:** Requires web server (standalone no longer works)
+- **Architecture change:** From client-only to client-server
+- **Deployment change:** Docker/Node.js required
+- **User workflow change:** No longer double-click to run
+
+**Semantic Versioning:**
+- MAJOR (2): Breaking changes to deployment and architecture
+- MINOR (0): No new features (only architectural rewrite)
+- PATCH (0): Initial major release
+
+#### Roadmap Impact
+
+This architectural change enables future features:
+- v2.1: Persistent database storage (PostgreSQL/SQLite)
+- v2.2: Multi-user support with authentication
+- v2.3: Real-time collaboration
+- v3.0: REST API for integrations
+
+---
+
 ## [1.0.27] - 2026-01-24
 
 ### Documentation - Comprehensive Deployment Guide
