@@ -1744,7 +1744,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.11',
+        version: '1.0.12',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2297,7 +2297,7 @@ function openSettings() {
                 <label class="form-label">AI Provider</label>
                 <select class="form-select" id="settingAiProvider" onchange="updateModelDropdown()">
                     <option value="anthropic" ${currentProvider === 'anthropic' ? 'selected' : ''}>Anthropic (Claude)</option>
-                    <option value="openai" ${currentProvider === 'openai' ? 'selected' : ''}>OpenAI (GPT-4)</option>
+                    <option value="openai" ${currentProvider === 'openai' ? 'selected' : ''}>OpenAI (GPT)</option>
                     <option value="google" ${currentProvider === 'google' ? 'selected' : ''}>Google (Gemini)</option>
                 </select>
             </div>
@@ -6282,7 +6282,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.11',
+        version: '1.0.12',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

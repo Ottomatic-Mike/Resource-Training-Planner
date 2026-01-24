@@ -4,7 +4,7 @@
 
 A powerful, self-contained web application that enables engineering managers to create comprehensive, AI-assisted training plans for their technical team members. Built as a single HTML file with zero dependencies and no backend required.
 
-![Version](https://img.shields.io/badge/version-1.0.11-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.12-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
@@ -161,7 +161,7 @@ npx http-server
 ### Supported Providers
 
 - **Anthropic Claude** (Recommended) - Best for technical analysis
-- **OpenAI GPT-4** - Strong general-purpose capabilities
+- **OpenAI GPT** - Strong general-purpose capabilities (GPT-5.2, GPT-4.1, etc.)
 - **Google Gemini** - Alternative option
 
 ### Configuration Steps

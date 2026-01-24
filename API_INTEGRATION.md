@@ -11,7 +11,7 @@ Version 1.0.9 | Last Updated: January 24, 2026
 1. [Overview](#overview)
 2. [Supported Providers](#supported-providers)
 3. [Anthropic Claude Setup](#anthropic-claude-recommended)
-4. [OpenAI GPT-4 Setup](#openai-gpt-4)
+4. [OpenAI GPT Setup](#openai-gpt)
 5. [Google Gemini Setup](#google-gemini)
 6. [Configuration](#configuration)
 7. [AI Features](#ai-features)
@@ -56,7 +56,7 @@ AI simply accelerates and enhances these workflows.
 
 ### Comparison Matrix
 
-| Feature | Anthropic Claude | OpenAI GPT-4 | Google Gemini |
+| Feature | Anthropic Claude | OpenAI GPT | Google Gemini |
 |---------|------------------|--------------|---------------|
 | **Recommended** | ✅ Yes | ✅ Yes | ⚠️ Alternative |
 | **Competency Analysis** | Excellent | Excellent | Very Good |
@@ -75,7 +75,7 @@ AI simply accelerates and enhances these workflows.
 - Strong structured output
 - Good API reliability
 
-**For existing OpenAI users:** OpenAI GPT-4
+**For existing OpenAI users:** OpenAI GPT
 - Familiar platform
 - Excellent quality
 - Slightly higher cost
@@ -177,7 +177,7 @@ AI simply accelerates and enhances these workflows.
 
 ---
 
-## OpenAI GPT-4
+## OpenAI GPT
 
 ### Step 1: Create Account
 

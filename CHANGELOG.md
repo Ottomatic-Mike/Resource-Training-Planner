@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.12] - 2026-01-24
+
+### Changed - Improved Provider Labeling
+
+This release corrects misleading provider labels to accurately reflect all supported models.
+
+#### Settings UI Updates
+- **AI Provider Dropdown** - Corrected OpenAI label from "OpenAI (GPT-4)" to "OpenAI (GPT)"
+  - Previous: "OpenAI (GPT-4)" incorrectly implied only GPT-4 models were available
+  - Current: "OpenAI (GPT)" accurately reflects support for all GPT models (GPT-5.2, GPT-5.2 Mini, GPT-4.1, GPT-4.1 Mini, GPT-4o, GPT-3.5, etc.)
+  - Matches pattern of other providers: "Anthropic (Claude)" and "Google (Gemini)"
+
+#### Documentation Updates
+- **README.md** - Updated provider description to clarify GPT model range
+  - Changed from "OpenAI GPT-4" to "OpenAI GPT" with examples (GPT-5.2, GPT-4.1, etc.)
+- **API_INTEGRATION.md** - Updated all references for consistency
+  - Section header: "OpenAI GPT-4 Setup" → "OpenAI GPT Setup"
+  - Comparison matrix header: "OpenAI GPT-4" → "OpenAI GPT"
+  - Table of contents link updated
+  - Recommendation text updated
+- **USER_GUIDE.md** - Updated provider list
+  - Changed "OpenAI (GPT-4)" to "OpenAI (GPT)" in settings documentation
+
+### Technical Details
+- Version bumped to 1.0.12 in both saveToLocalStorage() and exportToJSON()
+- No functional changes - purely labeling improvements
+- No breaking changes - fully backward compatible with v1.0.11 data
+- Historical CHANGELOG entries preserved (v1.0.0 correctly shows GPT-4 only support at that time)
+
+### User Benefits
+- **Clearer Provider Selection** - No confusion about which GPT models are available
+- **Accurate Documentation** - All references now correctly reflect full model range
+- **Consistent Labeling** - Provider labels follow same pattern across all three providers
+
+---
+
 ## [1.0.11] - 2026-01-24
 
 ### Added - Secure API Key Encryption

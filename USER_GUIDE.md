@@ -1002,7 +1002,7 @@ Access via **⚙️ Settings** button in header.
 
 **Provider:**
 - Anthropic (Claude)
-- OpenAI (GPT-4)
+- OpenAI (GPT)
 - Google (Gemini)
 
 **Model:**
