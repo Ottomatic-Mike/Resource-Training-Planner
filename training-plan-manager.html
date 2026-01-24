@@ -1366,7 +1366,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.9',
+        version: '1.0.10',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2046,8 +2046,8 @@ function renderDashboard() {
 
             <div class="card metric-card">
                 <div class="metric-label">Budget Status</div>
-                <div class="metric-value">${formatCurrency(metrics.totalBudgetSpent)} / ${formatCurrency(metrics.totalBudget)}</div>
-                <div class="metric-change">${metrics.budgetUtilization}% utilized</div>
+                <div class="metric-value" style="color: ${metrics.budgetUtilization >= 100 ? '#ef4444' : metrics.budgetUtilization >= 80 ? '#f59e0b' : '#22c55e'};">${formatCurrency(metrics.totalBudgetUsed)} / ${formatCurrency(metrics.totalBudget)}</div>
+                <div class="metric-change">${metrics.budgetUtilization}% utilized (${formatCurrency(metrics.totalBudgetSpent)} spent + ${formatCurrency(metrics.totalBudgetCommitted)} committed)</div>
             </div>
 
             <div class="card metric-card">
@@ -2103,7 +2103,9 @@ function calculateDashboardMetrics() {
 
     const totalBudget = resources.reduce((sum, r) => sum + (r.annualTrainingBudget || 0), 0);
     const totalBudgetSpent = resources.reduce((sum, r) => sum + (r.budgetSpent || 0), 0);
-    const budgetUtilization = totalBudget > 0 ? Math.round((totalBudgetSpent / totalBudget) * 100) : 0;
+    const totalBudgetCommitted = trainingPlans.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+    const totalBudgetUsed = totalBudgetSpent + totalBudgetCommitted;
+    const budgetUtilization = totalBudget > 0 ? Math.round((totalBudgetUsed / totalBudget) * 100) : 0;
 
     const activePlans = trainingPlans.filter(p => p.status === 'Active').length;
 
@@ -2122,6 +2124,8 @@ function calculateDashboardMetrics() {
         locations,
         totalBudget,
         totalBudgetSpent,
+        totalBudgetCommitted,
+        totalBudgetUsed,
         budgetUtilization,
         activePlans,
         completionRate
@@ -2154,24 +2158,42 @@ function renderResourcesTable() {
     `;
 
     resources.slice(0, 10).forEach(resource => {
-        const budgetUsed = resource.budgetSpent || 0;
+        const budgetSpent = resource.budgetSpent || 0;
         const budgetTotal = resource.annualTrainingBudget || 0;
-        const budgetPercent = budgetTotal > 0 ? Math.round((budgetUsed / budgetTotal) * 100) : 0;
+        const resourcePlans = trainingPlans.filter(p => p.resourceId === resource.id);
+        const committedBudget = resourcePlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
+        const totalUsed = budgetSpent + committedBudget;
+        const budgetPercent = budgetTotal > 0 ? Math.round((totalUsed / budgetTotal) * 100) : 0;
+
+        let budgetStatusBadge = '';
+        let budgetColor = '#22c55e';
+        if (budgetPercent >= 100) {
+            budgetStatusBadge = '<span class="badge" style="background: #ef4444; color: white; font-size: 10px; margin-left: 4px;">Over</span>';
+            budgetColor = '#ef4444';
+        } else if (budgetPercent >= 80) {
+            budgetStatusBadge = '<span class="badge" style="background: #f59e0b; color: white; font-size: 10px; margin-left: 4px;">Near Limit</span>';
+            budgetColor = '#f59e0b';
+        }
 
         const assignedCourses = resource.assignedCourses || [];
         const completedCourses = assignedCourses.filter(c => c.status === 'Completed').length;
         const courseStatus = `${completedCourses} / ${assignedCourses.length}`;
 
         let status = 'On Track';
-        if (budgetPercent > 90) status = 'At Risk';
-        if (completedCourses < assignedCourses.length * 0.5) status = 'Behind';
+        if (budgetPercent >= 100) status = 'Over Budget';
+        else if (budgetPercent > 90) status = 'At Risk';
+        else if (completedCourses < assignedCourses.length * 0.5 && assignedCourses.length > 0) status = 'Behind';
 
         html += `
             <tr onclick="viewResourceDetail(${resource.id})" style="cursor: pointer;">
                 <td><strong>${escapeHtml(resource.name)}</strong></td>
                 <td>${escapeHtml(resource.jobTitle || '')}</td>
                 <td>${escapeHtml(resource.location || '')}</td>
-                <td>${formatCurrency(budgetUsed)} / ${formatCurrency(budgetTotal)}</td>
+                <td>
+                    <span style="color: ${budgetColor};">${formatCurrency(totalUsed)} / ${formatCurrency(budgetTotal)}</span>
+                    ${budgetStatusBadge}
+                    ${committedBudget > 0 ? `<div style="font-size: 11px; color: var(--neutral-600); margin-top: 2px;">Spent: ${formatCurrency(budgetSpent)} | Committed: ${formatCurrency(committedBudget)}</div>` : ''}
+                </td>
                 <td>${courseStatus}</td>
                 <td>${getStatusDot(status)} ${status}</td>
             </tr>
@@ -2497,6 +2519,28 @@ function viewResourceDetail(resourceId) {
     // Get resource's training plans
     const resourcePlans = trainingPlans.filter(p => p.resourceId === resourceId);
 
+    // Calculate budget status
+    const totalBudget = resource.annualTrainingBudget || 0;
+    const spentBudget = resource.budgetSpent || 0;
+    const committedBudget = resourcePlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
+    const totalUsed = spentBudget + committedBudget;
+    const remainingBudget = totalBudget - totalUsed;
+    const budgetUtilization = totalBudget > 0 ? (totalUsed / totalBudget) * 100 : 0;
+
+    let budgetStatusColor = '#22c55e'; // Green
+    let budgetStatusText = 'Within Budget';
+    let budgetStatusIcon = '✓';
+
+    if (budgetUtilization >= 100) {
+        budgetStatusColor = '#ef4444'; // Red
+        budgetStatusText = 'Over Budget';
+        budgetStatusIcon = '⚠️';
+    } else if (budgetUtilization >= 80) {
+        budgetStatusColor = '#f59e0b'; // Orange
+        budgetStatusText = 'Near Limit';
+        budgetStatusIcon = '⚠️';
+    }
+
     // Build current competencies display
     let currentCompetenciesHtml = '';
     if (resource.currentCompetencies && resource.currentCompetencies.length > 0) {
@@ -2567,6 +2611,14 @@ function viewResourceDetail(resourceId) {
         resourcePlans.forEach(plan => {
             const statusColor = plan.status === 'Approved' ? '#10b981' : plan.status === 'Draft' ? '#f59e0b' : '#6b7280';
             const aiAssisted = plan.aiRecommendations && Object.keys(plan.aiRecommendations).length > 0;
+
+            // Determine if this plan fits within remaining budget
+            const planCost = plan.totalCost || 0;
+            const planBudgetStatus = planCost > remainingBudget ? 'over' : 'ok';
+            const planBudgetBadge = planBudgetStatus === 'over'
+                ? '<span class="badge" style="background: #ef4444; color: white; font-size: 11px;">⚠️ Over Budget</span>'
+                : '';
+
             trainingPlansHtml += `
                 <div class="card" style="cursor: pointer; margin: 0;" onclick="closeModal(); switchTab(5); setTimeout(() => viewPlanDetails(${plan.id}), 100);">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -2580,8 +2632,9 @@ function viewResourceDetail(resourceId) {
                                 <span>Budget: ${formatCurrency(plan.totalCost || 0)}</span>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                             ${aiAssisted ? '<span class="badge badge-info" style="font-size: 11px;">AI-Assisted</span>' : ''}
+                            ${planBudgetBadge}
                             <span class="badge" style="background: ${statusColor}; color: white; font-size: 11px;">${plan.status}</span>
                         </div>
                     </div>
@@ -2604,7 +2657,23 @@ function viewResourceDetail(resourceId) {
                     <div><strong>Location:</strong> ${resource.location || 'N/A'}</div>
                     <div><strong>Email:</strong> ${resource.email || 'N/A'}</div>
                     <div style="grid-column: 1 / -1;"><strong>Regional Calendar:</strong> ${calendarInfo}</div>
-                    <div><strong>Budget:</strong> ${formatCurrency(resource.budgetSpent)} / ${formatCurrency(resource.annualTrainingBudget)}</div>
+                    <div style="grid-column: 1 / -1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <strong>Budget Status:</strong>
+                            <span class="badge" style="background: ${budgetStatusColor}; color: white; font-size: 12px; padding: 4px 10px;">
+                                ${budgetStatusIcon} ${budgetStatusText}
+                            </span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--neutral-700);">
+                            <div style="margin-bottom: 4px;">Spent: ${formatCurrency(spentBudget)} | Committed: ${formatCurrency(committedBudget)} | Remaining: <span style="color: ${remainingBudget < 0 ? '#ef4444' : '#22c55e'}; font-weight: 600;">${formatCurrency(remainingBudget)}</span></div>
+                            <div style="background: var(--neutral-200); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: ${budgetStatusColor}; height: 100%; width: ${Math.min(budgetUtilization, 100)}%; transition: width 0.3s ease;"></div>
+                            </div>
+                            <div style="margin-top: 4px; font-size: 12px; color: var(--neutral-600);">
+                                Total Budget: ${formatCurrency(totalBudget)} (${budgetUtilization.toFixed(1)}% utilized)
+                            </div>
+                        </div>
+                    </div>
                     <div><strong>Weekly Training Hours:</strong> ${resource.weeklyTrainingHours || 0}</div>
                 </div>
             </div>
@@ -4922,6 +4991,31 @@ function renderWizardStep6() {
         estimatedBudget = hasCourses.reduce((sum, course) => sum + (course.cost || 0), 0);
     }
 
+    // Calculate budget availability
+    const totalBudget = resource.annualTrainingBudget || 0;
+    const spentBudget = resource.budgetSpent || 0;
+    const existingPlans = trainingPlans.filter(p => p.resourceId === resource.id);
+    const committedBudget = existingPlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
+    const availableBudget = totalBudget - spentBudget - committedBudget;
+    const budgetAfterPlan = availableBudget - estimatedBudget;
+    const budgetOverrun = budgetAfterPlan < 0;
+
+    // Calculate estimated time from courses
+    let estimatedHours = 0;
+    if (Array.isArray(hasCourses)) {
+        hasCourses.forEach(course => {
+            const duration = course.duration || '';
+            const hoursMatch = duration.match(/(\d+)\s*(?:hour|hr)/i);
+            if (hoursMatch) {
+                estimatedHours += parseInt(hoursMatch[1]);
+            }
+        });
+    }
+
+    const weeklyHours = resource.weeklyTrainingHours || 0;
+    const estimatedWeeks = weeklyHours > 0 ? Math.ceil(estimatedHours / weeklyHours) : 0;
+    const timeWarning = estimatedWeeks > 52; // More than a year
+
     let html = `
         <h3>Step 6: Review & Finalize Training Plan</h3>
         <p style="margin-bottom: 20px;">Review all AI recommendations before creating the training plan for ${resource.name}.</p>
@@ -4935,25 +5029,67 @@ function renderWizardStep6() {
                     <div style="font-size: 13px; color: var(--neutral-600);">${escapeHtml(resource.jobTitle || 'No title')}</div>
                 </div>
                 <div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Total Budget</div>
+                    <div style="font-weight: 600; font-size: 18px; color: var(--primary-color);">${formatCurrency(totalBudget)}</div>
+                    <div style="font-size: 12px; color: var(--neutral-600);">Spent: ${formatCurrency(spentBudget)} | Committed: ${formatCurrency(committedBudget)}</div>
+                </div>
+                <div>
                     <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Available Budget</div>
-                    <div style="font-weight: 600; font-size: 18px; color: var(--primary-color);">${formatCurrency(resource.annualTrainingBudget || 0)}</div>
+                    <div style="font-weight: 600; font-size: 18px; color: ${budgetOverrun ? '#ef4444' : '#22c55e'};">${formatCurrency(availableBudget)}</div>
+                    <div style="font-size: 12px; color: var(--neutral-600);">After plan: ${formatCurrency(budgetAfterPlan)}</div>
                 </div>
                 <div>
-                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Est. Course Cost</div>
-                    <div style="font-weight: 600; font-size: 18px; ${estimatedBudget > (resource.annualTrainingBudget || 0) ? 'color: #ef4444;' : 'color: #22c55e;'}">${formatCurrency(estimatedBudget)}</div>
-                </div>
-                <div>
-                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">AI Status</div>
-                    <div style="font-weight: 600; color: ${hasAssessment && hasGoals && hasCourses ? '#22c55e' : '#f59e0b'};">
-                        ${hasAssessment && hasGoals && hasCourses ? '✓ Fully AI-Assisted' : '⚠️ Partial AI Data'}
-                    </div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Plan Cost</div>
+                    <div style="font-weight: 600; font-size: 18px; ${budgetOverrun ? 'color: #ef4444;' : 'color: #22c55e;'}">${formatCurrency(estimatedBudget)}</div>
+                    <div style="font-size: 12px; color: var(--neutral-600);">${hasCourses && Array.isArray(hasCourses) ? hasCourses.length : 0} courses</div>
                 </div>
             </div>
+            ${estimatedHours > 0 ? `
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--neutral-200);">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div>
+                            <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Estimated Time</div>
+                            <div style="font-weight: 600;">${estimatedHours} hours total</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Weekly Allocation</div>
+                            <div style="font-weight: 600;">${weeklyHours} hours/week</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Duration</div>
+                            <div style="font-weight: 600; ${timeWarning ? 'color: #f59e0b;' : ''}">${estimatedWeeks > 0 ? `~${estimatedWeeks} weeks` : 'Unknown'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">AI Status</div>
+                            <div style="font-weight: 600; color: ${hasAssessment && hasGoals && hasCourses ? '#22c55e' : '#f59e0b'};">
+                                ${hasAssessment && hasGoals && hasCourses ? '✓ Fully AI-Assisted' : '⚠️ Partial AI Data'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--neutral-200);">
+                    <div style="display: grid; grid-template-columns: 1fr;">
+                        <div>
+                            <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">AI Status</div>
+                            <div style="font-weight: 600; color: ${hasAssessment && hasGoals && hasCourses ? '#22c55e' : '#f59e0b'};">
+                                ${hasAssessment && hasGoals && hasCourses ? '✓ Fully AI-Assisted' : '⚠️ Partial AI Data'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `}
         </div>
 
-        ${estimatedBudget > (resource.annualTrainingBudget || 0) ? `
+        ${budgetOverrun ? `
             <div class="alert alert-warning" style="margin-bottom: 20px;">
-                <strong>⚠️ Budget Alert:</strong> Estimated course costs (${formatCurrency(estimatedBudget)}) exceed available budget (${formatCurrency(resource.annualTrainingBudget || 0)}).
+                <strong>⚠️ Budget Overrun:</strong> This plan costs ${formatCurrency(estimatedBudget)}, but only ${formatCurrency(availableBudget)} is available (${formatCurrency(spentBudget)} already spent, ${formatCurrency(committedBudget)} committed to other plans). You will exceed the annual budget by ${formatCurrency(Math.abs(budgetAfterPlan))}.
+            </div>
+        ` : ''}
+
+        ${timeWarning ? `
+            <div class="alert alert-warning" style="margin-bottom: 20px;">
+                <strong>⚠️ Time Alert:</strong> With ${estimatedHours} hours of training and ${weeklyHours} hours/week available, this plan will take approximately ${estimatedWeeks} weeks (over 1 year). Consider adjusting the course selection or weekly time allocation.
             </div>
         ` : ''}
     `;
@@ -5511,7 +5647,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.9',
+        version: '1.0.10',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

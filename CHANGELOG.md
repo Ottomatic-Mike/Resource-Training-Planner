@@ -7,6 +7,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.10] - 2026-01-24
+
+### Added - Budget and Time Tracking Enhancements
+
+This release adds comprehensive visual budget status indicators and warnings throughout the application, making it easy to identify when training plans exceed budget allocations or time constraints.
+
+#### Resource Detail View - Budget Status Indicators
+- **Budget Status Badge** - Color-coded status indicator for at-a-glance budget health
+  - ✓ Green "Within Budget" - Under 80% utilization
+  - ⚠️ Orange "Near Limit" - 80-99% utilization
+  - ⚠️ Red "Over Budget" - 100%+ utilization
+- **Detailed Budget Breakdown** - Complete visibility into budget allocation
+  - Shows spent budget, committed budget from training plans, and remaining budget
+  - Visual progress bar showing budget utilization percentage
+  - Remaining budget highlighted in red if negative, green if positive
+  - Total budget and utilization percentage clearly displayed
+- **Training Plan Budget Status** - Each plan card shows budget impact
+  - "⚠️ Over Budget" badge displayed on plans that exceed remaining budget
+  - Helps identify which specific plans are contributing to budget overruns
+
+#### Training Plan Wizard - Step 6 Budget & Time Warnings
+- **Comprehensive Budget Validation** - Accounts for all budget allocations
+  - Shows total budget, spent budget, and committed budget from existing plans
+  - Calculates available budget accurately before plan creation
+  - Displays budget after plan creation to show impact
+  - Plan cost color-coded (red if over budget, green if within budget)
+- **Budget Overrun Warning** - Clear alert when plan exceeds available budget
+  - Shows exactly how much the plan costs vs. how much is available
+  - Breaks down spent and committed budget amounts
+  - Displays the overrun amount (how much over budget)
+  - Warning displayed in orange alert box with ⚠️ icon
+- **Time/Hours Warning** - Alerts when plan duration exceeds reasonable timeframes
+  - Calculates estimated hours from course durations
+  - Shows weekly time allocation and estimated duration in weeks
+  - Warns if plan will take more than 52 weeks (1 year) to complete
+  - Suggests adjusting course selection or weekly time allocation
+- **Enhanced Plan Overview** - Comprehensive metrics at a glance
+  - Resource name and title
+  - Total budget with spent/committed breakdown
+  - Available budget with after-plan projection
+  - Plan cost with course count
+  - Estimated time, weekly allocation, and duration
+  - AI assistance status indicator
+
+#### Dashboard - Budget Status Integration
+- **Budget Metrics Card** - Enhanced with committed budget tracking
+  - Shows total budget used (spent + committed) vs. total budget
+  - Color-coded based on utilization (green/orange/red)
+  - Displays breakdown: "X% utilized (Y spent + Z committed)"
+- **Resources Table** - Budget status for each team member
+  - Budget column shows total used (spent + committed) vs. total
+  - Color-coded amounts (green if OK, orange if near limit, red if over)
+  - Visual badges ("Over" or "Near Limit") for at-risk resources
+  - Breakdown showing spent vs. committed amounts when applicable
+- **Status Column** - Updated to reflect budget health
+  - "Over Budget" status when 100%+ utilized
+  - "At Risk" status when 90-99% utilized
+  - "On Track" for resources within budget
+
+### Changed
+- **Budget Calculations** - Now include committed budget from training plans
+  - Previous: Only tracked budgetSpent against annualTrainingBudget
+  - Current: Tracks budgetSpent + committedBudget (from all training plans) against annualTrainingBudget
+  - Provides accurate view of both actual spending and future obligations
+- **Dashboard Metrics** - Budget utilization calculation updated
+  - Now includes committed budget from all training plans
+  - Shows realistic picture of budget allocation across the team
+- **Resource Status Logic** - Enhanced to prioritize budget overruns
+  - "Over Budget" status takes precedence when budget exceeded
+  - "At Risk" shown when approaching budget limit (90%+)
+  - "Behind" status shown for course completion delays
+
+### Technical Details
+- Version bumped to 1.0.10 in both saveToLocalStorage() and exportToJSON()
+- Enhanced calculateDashboardMetrics() to include totalBudgetCommitted
+- Enhanced renderResourcesTable() to show budget status indicators
+- Enhanced viewResourceDetail() to calculate and display comprehensive budget status
+- Enhanced renderWizardStep6() to validate budget and time constraints
+- No breaking changes - fully backward compatible with existing data
+
+### User Benefits
+- **Prevent Budget Overruns** - See warnings before creating plans that exceed budget
+- **Better Planning** - Understand full budget picture including future commitments
+- **At-a-Glance Status** - Quickly identify resources at risk across dashboard
+- **Time Management** - Avoid creating unrealistic training schedules
+- **Data-Driven Decisions** - Make informed choices with complete budget visibility
+
+---
+
 ## [1.0.9] - 2026-01-24
 
 ### Added - Latest AI Models from All Providers
