@@ -7,6 +7,93 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.18] - 2026-01-24
+
+### Fixed - Resources Tab Edit Button Functionality
+
+This release fixes a critical bug where the Edit button for individual resources on the Resources tab did not work.
+
+#### Bug Fix
+
+**Problem Identified:**
+- Edit button in Resources tab table called non-existent function `showEditResourceForm()`
+- Clicking the Edit button resulted in JavaScript error: "showEditResourceForm is not defined"
+- Users unable to edit resource information from the Resources tab table
+- Edit functionality was completely broken for the Resources tab
+
+**Root Cause:**
+- Function name mismatch in renderResourcesList() function (line 3147)
+- Edit button onclick handler called `showEditResourceForm(${resource.id})`
+- Correct function name is `editResource(${resource.id})`
+- Function `showEditResourceForm` never existed in codebase
+
+**Solution Applied:**
+- Changed Edit button onclick handler from `showEditResourceForm(${resource.id})` to `editResource(${resource.id})`
+- Edit button now correctly calls the existing `editResource()` function
+- Function properly opens modal dialog with edit form
+- All resource fields are editable: name, title, department, location, email, calendar, budgets, training hours
+- Save functionality working correctly with `saveResourceEdits()` function
+
+#### Impact
+
+**Before Fix:**
+- ❌ Edit button completely non-functional on Resources tab
+- ❌ JavaScript console error when clicking Edit
+- ❌ No way to edit resources from table view
+- ❌ Users forced to navigate to resource detail view to edit
+
+**After Fix:**
+- ✅ Edit button opens edit modal dialog as expected
+- ✅ All resource fields can be modified
+- ✅ Changes save correctly and persist
+- ✅ Table updates immediately after saving
+- ✅ No JavaScript errors
+- ✅ Consistent editing experience across application
+
+#### Technical Details
+
+**File Changed:**
+- training-plan-manager.html (line 3147)
+
+**Change Made:**
+```javascript
+// Before (broken):
+onclick="event.stopPropagation(); showEditResourceForm(${resource.id})"
+
+// After (fixed):
+onclick="event.stopPropagation(); editResource(${resource.id})"
+```
+
+**Verified:**
+- `editResource()` function exists and is fully functional
+- Modal opens with all current resource data pre-populated
+- All form fields are editable
+- `saveResourceEdits()` function properly saves changes
+- No other instances of `showEditResourceForm` found in codebase
+- Event propagation correctly stopped to prevent row click
+
+### User Experience
+
+**Improved Workflow:**
+- Quick access to edit resource from table view
+- No need to click through to detail view for simple edits
+- Faster resource management
+- Consistent with dashboard edit button behavior
+- Streamlined user experience
+
+### Breaking Changes
+
+None - all changes are backward compatible.
+
+### Migration Notes
+
+- No data migration required
+- Fix is purely functional - corrects broken button
+- All existing features and workflows preserved
+- Edit modal functionality identical to before (now accessible)
+
+---
+
 ## [1.0.17] - 2026-01-24
 
 ### Added - Sortable Dashboard Resources Table

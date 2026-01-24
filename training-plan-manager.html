@@ -1757,7 +1757,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.17',
+        version: '1.0.18',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -3144,7 +3144,7 @@ function renderResourcesList(filteredResources = null) {
                     <strong>${assignedCourses.length}</strong>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); showEditResourceForm(${resource.id})" style="padding: 4px 8px; font-size: 12px;">Edit</button>
+                    <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); editResource(${resource.id})" style="padding: 4px 8px; font-size: 12px;">Edit</button>
                 </td>
             </tr>
         `;
@@ -6945,7 +6945,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.17',
+        version: '1.0.18',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
