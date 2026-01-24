@@ -4,7 +4,7 @@
 
 A powerful, self-contained web application that enables engineering managers to create comprehensive, AI-assisted training plans for their technical team members. Built as a single HTML file with zero dependencies and no backend required.
 
-![Version](https://img.shields.io/badge/version-1.0.14-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.15-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
 

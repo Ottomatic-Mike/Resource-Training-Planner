@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.15] - 2026-01-24
+
+### Fixed - Critical Dashboard Rendering Bug
+
+This release fixes a critical bug introduced in v1.0.14 that prevented the dashboard from rendering.
+
+#### Bug Fix
+- **Dashboard Rendering Error** - Fixed `ReferenceError: budgetTotal is not defined`
+  - Error occurred in `renderResourcesTable()` function at line 2848
+  - Root cause: Variable name mismatch in dashboard resource table rendering
+  - Variables were defined as `trainingBudgetTotal` and `trainingBudgetSpent` but referenced as `budgetTotal` and `budgetSpent`
+  - This prevented the entire dashboard from loading and displaying
+
+#### Technical Details
+- **Location**: renderResourcesTable function (lines 2848, 2850)
+- **Issue**: Incorrect variable names in template literals
+  - Line 2848: Changed `budgetTotal` to `trainingBudgetTotal`
+  - Line 2850: Changed `budgetSpent` to `trainingBudgetSpent`
+- **Impact**: Dashboard now renders correctly with proper budget information display
+- **Testing**: Verified all other uses of `budgetSpent` and `budgetTotal` are correctly scoped
+
+### Breaking Changes
+
+None - all changes are backward compatible.
+
+### User Impact
+
+**Before this release:**
+- ❌ Dashboard tab completely broken and wouldn't render
+- ❌ JavaScript error in browser console
+- ❌ No way to view team overview or metrics
+
+**After this release:**
+- ✅ Dashboard renders correctly
+- ✅ All budget information displays properly
+- ✅ Team overview and metrics fully functional
+
+---
+
 ## [1.0.14] - 2026-01-24
 
 ### Fixed - Search Functionality & Course Discovery

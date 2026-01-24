@@ -1744,7 +1744,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.14',
+        version: '1.0.15',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2845,9 +2845,9 @@ function renderResourcesTable() {
                 <td>${escapeHtml(resource.jobTitle || '')}</td>
                 <td>${escapeHtml(resource.location || '')}</td>
                 <td>
-                    <span style="color: ${budgetColor};">${formatCurrency(totalUsed)} / ${formatCurrency(budgetTotal)}</span>
+                    <span style="color: ${budgetColor};">${formatCurrency(totalUsed)} / ${formatCurrency(trainingBudgetTotal)}</span>
                     ${budgetStatusBadge}
-                    ${committedBudget > 0 ? `<div style="font-size: 11px; color: var(--neutral-600); margin-top: 2px;">Spent: ${formatCurrency(budgetSpent)} | Committed: ${formatCurrency(committedBudget)}</div>` : ''}
+                    ${committedBudget > 0 ? `<div style="font-size: 11px; color: var(--neutral-600); margin-top: 2px;">Spent: ${formatCurrency(trainingBudgetSpent)} | Committed: ${formatCurrency(committedBudget)}</div>` : ''}
                 </td>
                 <td>${courseStatus}</td>
                 <td>${getStatusDot(status)} ${status}</td>
@@ -6823,7 +6823,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.14',
+        version: '1.0.15',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
