@@ -1744,7 +1744,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.15',
+        version: '1.0.16',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2966,69 +2966,100 @@ function renderResourcesList(filteredResources = null) {
         </div>`;
     }
 
-    let html = '<div class="grid-auto">';
+    // Sort resources alphabetically by name
+    const sortedResources = [...resourcesToRender].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    );
 
-    resourcesToRender.forEach(resource => {
-        const budgetUsed = resource.budgetSpent || 0;
-        const budgetTotal = resource.annualTrainingBudget || 0;
-        const budgetPercent = budgetTotal > 0 ? Math.round((budgetUsed / budgetTotal) * 100) : 0;
+    let html = '<div class="table-container"><table><thead><tr>';
+    html += '<th>Name</th>';
+    html += '<th>Job Title</th>';
+    html += '<th>Location</th>';
+    html += '<th>Department</th>';
+    html += '<th>Training Budget</th>';
+    html += '<th>Travel Budget</th>';
+    html += '<th>Competencies</th>';
+    html += '<th>Courses</th>';
+    html += '<th>Actions</th>';
+    html += '</tr></thead><tbody>';
+
+    sortedResources.forEach(resource => {
+        // Training budget calculation
+        const trainingBudgetSpent = resource.budgetSpent || 0;
+        const trainingBudgetTotal = resource.annualTrainingBudget || 0;
+        const resourcePlans = trainingPlans.filter(p => p.resourceId === resource.id);
+        const committedTrainingBudget = resourcePlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
+        const totalTrainingUsed = trainingBudgetSpent + committedTrainingBudget;
+        const trainingBudgetPercent = trainingBudgetTotal > 0 ? Math.round((totalTrainingUsed / trainingBudgetTotal) * 100) : 0;
+
+        // Travel budget calculation
+        const travelBudgetSpent = resource.travelBudgetSpent || 0;
+        const travelBudgetTotal = resource.annualTravelBudget || 0;
+        const committedTravelBudget = resourcePlans.reduce((sum, plan) => sum + (plan.totalTravelCost || 0), 0);
+        const totalTravelUsed = travelBudgetSpent + committedTravelBudget;
+        const travelBudgetPercent = travelBudgetTotal > 0 ? Math.round((totalTravelUsed / travelBudgetTotal) * 100) : 0;
+
+        // Budget status colors
+        let trainingBudgetColor = '#22c55e';
+        if (trainingBudgetPercent >= 100) trainingBudgetColor = '#ef4444';
+        else if (trainingBudgetPercent >= 80) trainingBudgetColor = '#f59e0b';
+
+        let travelBudgetColor = '#22c55e';
+        if (travelBudgetPercent >= 100) travelBudgetColor = '#ef4444';
+        else if (travelBudgetPercent >= 80) travelBudgetColor = '#f59e0b';
 
         const currentCompetencies = resource.currentCompetencies || [];
         const assignedCourses = resource.assignedCourses || [];
 
-        // Get calendar name
-        let calendarBadge = '';
-        if (resource.regionalCalendarId) {
-            const calendar = regionalCalendars.find(c => c.id === resource.regionalCalendarId);
-            if (calendar) {
-                calendarBadge = `<span class="badge badge-info" style="font-size: 11px;">📅 ${escapeHtml(calendar.region)}</span>`;
-            }
-        }
+        // In-person capability indicator
+        const inPersonBadge = resource.canAttendInPerson
+            ? '<span class="badge badge-success" style="font-size: 10px;">✓ In-Person</span>'
+            : '<span class="badge badge-secondary" style="font-size: 10px;">Remote Only</span>';
 
         html += `
-            <div class="card" onclick="viewResourceDetail(${resource.id})" style="cursor: pointer;">
-                <div class="card-header">
-                    <div>
-                        <h3 class="card-title">${escapeHtml(resource.name)}</h3>
-                        <div class="card-subtitle">${escapeHtml(resource.jobTitle || 'No title')}</div>
+            <tr onclick="viewResourceDetail(${resource.id})" style="cursor: pointer;">
+                <td>
+                    <div><strong>${escapeHtml(resource.name)}</strong></div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${escapeHtml(resource.email || '')}</div>
+                </td>
+                <td>${escapeHtml(resource.jobTitle || '—')}</td>
+                <td>
+                    <div>${escapeHtml(resource.location || '—')}</div>
+                    <div style="margin-top: 4px;">${inPersonBadge}</div>
+                </td>
+                <td>${escapeHtml(resource.department || '—')}</td>
+                <td>
+                    <div style="color: ${trainingBudgetColor};">
+                        <strong>${formatCurrency(totalTrainingUsed)}</strong> / ${formatCurrency(trainingBudgetTotal)}
                     </div>
-                </div>
-                <div class="card-body">
-                    <div style="margin-bottom: 12px;">
-                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Location</div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <strong>${escapeHtml(resource.location || 'Not specified')}</strong>
-                            ${calendarBadge}
-                        </div>
+                    <div class="progress-bar" style="margin-top: 4px; height: 6px;">
+                        <div class="progress-fill" style="width: ${Math.min(trainingBudgetPercent, 100)}%; background-color: ${trainingBudgetColor};"></div>
                     </div>
-
-                    <div style="margin-bottom: 12px;">
-                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Budget</div>
-                        <div class="progress-labeled">
-                            <div class="progress-bar" style="flex: 1;">
-                                <div class="progress-fill" style="width: ${budgetPercent}%"></div>
-                            </div>
-                            <div class="progress-label">${budgetPercent}%</div>
-                        </div>
-                        <div style="font-size: 12px; margin-top: 4px;">${formatCurrency(budgetUsed)} / ${formatCurrency(budgetTotal)}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${trainingBudgetPercent}% utilized</div>
+                </td>
+                <td>
+                    <div style="color: ${travelBudgetColor};">
+                        <strong>${formatCurrency(totalTravelUsed)}</strong> / ${formatCurrency(travelBudgetTotal)}
                     </div>
-
-                    <div style="display: flex; gap: 20px; font-size: 13px;">
-                        <div>
-                            <div style="color: var(--text-muted);">Competencies</div>
-                            <div><strong>${currentCompetencies.length}</strong></div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-muted);">Courses</div>
-                            <div><strong>${assignedCourses.length}</strong></div>
-                        </div>
+                    <div class="progress-bar" style="margin-top: 4px; height: 6px;">
+                        <div class="progress-fill" style="width: ${Math.min(travelBudgetPercent, 100)}%; background-color: ${travelBudgetColor};"></div>
                     </div>
-                </div>
-            </div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${travelBudgetPercent}% utilized</div>
+                </td>
+                <td style="text-align: center;">
+                    <strong>${currentCompetencies.length}</strong>
+                </td>
+                <td style="text-align: center;">
+                    <strong>${assignedCourses.length}</strong>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); showEditResourceForm(${resource.id})" style="padding: 4px 8px; font-size: 12px;">Edit</button>
+                </td>
+            </tr>
         `;
     });
 
-    html += '</div>';
+    html += '</tbody></table></div>';
     return html;
 }
 
@@ -6823,7 +6854,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.15',
+        version: '1.0.16',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

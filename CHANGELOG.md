@@ -7,6 +7,106 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.16] - 2026-01-24
+
+### Changed - Resources Table View with Alphabetical Sorting
+
+This release transforms the resources display from a card/tile grid layout to a clean, organized table format with alphabetical sorting for improved navigation and usability.
+
+#### Resources Display Improvements
+
+**Previous Design Issues:**
+- Resources displayed as cards in a grid layout (tile format)
+- No alphabetical ordering - resources appeared in arbitrary order
+- Difficult to scan and locate specific resources
+- Information spread across multiple card elements
+- Inefficient use of screen space for lists
+
+**New Table-Based Design:**
+- **Alphabetical Sorting** - All resources automatically sorted A-Z by name
+  - Case-insensitive alphabetical ordering
+  - Consistent, predictable navigation
+  - Easy to locate specific team members
+
+- **Clean Row Format** - Professional table layout with clear columns:
+  - **Name** - Full name with email address below
+  - **Job Title** - Role/position
+  - **Location** - Geographic location with in-person capability badge
+  - **Department** - Organizational department
+  - **Training Budget** - Budget utilization with progress bar and percentage
+  - **Travel Budget** - Travel budget utilization with progress bar and percentage
+  - **Competencies** - Count of tracked competencies
+  - **Courses** - Count of assigned courses
+  - **Actions** - Quick edit button
+
+- **Enhanced Budget Visualization**
+  - Inline progress bars for both training and travel budgets
+  - Color-coded budget status (green < 80%, orange 80-99%, red ≥ 100%)
+  - Shows spent + committed vs. total budget
+  - Percentage utilization displayed
+  - Easy to identify budget issues at a glance
+
+- **In-Person Training Indicators**
+  - Visual badge showing in-person capability
+  - "✓ In-Person" badge for resources who can attend in-person training
+  - "Remote Only" badge for remote-only resources
+  - Helps managers plan training logistics
+
+- **Improved Information Density**
+  - All key information visible without clicking
+  - Efficient use of screen space
+  - Better for teams with many resources
+  - Easier to compare resources side-by-side
+
+- **Quick Actions**
+  - Edit button directly in table row
+  - Click anywhere on row to view full resource details
+  - Streamlined workflow
+
+#### User Experience Benefits
+
+**For Managers:**
+- Find resources quickly with alphabetical ordering
+- Compare budget utilization across team at a glance
+- Identify resources nearing budget limits
+- See complete team overview on one screen
+- Better decision-making with comprehensive view
+
+**For Navigation:**
+- Predictable alphabetical order
+- Faster scanning of resource lists
+- Easy filtering combined with search
+- Clear visual hierarchy
+
+**For Scalability:**
+- Handles large teams better than card layout
+- More resources visible per screen
+- Less scrolling required
+- Better for printing/exporting
+
+#### Technical Implementation
+
+- Complete redesign of `renderResourcesList()` function
+- Added automatic alphabetical sorting using `localeCompare()`
+- Replaced grid-auto card layout with table-container table
+- Maintained all existing functionality (search, filtering, details view)
+- Consistent styling with dashboard resource table
+- Responsive design maintained
+- No breaking changes to data structure
+
+### Breaking Changes
+
+None - all changes are backward compatible. Existing data, search, filters, and detail views work exactly as before.
+
+### Migration Notes
+
+- No migration required - purely visual/UX improvement
+- All existing features and workflows preserved
+- Search and filter functionality unchanged
+- Resource detail view unchanged
+
+---
+
 ## [1.0.15] - 2026-01-24
 
 ### Fixed - Critical Dashboard Rendering Bug
