@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.4] - 2024-01-24
+
+### Added
+- **Resource-Calendar Correlation System** - Comprehensive relationship management between resources and calendars
+  - Calendar dropdown in "Add Resource" form for selecting regional calendar
+  - Calendar dropdown in "Edit Resource" form for changing calendar assignment
+  - Calendar display in resource detail view with clickable link to calendar
+  - Resource list in calendar detail view showing all assigned resources
+  - Visual calendar badge indicator on resource cards showing region
+  - Cross-navigation between resources and calendars with automatic tab switching
+  - "No Calendar" option for resources without calendar assignment
+
+### Changed
+- **Resource forms** - Added "Regional Calendar" field with dropdown of available calendars
+- **Resource detail view** - Now displays assigned calendar with clickable link to view calendar details
+- **Resource cards** - Added calendar region badge next to location for quick identification
+- **Calendar detail view** - Enhanced to show table of all resources using that calendar
+- **Cross-tab navigation** - Resources can navigate to their calendar, calendars can navigate to their resources
+
+### Fixed
+- **Calendar correlation** - Resources and calendars now have clear, bidirectional relationship visibility
+- **Calendar selection** - Easy assignment of calendars when adding or editing resources
+- **Resource visibility** - Clear indication of which resources use each calendar
+
+---
+
 ## [1.0.3] - 2024-01-24
 
 ### Added
@@ -283,6 +309,7 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 
 | Version | Date | Type | Description |
 |---------|------|------|-------------|
+| 1.0.4 | 2024-01-24 | Feature | Resource-calendar correlation system |
 | 1.0.3 | 2024-01-24 | Feature | Category/subcategory management system |
 | 1.0.2 | 2024-01-24 | Enhancement | Competency category modularity with dropdowns |
 | 1.0.1 | 2024-01-24 | Bug Fix | Fixed resource editing functionality |
@@ -291,6 +318,24 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 ---
 
 ## Upgrade Guide
+
+### From v1.0.3 → v1.0.4
+
+**What's New:**
+- Calendar dropdown in Add/Edit Resource forms
+- Calendar displayed in resource detail view with clickable link
+- Calendar badge on resource cards showing region
+- Resource list in calendar detail view
+- Cross-navigation between resources and calendars
+
+**How to Upgrade:**
+1. Replace `training-plan-manager.html` with the new version
+2. Open in browser - your data is preserved in localStorage
+3. Existing resource-calendar relationships remain unchanged
+4. Add a resource or edit an existing one to see the calendar dropdown
+5. View any calendar to see the list of resources using it
+
+**No data migration required** - All existing resource and calendar data remains fully compatible.
 
 ### From v1.0.2 → v1.0.3
 

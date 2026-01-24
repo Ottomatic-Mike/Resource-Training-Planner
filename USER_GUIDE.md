@@ -144,7 +144,14 @@ Timeline of recent changes:
    - Department
    - Location
    - Email
+   - **Regional Calendar** - Select the holiday calendar for this resource's location
 4. Click **"Add Resource"**
+
+**Calendar Selection:**
+- Choose from available regional calendars (US Federal, UK Bank Holidays, etc.)
+- Select "No Calendar" if holidays don't apply to this resource
+- The calendar determines which holidays will affect training schedule planning
+- Calendar can be changed later when editing the resource
 
 ### Viewing Resource Details
 
@@ -153,6 +160,7 @@ Click any resource card to open a modal with:
 **Basic Information:**
 - Name, title, department
 - Location, email
+- **Regional Calendar** - Displays assigned calendar with clickable link to view calendar details
 - Hire date
 
 **Budget:**
@@ -175,6 +183,11 @@ Click any resource card to open a modal with:
 - Edit resource details
 - Delete resource (with confirmation)
 
+**Calendar Navigation:**
+- Click the calendar name to navigate to the Calendars tab and view full calendar details
+- See all other resources using the same calendar
+- Review holidays that affect this resource's training schedule
+
 ### Editing a Resource
 
 1. Click any resource card to view details
@@ -182,6 +195,7 @@ Click any resource card to open a modal with:
 3. Modify any field in the edit form:
    - Name, job title, department
    - Location and email
+   - **Regional Calendar** - Change the assigned holiday calendar
    - Annual training budget
    - **Budget spent** (track actual spending)
    - Weekly training hours
@@ -189,6 +203,7 @@ Click any resource card to open a modal with:
 
 **What You Can Edit:**
 - All basic information fields
+- Regional calendar assignment
 - Budget allocation and spending
 - Training time availability
 - Contact information
@@ -196,6 +211,7 @@ Click any resource card to open a modal with:
 **Important Notes:**
 - Changing **Annual Training Budget** affects remaining budget calculations
 - Changing **Weekly Training Hours** affects future plan scheduling
+- Changing **Regional Calendar** affects holiday availability for training schedules
 - **Budget Spent** field lets you track actual expenditures vs. planned budget
 - Last modified timestamp is automatically updated
 
@@ -843,12 +859,32 @@ Within a calendar:
 - "First Monday of September" (relative)
 - "Last Thursday of November"
 
+### Viewing Calendar Details
+
+Click any calendar to see:
+
+**Calendar Information:**
+- Name, region, year
+- Number of holidays
+- Description
+
+**Assigned Resources:**
+- Table showing all resources using this calendar
+- Resource name, title, and location
+- Quick navigation to resource details
+- Count of resources using this calendar
+
+**Navigation:**
+- Click "View" on any resource to navigate to Resources tab and see full resource details
+- Review which team members are affected by holidays in this calendar
+
 ### Using Calendars
 
 **Assignment:**
 - Each resource can have one regional calendar
-- Set in resource profile
+- Set in resource profile when adding or editing a resource
 - Used in schedule optimization
+- Select from "Regional Calendar" dropdown in resource forms
 
 **Cloning:**
 - Copy a calendar for a new year
