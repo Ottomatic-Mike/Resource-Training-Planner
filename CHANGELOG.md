@@ -7,6 +7,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.25] - 2026-01-24
+
+### Fixed - Critical Application Initialization Error
+
+**Critical Error Fixed:**
+Application would not render at all, showing error:
+```
+Uncaught (in promise) TypeError: Cannot set properties of null (setting 'innerHTML')
+    at promptForMasterPassword (training-plan-manager.html:1598:27)
+```
+
+**Root Cause:**
+The `promptForMasterPassword()` function (called during app initialization when security is enabled) was referencing incorrect HTML element IDs:
+- Looking for: `modalOverlay`, `modalContent`, `modalHeader`
+- Actually exists: `generalModal`, `generalModalInner`, no `modalHeader` ID
+
+The modal HTML structure uses:
+- `id="generalModal"` for the overlay (class: `modal-overlay`)
+- `id="generalModalInner"` for the modal content (class: `modal`)
+- `class="modal-header"` (no ID) for the header
+- `id="modalBody"` and `id="modalFooter"` for body/footer
+
+**Changes Made:**
+
+1. **Fixed Modal Element References** (Line 1592-1604):
+   - Changed `modalOverlay` → `generalModal`
+   - Changed `modalContent` → `generalModalInner`
+   - Removed reference to non-existent `modalHeader`
+   - Instead, hide close button and title using selectors
+
+2. **Updated Modal Manipulation**:
+   ```javascript
+   // Before (broken):
+   const modal = document.getElementById('modalOverlay');
+   const modalContent = document.getElementById('modalContent');
+   const modalHeader = document.getElementById('modalHeader');
+   modalHeader.innerHTML = '';
+
+   // After (fixed):
+   const modal = document.getElementById('generalModal');
+   const modalContent = document.getElementById('generalModalInner');
+   const closeButton = modal.querySelector('.modal-close');
+   const modalTitle = document.getElementById('modalTitle');
+   if (closeButton) closeButton.style.display = 'none';
+   if (modalTitle) modalTitle.style.display = 'none';
+   ```
+
+3. **Restore Modal State After Unlock** (Line 1648-1653):
+   - Added code to restore close button and title visibility when modal closes
+   - Ensures modal works normally after security prompt
+   - Applied to both `unlockApplication()` and `resetSecurity()` functions
+
+**Impact:**
+- ✅ Application now initializes correctly with security enabled
+- ✅ Master password prompt displays properly
+- ✅ Modal state properly restored after unlock/reset
+- ✅ No breaking changes for users without security enabled
+- ✅ Consistent modal behavior throughout application
+
+**Testing:**
+- Verified app loads with security disabled (normal flow)
+- Verified app loads with security enabled (password prompt)
+- Verified password unlock restores modal functionality
+- Verified reset security restores modal functionality
+- Verified all modal-based features work after unlock
+
+**Files Modified:**
+- `training-plan-manager.html` - Lines 1592-1604, 1648-1653, 1687-1695
+
+---
+
 ## [1.0.24] - 2026-01-24
 
 ### Fixed - Multi-Provider AI API Support & CORS Proxy Configuration

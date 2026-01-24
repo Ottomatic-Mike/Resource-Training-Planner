@@ -1589,17 +1589,21 @@ async function promptForMasterPassword() {
     `;
 
     // Create a non-closeable modal for password prompt
-    const modal = document.getElementById('modalOverlay');
-    const modalContent = document.getElementById('modalContent');
-    const modalHeader = document.getElementById('modalHeader');
+    const modal = document.getElementById('generalModal');
+    const modalContent = document.getElementById('generalModalInner');
     const modalBody = document.getElementById('modalBody');
     const modalFooter = document.getElementById('modalFooter');
 
-    modalHeader.innerHTML = '';
+    // Hide the close button and title for security prompt
+    const closeButton = modal.querySelector('.modal-close');
+    const modalTitle = document.getElementById('modalTitle');
+    if (closeButton) closeButton.style.display = 'none';
+    if (modalTitle) modalTitle.style.display = 'none';
+
     modalBody.innerHTML = html;
     modalFooter.innerHTML = '';
     modal.classList.add('active');
-    modalContent.className = 'modal-content modal-medium';
+    modalContent.className = 'modal modal-medium';
 
     // Focus password input
     setTimeout(() => {
@@ -1641,6 +1645,13 @@ async function unlockApplication() {
     const result = await verifyAndDecryptApiKey(password);
 
     if (result.success) {
+        // Restore close button before closing modal
+        const modal = document.getElementById('generalModal');
+        const closeButton = modal.querySelector('.modal-close');
+        const modalTitle = document.getElementById('modalTitle');
+        if (closeButton) closeButton.style.display = '';
+        if (modalTitle) modalTitle.style.display = '';
+
         // Close modal
         closeModal();
 
@@ -1675,6 +1686,13 @@ function resetSecurity() {
     if (confirmed) {
         // Disable security
         disableSecurity();
+
+        // Restore close button before closing modal
+        const modal = document.getElementById('generalModal');
+        const closeButton = modal.querySelector('.modal-close');
+        const modalTitle = document.getElementById('modalTitle');
+        if (closeButton) closeButton.style.display = '';
+        if (modalTitle) modalTitle.style.display = '';
 
         // Close modal
         closeModal();
@@ -1766,7 +1784,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.24',
+        version: '1.0.25',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -7566,7 +7584,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.24',
+        version: '1.0.25',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
