@@ -1784,7 +1784,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.25',
+        version: '1.0.26',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2375,7 +2375,7 @@ function openSettings() {
             <div class="form-group">
                 <label class="form-label">CORS Proxy <span class="badge badge-info" style="font-size: 10px; margin-left: 8px;">Optional</span></label>
                 <input type="text" class="form-input" id="settingCorsProxy" value="${escapeHtml(settings.corsProxy || '')}" placeholder="https://cors-anywhere.herokuapp.com/">
-                <div class="form-help"><strong>Required for browser-based API calls.</strong> AI providers block direct browser requests due to CORS security. Enter a CORS proxy URL (e.g., https://cors-anywhere.herokuapp.com/) or leave blank if running via local server. See API Integration guide for setup instructions.</div>
+                <div class="form-help"><strong>Smart CORS Handling:</strong> App tries direct API calls first. If blocked by browser CORS restrictions, automatically retries via this proxy (if configured). Leave blank when running from a web server. Enter proxy URL for local file usage. Example: https://cors-anywhere.herokuapp.com/</div>
             </div>
         </div>
 
@@ -7584,7 +7584,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.25',
+        version: '1.0.26',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -7842,11 +7842,11 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
         throw new Error(`Unsupported AI provider: ${provider}`);
     }
 
-    // Apply CORS proxy if configured
-    if (corsProxy && corsProxy.trim()) {
-        apiUrl = corsProxy + apiUrl;
-    }
+    // Store original URL for potential retry
+    const originalApiUrl = apiUrl;
+    const hasCorsProxy = corsProxy && corsProxy.trim();
 
+    // Try direct API call first (CORS proxy is optional)
     try {
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -7884,15 +7884,84 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
         }
 
     } catch (error) {
-        // Handle network errors (including CORS)
-        if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
-            const providerName = provider.toUpperCase();
-            const corsHelpText = corsProxy ?
-                `\n\nYour CORS proxy (${corsProxy}) may be unavailable or incorrectly configured.` :
-                `\n\nSolution: Configure a CORS proxy in Settings (Advanced). Example: https://cors-anywhere.herokuapp.com/`;
+        // Check if this is a CORS error
+        const isCorsError = error.message === 'Failed to fetch' || error.name === 'TypeError';
 
-            throw new Error(`Cannot connect to ${providerName} API.${corsHelpText}\n\nPossible causes:\n• CORS restrictions (browser blocks direct API calls)\n• Network/firewall blocking the request\n• Invalid API key or endpoint\n• CORS proxy not configured\n\nFor details, see the API Integration guide.`);
+        // If CORS error and proxy is configured, retry with proxy
+        if (isCorsError && hasCorsProxy) {
+            console.log(`Direct API call failed due to CORS. Retrying with proxy: ${corsProxy}`);
+
+            try {
+                // Retry with CORS proxy
+                const proxiedUrl = corsProxy + originalApiUrl;
+                const response = await fetch(proxiedUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    let errorMessage = `AI API request failed via proxy (${response.status})`;
+                    try {
+                        const error = await response.json();
+                        if (provider === 'anthropic') {
+                            errorMessage = error.error?.message || errorMessage;
+                        } else if (provider === 'openai') {
+                            errorMessage = error.error?.message || errorMessage;
+                        } else if (provider === 'google') {
+                            errorMessage = error.error?.message || errorMessage;
+                        }
+                    } catch (e) {
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+
+                // Extract text based on provider response format
+                if (provider === 'anthropic') {
+                    return data.content[0].text;
+                } else if (provider === 'openai') {
+                    return data.choices[0].message.content;
+                } else if (provider === 'google') {
+                    return data.candidates[0].content.parts[0].text;
+                }
+
+            } catch (proxyError) {
+                // Proxy call also failed
+                throw new Error(`CORS proxy failed: ${proxyError.message}\n\nYour configured proxy (${corsProxy}) may be unavailable. Try a different proxy or contact support.`);
+            }
         }
+
+        // If CORS error but no proxy configured, provide helpful guidance
+        if (isCorsError && !hasCorsProxy) {
+            const providerName = provider.toUpperCase();
+            throw new Error(`Cannot connect to ${providerName} API due to browser CORS restrictions.
+
+SOLUTION OPTIONS:
+
+1. RECOMMENDED: Configure CORS Proxy (Easiest)
+   • Go to Settings → Advanced → CORS Proxy
+   • Enter: https://cors-anywhere.herokuapp.com/
+   • Save and retry
+   • This routes your request through a proxy that handles CORS
+
+2. Run via Local Web Server
+   • Install: npm install -g http-server
+   • Run: http-server -p 8080
+   • Open: http://localhost:8080/training-plan-manager.html
+   • API calls work directly (no CORS proxy needed)
+
+3. Deploy to Web Server
+   • Upload file to any web server
+   • Access via https:// URL
+   • API calls work directly (no CORS proxy needed)
+
+Note: CORS is a browser security feature that blocks API calls from local files. Using a CORS proxy or web server resolves this.`);
+        }
+
+        // Re-throw other errors
         throw error;
     }
 }
