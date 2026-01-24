@@ -466,6 +466,15 @@ th {
     border-bottom: 2px solid var(--border-light);
 }
 
+th[onclick] {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+th[onclick]:hover {
+    background: var(--neutral-100);
+    color: var(--primary-600);
+}
+
 td {
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-light);
@@ -1280,6 +1289,10 @@ let wizardState = {
     data: {}
 };
 
+// Dashboard table sort state
+let dashboardSortColumn = null;
+let dashboardSortDirection = 'asc';
+
 // === SECURITY & ENCRYPTION ===
 // Web Crypto API functions for secure API key storage
 
@@ -1744,7 +1757,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.16',
+        version: '1.0.17',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2795,24 +2808,16 @@ function renderResourcesTable() {
         </div>`;
     }
 
-    let html = `
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Title</th>
-                        <th>Location</th>
-                        <th>Budget</th>
-                        <th>Courses</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
+    // Helper function to get sort indicator
+    const getSortIndicator = (column) => {
+        if (dashboardSortColumn === column) {
+            return dashboardSortDirection === 'asc' ? ' ▲' : ' ▼';
+        }
+        return '';
+    };
 
-    resources.slice(0, 10).forEach(resource => {
-        // Calculate training budget (for table display)
+    // Prepare resource data with computed values for sorting
+    const resourceData = resources.map(resource => {
         const trainingBudgetSpent = resource.budgetSpent || 0;
         const trainingBudgetTotal = resource.annualTrainingBudget || 0;
         const resourcePlans = trainingPlans.filter(p => p.resourceId === resource.id);
@@ -2820,6 +2825,86 @@ function renderResourcesTable() {
         const totalUsed = trainingBudgetSpent + committedBudget;
         const budgetPercent = trainingBudgetTotal > 0 ? Math.round((totalUsed / trainingBudgetTotal) * 100) : 0;
 
+        const assignedCourses = resource.assignedCourses || [];
+        const completedCourses = assignedCourses.filter(c => c.status === 'Completed').length;
+
+        let status = 'On Track';
+        if (budgetPercent >= 100) status = 'Over Budget';
+        else if (budgetPercent > 90) status = 'At Risk';
+        else if (completedCourses < assignedCourses.length * 0.5 && assignedCourses.length > 0) status = 'Behind';
+
+        return {
+            resource,
+            trainingBudgetSpent,
+            trainingBudgetTotal,
+            committedBudget,
+            totalUsed,
+            budgetPercent,
+            assignedCourses,
+            completedCourses,
+            status
+        };
+    });
+
+    // Sort resources based on current sort state
+    if (dashboardSortColumn) {
+        resourceData.sort((a, b) => {
+            let aVal, bVal;
+
+            switch (dashboardSortColumn) {
+                case 'name':
+                    aVal = a.resource.name.toLowerCase();
+                    bVal = b.resource.name.toLowerCase();
+                    break;
+                case 'title':
+                    aVal = (a.resource.jobTitle || '').toLowerCase();
+                    bVal = (b.resource.jobTitle || '').toLowerCase();
+                    break;
+                case 'location':
+                    aVal = (a.resource.location || '').toLowerCase();
+                    bVal = (b.resource.location || '').toLowerCase();
+                    break;
+                case 'budget':
+                    aVal = a.budgetPercent;
+                    bVal = b.budgetPercent;
+                    break;
+                case 'courses':
+                    aVal = a.assignedCourses.length;
+                    bVal = b.assignedCourses.length;
+                    break;
+                case 'status':
+                    // Sort by status priority: Over Budget, At Risk, Behind, On Track
+                    const statusOrder = { 'Over Budget': 0, 'At Risk': 1, 'Behind': 2, 'On Track': 3 };
+                    aVal = statusOrder[a.status];
+                    bVal = statusOrder[b.status];
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aVal < bVal) return dashboardSortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return dashboardSortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
+    let html = `
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortDashboardTable('name')" style="cursor: pointer; user-select: none;">Name${getSortIndicator('name')}</th>
+                        <th onclick="sortDashboardTable('title')" style="cursor: pointer; user-select: none;">Title${getSortIndicator('title')}</th>
+                        <th onclick="sortDashboardTable('location')" style="cursor: pointer; user-select: none;">Location${getSortIndicator('location')}</th>
+                        <th onclick="sortDashboardTable('budget')" style="cursor: pointer; user-select: none;">Budget${getSortIndicator('budget')}</th>
+                        <th onclick="sortDashboardTable('courses')" style="cursor: pointer; user-select: none;">Courses${getSortIndicator('courses')}</th>
+                        <th onclick="sortDashboardTable('status')" style="cursor: pointer; user-select: none;">Status${getSortIndicator('status')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    resourceData.slice(0, 10).forEach(({ resource, trainingBudgetSpent, trainingBudgetTotal, committedBudget, totalUsed, budgetPercent, assignedCourses, completedCourses, status }) => {
         let budgetStatusBadge = '';
         let budgetColor = '#22c55e';
         if (budgetPercent >= 100) {
@@ -2830,14 +2915,7 @@ function renderResourcesTable() {
             budgetColor = '#f59e0b';
         }
 
-        const assignedCourses = resource.assignedCourses || [];
-        const completedCourses = assignedCourses.filter(c => c.status === 'Completed').length;
         const courseStatus = `${completedCourses} / ${assignedCourses.length}`;
-
-        let status = 'On Track';
-        if (budgetPercent >= 100) status = 'Over Budget';
-        else if (budgetPercent > 90) status = 'At Risk';
-        else if (completedCourses < assignedCourses.length * 0.5 && assignedCourses.length > 0) status = 'Behind';
 
         html += `
             <tr onclick="viewResourceDetail(${resource.id})" style="cursor: pointer;">
@@ -2864,6 +2942,19 @@ function renderResourcesTable() {
     }
 
     return html;
+}
+
+function sortDashboardTable(column) {
+    // If clicking the same column, toggle direction; otherwise, set to ascending
+    if (dashboardSortColumn === column) {
+        dashboardSortDirection = dashboardSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        dashboardSortColumn = column;
+        dashboardSortDirection = 'asc';
+    }
+
+    // Re-render the dashboard to reflect the new sort
+    renderDashboard();
 }
 
 function renderUpcomingDeadlines() {
@@ -6854,7 +6945,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.16',
+        version: '1.0.17',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

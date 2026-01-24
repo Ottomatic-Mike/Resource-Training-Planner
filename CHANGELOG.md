@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.17] - 2026-01-24
+
+### Added - Sortable Dashboard Resources Table
+
+This release adds full sorting capability to the "Resources at a Glance" table on the Dashboard tab, allowing managers to sort by any column with appropriate field-specific sorting rules.
+
+#### Sortable Table Features
+
+**Interactive Column Headers:**
+- All column headers are now clickable for sorting
+- Visual indicators show current sort column and direction (▲ ascending, ▼ descending)
+- Hover effect highlights sortable headers
+- Smooth transitions and visual feedback
+- User-friendly cursor changes to indicate clickability
+
+**Smart Sorting by Column Type:**
+
+1. **Name** - Alphabetical sorting (case-insensitive, A-Z / Z-A)
+2. **Title** - Alphabetical sorting (case-insensitive, handles empty titles)
+3. **Location** - Alphabetical sorting (case-insensitive, handles empty locations)
+4. **Budget** - Numeric sorting by utilization percentage (0% to 100%+)
+5. **Courses** - Numeric sorting by count (low to high / high to low)
+6. **Status** - Priority-based sorting (Over Budget > At Risk > Behind > On Track)
+
+**Sorting Behavior:**
+- First click: Sort ascending
+- Second click on same column: Toggle to descending
+- Click different column: Reset to ascending for new column
+- Sort state preserved while viewing dashboard
+- Visual feedback with arrow indicators
+- Smooth, instant sorting with no page reload
+
+**Visual Enhancements:**
+- Clickable headers show hover effect with color change
+- Cursor changes to pointer on sortable columns
+- Sort direction arrows clearly indicate current state
+- Color-coded budget status remains visible while sorted
+- Clean, professional appearance maintained
+
+#### User Experience Benefits
+
+**For Managers:**
+- Quickly identify resources with budget issues (sort by Budget)
+- Find resources by name without scrolling (sort by Name)
+- Compare workload distribution (sort by Courses)
+- Prioritize interventions (sort by Status)
+- Analyze by location or department
+- Flexible data exploration without losing context
+
+**For Decision Making:**
+- Spot trends and patterns at a glance
+- Identify outliers quickly (highest/lowest in any category)
+- Compare resources side-by-side
+- Make data-driven resource allocation decisions
+- Dashboard becomes more powerful analytical tool
+
+#### Technical Implementation
+
+**State Management:**
+- Added `dashboardSortColumn` state variable (tracks current sort column)
+- Added `dashboardSortDirection` state variable ('asc' or 'desc')
+- State persists during dashboard session
+- Resets when navigating away from dashboard
+
+**Sorting Algorithm:**
+- Pre-computes all values needed for sorting
+- Efficient in-memory sorting of resource data
+- Handles null/undefined values gracefully
+- Type-specific comparison logic for each column
+- Maintains stable sort
+
+**CSS Enhancements:**
+- Added `th[onclick]` selector for sortable header styling
+- Hover effects with smooth transitions (0.2s ease)
+- Color changes to primary color on hover
+- User-select: none prevents text selection
+- Consistent with application design system
+
+### Breaking Changes
+
+None - all changes are backward compatible.
+
+### Migration Notes
+
+- No data migration required
+- Sort state is session-only (not persisted to localStorage)
+- Default view remains unsorted until user clicks a header
+- All existing dashboard features work exactly as before
+
+---
+
 ## [1.0.16] - 2026-01-24
 
 ### Changed - Resources Table View with Alphabetical Sorting
