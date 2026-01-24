@@ -7,6 +7,164 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.11] - 2026-01-24
+
+### Added - Secure API Key Encryption
+
+This release implements industry-standard encryption for API key storage, protecting your sensitive credentials with AES-256 encryption and a master password.
+
+#### Security Features
+- **Master Password Protection** - Create a master password to encrypt your API key
+  - Master password never stored anywhere
+  - Required on each application launch to decrypt API key
+  - Password protected with PBKDF2 key derivation (100,000 iterations)
+  - Prevents unauthorized access even if localStorage is compromised
+- **AES-256-GCM Encryption** - Military-grade encryption for API keys
+  - API key encrypted using Web Crypto API (native browser security)
+  - Unique initialization vector (IV) for each encryption
+  - Random salt for password derivation
+  - Industry-standard encryption algorithm
+- **In-Memory Only Decryption** - Maximum security
+  - Decrypted API key stored only in memory (never persisted)
+  - API key automatically cleared when browser closes
+  - No plain-text storage of API keys when security enabled
+- **Password Prompt on Launch** - Secure access control
+  - Application prompts for master password before loading
+  - Cannot access application without correct password
+  - Clean, user-friendly unlock interface
+  - Security information displayed during unlock
+
+#### Settings Security Section
+- **Security Status Dashboard** - Clear visibility of encryption status
+  - Shows whether security is enabled or disabled
+  - Visual indicators (✓ Encrypted badge) on API key field
+  - One-click enable/disable security
+- **Enable Security** - Simple setup workflow
+  - Enter API key and create master password (8+ characters)
+  - Automatic encryption with password confirmation
+  - Immediate protection activation
+- **Change Master Password** - Update password anytime
+  - Verify current password before change
+  - Set new password with confirmation
+  - API key automatically re-encrypted with new password
+- **Disable Security** - Optional return to plain text
+  - Warning dialog explains implications
+  - Decrypts API key back to plain text storage
+  - Requires explicit confirmation
+
+#### Password Management
+- **Password Reset** - Recovery option if password forgotten
+  - Available during unlock prompt
+  - Warns that API key will be permanently deleted
+  - Requires confirmation before proceeding
+  - User must re-enter API key after reset
+- **Security Best Practices** - User guidance
+  - Minimum 8 character password requirement
+  - Password strength not enforced (user choice)
+  - Clear warnings about password loss consequences
+  - Recommendation to enable security in settings
+
+#### Technical Implementation
+- **Web Crypto API** - Browser-native cryptography
+  - `crypto.subtle.encrypt()` for AES-GCM encryption
+  - `crypto.subtle.deriveKey()` for PBKDF2 key derivation
+  - `crypto.subtle.digest()` for password hashing (SHA-256)
+  - No third-party cryptography libraries required
+- **Secure Storage Structure** - Organized encryption data
+  ```javascript
+  securityConfig: {
+    enabled: true,
+    version: 1,
+    passwordHash: "SHA-256 hash for verification",
+    encryptedApiKey: {
+      salt: "base64-encoded random salt",
+      iv: "base64-encoded initialization vector",
+      ciphertext: "base64-encoded encrypted API key"
+    }
+  }
+  ```
+- **Helper Functions** - API key access abstraction
+  - `getEffectiveApiKey()` - Returns decrypted key if security enabled, otherwise plain text
+  - `hasApiKey()` - Checks if API key available (encrypted or plain text)
+  - All AI API calls use helper functions (no direct access to storage)
+
+### Changed
+- **Settings UI** - Reorganized with security section first
+  - Security section appears at top (most important)
+  - AI Configuration section moved below security
+  - Application Settings remain at bottom
+- **API Key Field** - Enhanced with encryption indicator
+  - Shows "Encrypted" badge when security enabled
+  - Help text changes based on security status
+  - Value shows decrypted key when unlocked (for editing)
+- **Initialization Flow** - Password prompt before app load
+  - Application checks for security configuration on startup
+  - Prompts for password if security enabled
+  - Normal initialization proceeds only after successful unlock
+  - Clean separation of security and application logic
+- **Help Documentation** - Updated with security information
+  - Getting Started includes security setup recommendation
+  - New Security section explains encryption features
+  - Privacy note updated with encryption details
+
+### Fixed
+- **API Key Security** - No longer stored in plain text
+  - Previous: API key stored unencrypted in localStorage
+  - Current: API key encrypted with AES-256 when security enabled
+  - Plain text storage still available (user choice) but discouraged
+- **Unauthorized Access** - Application locked without password
+  - Previous: Anyone with browser access could view API key
+  - Current: Master password required to decrypt and use API key
+  - Password prompt blocks all application access until authenticated
+
+### Security Notes
+
+**What This Protects Against:**
+- ✓ Casual inspection of localStorage (API key not readable)
+- ✓ Unauthorized access to application on shared computers
+- ✓ Accidental exposure through localStorage dumps
+- ✓ API key theft from browser developer tools (when encrypted)
+
+**What This Does NOT Protect Against:**
+- ✗ Malicious code running in browser (JavaScript has access to decrypted key in memory)
+- ✗ Physical access to computer while application is unlocked
+- ✗ Man-in-the-middle attacks (HTTPS connection to AI provider required)
+- ✗ Compromised browser extensions with localStorage access
+
+**Important:** This is client-side encryption in a browser environment. While it provides significant protection against casual access, it cannot prevent a determined attacker with full system access. Always use HTTPS, keep your browser updated, and use trusted networks when accessing sensitive applications.
+
+### Migration Guide
+
+**For New Users:**
+1. Add your API key in Settings
+2. Click "Enable Security (Recommended)"
+3. Create a master password
+4. Remember your password (cannot be recovered!)
+
+**For Existing Users:**
+1. Your existing plain-text API key will continue to work
+2. Settings will show "⚠️ Security Not Enabled" warning
+3. Click "Enable Security" to protect your API key
+4. Create a master password when prompted
+5. API key will be automatically encrypted
+6. You'll be prompted for password on next application load
+
+**To Disable Security:**
+1. Open Settings
+2. Click "Disable Security" button
+3. Confirm the warning
+4. API key returns to plain text storage
+
+### Technical Details
+- Version bumped to 1.0.11 in both saveToLocalStorage() and exportToJSON()
+- Added 9 new security functions for encryption/decryption
+- Added 4 new UI functions for security management
+- Security configuration stored separately from main application data
+- No breaking changes - fully backward compatible with v1.0.10 data
+- File size increased by ~8KB due to encryption functions
+
+---
+
 ## [1.0.10] - 2026-01-24
 
 ### Added - Budget and Time Tracking Enhancements
