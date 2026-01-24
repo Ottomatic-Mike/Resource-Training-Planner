@@ -1744,7 +1744,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.13',
+        version: '1.0.14',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2954,19 +2954,21 @@ function renderResources() {
     content.innerHTML = html;
 }
 
-function renderResourcesList() {
-    if (resources.length === 0) {
+function renderResourcesList(filteredResources = null) {
+    const resourcesToRender = filteredResources || resources;
+
+    if (resourcesToRender.length === 0) {
         return `<div class="empty-state">
             <div class="empty-state-icon">👥</div>
-            <div class="empty-state-title">No Resources Yet</div>
-            <div class="empty-state-description">Add your first team member to start creating training plans.</div>
-            <button class="btn btn-primary" onclick="showAddResourceForm()">+ Add Resource</button>
+            <div class="empty-state-title">No ${filteredResources ? 'Matching ' : ''}Resources${filteredResources ? ' Found' : ' Yet'}</div>
+            <div class="empty-state-description">${filteredResources ? 'Try adjusting your search or filter criteria.' : 'Add your first team member to start creating training plans.'}</div>
+            ${!filteredResources ? '<button class="btn btn-primary" onclick="showAddResourceForm()">+ Add Resource</button>' : ''}
         </div>`;
     }
 
     let html = '<div class="grid-auto">';
 
-    resources.forEach(resource => {
+    resourcesToRender.forEach(resource => {
         const budgetUsed = resource.budgetSpent || 0;
         const budgetTotal = resource.annualTrainingBudget || 0;
         const budgetPercent = budgetTotal > 0 ? Math.round((budgetUsed / budgetTotal) * 100) : 0;
@@ -3039,7 +3041,10 @@ function filterResources() {
     if (search) {
         filtered = filtered.filter(r =>
             r.name.toLowerCase().includes(search) ||
-            (r.jobTitle && r.jobTitle.toLowerCase().includes(search))
+            (r.jobTitle && r.jobTitle.toLowerCase().includes(search)) ||
+            (r.email && r.email.toLowerCase().includes(search)) ||
+            (r.department && r.department.toLowerCase().includes(search)) ||
+            (r.location && r.location.toLowerCase().includes(search))
         );
     }
 
@@ -3047,9 +3052,11 @@ function filterResources() {
         filtered = filtered.filter(r => r.location === location);
     }
 
-    // Re-render with filtered list
-    // For now, just re-render all
-    renderResources();
+    // Update just the list portion without re-rendering the entire tab
+    const listContainer = document.getElementById('resourcesList');
+    if (listContainer) {
+        listContainer.innerHTML = renderResourcesList(filtered);
+    }
 }
 
 function showAddResourceForm() {
@@ -3793,8 +3800,8 @@ function renderCompetencies() {
         </div>
 
         <div class="search-filter-bar">
-            <input type="text" class="form-input search-input" placeholder="Search competencies..." id="compSearch" oninput="renderCompetencies()">
-            <select class="form-select" id="compFilterCategory" onchange="renderCompetencies()">
+            <input type="text" class="form-input search-input" placeholder="Search competencies..." id="compSearch" oninput="filterCompetencies()">
+            <select class="form-select" id="compFilterCategory" onchange="filterCompetencies()">
                 <option value="">All Categories</option>
                 ${[...new Set(competencyLibrary.map(c => c.category))].map(cat => `<option value="${cat}">${cat}</option>`).join('')}
             </select>
@@ -3808,13 +3815,41 @@ function renderCompetencies() {
     content.innerHTML = html;
 }
 
-function renderCompetenciesList() {
-    if (competencyLibrary.length === 0) {
+function filterCompetencies() {
+    const search = document.getElementById('compSearch')?.value.toLowerCase() || '';
+    const category = document.getElementById('compFilterCategory')?.value || '';
+
+    let filtered = competencyLibrary;
+
+    if (search) {
+        filtered = filtered.filter(comp =>
+            comp.name.toLowerCase().includes(search) ||
+            (comp.category && comp.category.toLowerCase().includes(search)) ||
+            (comp.subcategory && comp.subcategory.toLowerCase().includes(search)) ||
+            (comp.description && comp.description.toLowerCase().includes(search))
+        );
+    }
+
+    if (category) {
+        filtered = filtered.filter(comp => comp.category === category);
+    }
+
+    // Update just the list portion
+    const listContainer = document.getElementById('competenciesList');
+    if (listContainer) {
+        listContainer.innerHTML = renderCompetenciesList(filtered);
+    }
+}
+
+function renderCompetenciesList(filteredCompetencies = null) {
+    const competenciesToRender = filteredCompetencies || competencyLibrary;
+
+    if (competenciesToRender.length === 0) {
         return `<div class="empty-state">
             <div class="empty-state-icon">🎯</div>
-            <div class="empty-state-title">No Competencies Yet</div>
-            <div class="empty-state-description">Build your competency library to track skills and expertise.</div>
-            <button class="btn btn-primary" onclick="showAddCompetencyForm()">+ Add Competency</button>
+            <div class="empty-state-title">No ${filteredCompetencies ? 'Matching ' : ''}Competencies${filteredCompetencies ? ' Found' : ' Yet'}</div>
+            <div class="empty-state-description">${filteredCompetencies ? 'Try adjusting your search or filter criteria.' : 'Build your competency library to track skills and expertise.'}</div>
+            ${!filteredCompetencies ? '<button class="btn btn-primary" onclick="showAddCompetencyForm()">+ Add Competency</button>' : ''}
         </div>`;
     }
 
@@ -3822,7 +3857,7 @@ function renderCompetenciesList() {
     html += '<th>Competency</th><th>Category</th><th>Subcategory</th><th>Used By</th><th>Actions</th>';
     html += '</tr></thead><tbody>';
 
-    competencyLibrary.forEach(comp => {
+    competenciesToRender.forEach(comp => {
         const useCount = getCompetencyUsage(comp.id);
 
         html += `
@@ -4523,16 +4558,19 @@ function renderCourses() {
     const html = `
         <div class="card-header mb-2">
             <h2 class="card-title">Course Catalog</h2>
-            <button class="btn btn-primary" onclick="showAddCourseForm()">+ Add Course</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-ghost" onclick="searchCoursesOnline()">🔍 Search Online</button>
+                <button class="btn btn-primary" onclick="showAddCourseForm()">+ Add Course</button>
+            </div>
         </div>
 
         <div class="search-filter-bar">
-            <input type="text" class="form-input search-input" placeholder="Search courses..." id="courseSearch" oninput="renderCourses()">
-            <select class="form-select" id="courseFilterProvider" onchange="renderCourses()">
+            <input type="text" class="form-input search-input" placeholder="Search courses..." id="courseSearch" oninput="filterCourses()">
+            <select class="form-select" id="courseFilterProvider" onchange="filterCourses()">
                 <option value="">All Providers</option>
                 ${[...new Set(courseCatalog.map(c => c.provider))].map(prov => `<option value="${prov}">${prov}</option>`).join('')}
             </select>
-            <select class="form-select" id="courseFilterFormat" onchange="renderCourses()">
+            <select class="form-select" id="courseFilterFormat" onchange="filterCourses()">
                 <option value="">All Formats</option>
                 <option value="Online Self-Paced">Online Self-Paced</option>
                 <option value="Online Live">Online Live</option>
@@ -4549,19 +4587,52 @@ function renderCourses() {
     content.innerHTML = html;
 }
 
-function renderCoursesList() {
-    if (courseCatalog.length === 0) {
+function filterCourses() {
+    const search = document.getElementById('courseSearch')?.value.toLowerCase() || '';
+    const provider = document.getElementById('courseFilterProvider')?.value || '';
+    const format = document.getElementById('courseFilterFormat')?.value || '';
+
+    let filtered = courseCatalog;
+
+    if (search) {
+        filtered = filtered.filter(course =>
+            course.title.toLowerCase().includes(search) ||
+            (course.provider && course.provider.toLowerCase().includes(search)) ||
+            (course.description && course.description.toLowerCase().includes(search)) ||
+            (course.skillLevel && course.skillLevel.toLowerCase().includes(search))
+        );
+    }
+
+    if (provider) {
+        filtered = filtered.filter(course => course.provider === provider);
+    }
+
+    if (format) {
+        filtered = filtered.filter(course => course.format === format);
+    }
+
+    // Update just the list portion
+    const listContainer = document.getElementById('coursesList');
+    if (listContainer) {
+        listContainer.innerHTML = renderCoursesList(filtered);
+    }
+}
+
+function renderCoursesList(filteredCourses = null) {
+    const coursesToRender = filteredCourses || courseCatalog;
+
+    if (coursesToRender.length === 0) {
         return `<div class="empty-state">
             <div class="empty-state-icon">📚</div>
-            <div class="empty-state-title">No Courses Yet</div>
-            <div class="empty-state-description">Add courses to your catalog to build training plans.</div>
-            <button class="btn btn-primary" onclick="showAddCourseForm()">+ Add Course</button>
+            <div class="empty-state-title">No ${filteredCourses ? 'Matching ' : ''}Courses${filteredCourses ? ' Found' : ' Yet'}</div>
+            <div class="empty-state-description">${filteredCourses ? 'Try adjusting your search or filter criteria, or use "Search Online" to find courses from training providers.' : 'Add courses to your catalog to build training plans.'}</div>
+            ${!filteredCourses ? '<button class="btn btn-primary" onclick="showAddCourseForm()">+ Add Course</button>' : ''}
         </div>`;
     }
 
     let html = '<div class="grid-auto">';
 
-    courseCatalog.forEach(course => {
+    coursesToRender.forEach(course => {
         const ratingStars = '⭐'.repeat(Math.round(course.rating || 0));
 
         html += `
@@ -4807,6 +4878,279 @@ function deleteCourse(courseId) {
         triggerSave();
         renderCourses();
     }
+}
+
+// AI-Powered Online Course Search
+function searchCoursesOnline() {
+    if (!hasApiKey()) {
+        openModal('API Key Required', `
+            <div class="alert alert-warning">
+                <strong>AI Integration Not Configured</strong>
+                <p>To search online course repositories, you need to configure an AI provider in Settings.</p>
+            </div>
+        `, `
+            <button class="btn btn-primary" onclick="closeModal(); openSettings()">Open Settings</button>
+            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        `);
+        return;
+    }
+
+    const bodyHtml = `
+        <p>Search across all accessible online training repositories from major providers (Udemy, Coursera, LinkedIn Learning, Pluralsight, O'Reilly, SANS, AWS Training, etc.) for relevant courses.</p>
+
+        <div class="form-group">
+            <label class="form-label form-label-required">Search Query</label>
+            <input type="text" class="form-input" id="onlineSearchQuery" placeholder="e.g., Python for Data Science, AWS Solutions Architect, Kubernetes Administration">
+            <div class="form-help">Describe the skills or topics you're looking for</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Preferred Format</label>
+            <select class="form-select" id="onlineSearchFormat">
+                <option value="">Any Format</option>
+                <option value="Online Self-Paced">Online Self-Paced</option>
+                <option value="Online Live">Online Live</option>
+                <option value="In-Person">In-Person</option>
+                <option value="Hybrid">Hybrid</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Skill Level</label>
+            <select class="form-select" id="onlineSearchLevel">
+                <option value="">Any Level</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Expert">Expert</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Maximum Cost</label>
+            <input type="number" class="form-input" id="onlineSearchMaxCost" placeholder="e.g., 500" min="0">
+            <div class="form-help">Leave blank for no budget limit</div>
+        </div>
+
+        <div id="searchResults" style="margin-top: 24px;"></div>
+    `;
+
+    const footerHtml = `
+        <button class="btn btn-primary" onclick="executeOnlineCourseSearch()">🔍 Search</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    `;
+
+    openModal('Search Online Course Repositories', bodyHtml, footerHtml, 'modal-large');
+}
+
+async function executeOnlineCourseSearch() {
+    const query = document.getElementById('onlineSearchQuery').value.trim();
+    if (!query) {
+        alert('Please enter a search query');
+        return;
+    }
+
+    const format = document.getElementById('onlineSearchFormat').value;
+    const level = document.getElementById('onlineSearchLevel').value;
+    const maxCost = document.getElementById('onlineSearchMaxCost').value;
+
+    const resultsContainer = document.getElementById('searchResults');
+    resultsContainer.innerHTML = '<div class="alert alert-info">⏳ Searching online course repositories... This may take 10-15 seconds.</div>';
+
+    // Update footer to disable search button
+    const footerHtml = `
+        <button class="btn btn-primary" disabled>⏳ Searching...</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    `;
+    document.getElementById('modalFooter').innerHTML = footerHtml;
+
+    try {
+        const systemPrompt = `You are a training course search engine with access to all major online learning platforms including:
+- Udemy, Coursera, LinkedIn Learning, Pluralsight, O'Reilly Learning
+- Cloud providers: AWS Training, Microsoft Learn, Google Cloud Skills Boost
+- Security training: SANS Institute, Cybrary, INE
+- Development platforms: Frontend Masters, Egghead.io, Codecademy
+- Professional certifications: CompTIA, PMI, ISACA
+- Universities and specialized platforms
+
+Search across these platforms and return 6-10 high-quality courses that match the criteria.
+Return ONLY a JSON array with no additional text. Each course object must have:
+- title: Full course name
+- provider: Platform name (e.g., "Udemy", "Coursera")
+- cost: Estimated cost in USD (number, use 0 for free courses)
+- duration: Object with totalHours (number)
+- url: Direct link to the course (use realistic URLs for actual courses)
+- format: "Online Self-Paced", "Online Live", "In-Person", or "Hybrid"
+- skillLevel: "Beginner", "Intermediate", "Advanced", or "Expert"
+- rating: Rating out of 5 (number)
+- ratingCount: Number of reviews (number)
+- hasCertification: boolean (true if includes certificate)
+- description: 1-2 sentence course description
+- requiresTravel: boolean (true only for in-person courses)
+- estimatedTravelCost: number (0 unless in-person)
+
+IMPORTANT: Return ONLY valid JSON array, no markdown, no explanations. Prioritize real, currently available courses.`;
+
+        const userPrompt = `Search for: "${query}"
+${format ? `Preferred format: ${format}` : 'Any format'}
+${level ? `Skill level: ${level}` : 'Any skill level'}
+${maxCost ? `Maximum cost: $${maxCost}` : 'No budget limit'}
+
+Find real, currently available courses from major training providers. Ensure variety across different platforms.`;
+
+        const response = await callClaudeAPI(systemPrompt, userPrompt);
+
+        // Parse JSON response
+        let courses;
+        try {
+            // Try to parse directly
+            courses = JSON.parse(response);
+        } catch (e) {
+            // Try to extract JSON from markdown code blocks
+            const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || response.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                courses = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+            } else {
+                throw new Error('AI returned invalid JSON format');
+            }
+        }
+
+        if (!Array.isArray(courses) || courses.length === 0) {
+            resultsContainer.innerHTML = '<div class="alert alert-warning">No courses found matching your criteria. Try broadening your search.</div>';
+            document.getElementById('modalFooter').innerHTML = `
+                <button class="btn btn-primary" onclick="executeOnlineCourseSearch()">🔍 Search Again</button>
+                <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+            `;
+            return;
+        }
+
+        // Display results
+        let html = `<div class="alert alert-success">✓ Found ${courses.length} courses from online repositories</div>`;
+        html += '<div style="max-height: 400px; overflow-y: auto; margin-top: 16px;">';
+        html += '<div class="grid-auto">';
+
+        courses.forEach((course, index) => {
+            const ratingStars = '⭐'.repeat(Math.round(course.rating || 0));
+            const courseId = `searchResult_${index}`;
+
+            html += `
+                <div class="card">
+                    <div class="card-header">
+                        <div style="flex: 1;">
+                            <h4 class="card-title" style="font-size: 14px; margin-bottom: 4px;">${escapeHtml(course.title)}</h4>
+                            <div class="card-subtitle">${escapeHtml(course.provider)}</div>
+                        </div>
+                        ${course.hasCertification ? '<span class="badge badge-success">Cert</span>' : ''}
+                    </div>
+                    <div class="card-body">
+                        <div style="font-size: 12px; margin-bottom: 8px;">
+                            ${ratingStars} ${course.rating ? course.rating.toFixed(1) : 'N/A'}
+                            ${course.ratingCount ? `(${course.ratingCount.toLocaleString()} reviews)` : ''}
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-bottom: 8px;">
+                            <div><strong>Cost:</strong> ${formatCurrency(course.cost || 0)}</div>
+                            <div><strong>Duration:</strong> ${course.duration?.totalHours || 0}h</div>
+                            <div><strong>Level:</strong> ${course.skillLevel || 'All'}</div>
+                            <div><strong>Format:</strong> ${course.format || 'Online'}</div>
+                        </div>
+                        ${course.description ? `<div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">${escapeHtml(course.description)}</div>` : ''}
+                        ${course.url ? `<div style="margin-bottom: 12px;"><a href="${escapeHtml(course.url)}" target="_blank" class="btn btn-sm btn-ghost">View Course →</a></div>` : ''}
+                        <button class="btn btn-sm btn-primary" onclick="addSearchResultToCatalog(${index})" id="${courseId}Btn">+ Add to Catalog</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div></div>';
+        resultsContainer.innerHTML = html;
+
+        // Store courses in a global variable for adding to catalog
+        window.searchResultCourses = courses;
+
+        // Update footer
+        document.getElementById('modalFooter').innerHTML = `
+            <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        `;
+
+    } catch (error) {
+        console.error('Online course search failed:', error);
+        resultsContainer.innerHTML = `<div class="alert alert-danger">
+            <strong>Search Failed</strong>
+            <p>${escapeHtml(error.message)}</p>
+            <p style="font-size: 12px; margin-top: 8px;">Please check your API configuration and try again.</p>
+        </div>`;
+
+        document.getElementById('modalFooter').innerHTML = `
+            <button class="btn btn-primary" onclick="executeOnlineCourseSearch()">🔍 Try Again</button>
+            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        `;
+    }
+}
+
+function addSearchResultToCatalog(index) {
+    if (!window.searchResultCourses || !window.searchResultCourses[index]) {
+        alert('Course not found');
+        return;
+    }
+
+    const course = window.searchResultCourses[index];
+
+    // Check if course already exists (by title and provider)
+    const existingCourse = courseCatalog.find(c =>
+        c.title.toLowerCase() === course.title.toLowerCase() &&
+        c.provider.toLowerCase() === course.provider.toLowerCase()
+    );
+
+    if (existingCourse) {
+        alert('This course is already in your catalog.');
+        return;
+    }
+
+    // Add to catalog
+    const newCourse = {
+        id: nextCourseId++,
+        title: course.title,
+        provider: course.provider,
+        cost: course.cost || 0,
+        duration: course.duration || { totalHours: 0 },
+        url: course.url || '',
+        format: course.format || 'Online Self-Paced',
+        skillLevel: course.skillLevel || 'All Levels',
+        rating: course.rating || 0,
+        ratingCount: course.ratingCount || 0,
+        hasCertification: course.hasCertification || false,
+        description: course.description || '',
+        requiresTravel: course.requiresTravel || false,
+        estimatedTravelCost: course.estimatedTravelCost || 0,
+        addedDate: new Date().toISOString().split('T')[0],
+        timesAssigned: 0,
+        completionRate: 0
+    };
+
+    courseCatalog.push(newCourse);
+    triggerSave();
+
+    // Update button to show it was added
+    const btn = document.getElementById(`searchResult_${index}Btn`);
+    if (btn) {
+        btn.textContent = '✓ Added';
+        btn.disabled = true;
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+    }
+
+    // Show success message
+    const resultsContainer = document.getElementById('searchResults');
+    const successMsg = document.createElement('div');
+    successMsg.className = 'alert alert-success';
+    successMsg.style.marginTop = '12px';
+    successMsg.textContent = `✓ "${course.title}" has been added to your course catalog`;
+    resultsContainer.insertBefore(successMsg, resultsContainer.firstChild);
+
+    // Auto-remove success message after 3 seconds
+    setTimeout(() => {
+        successMsg.remove();
+    }, 3000);
 }
 
 // === TRAINING PLANS (TAB 5) ===
@@ -6479,7 +6823,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.13',
+        version: '1.0.14',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

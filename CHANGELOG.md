@@ -7,6 +7,160 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.14] - 2026-01-24
+
+### Fixed - Search Functionality & Course Discovery
+
+This release fixes critical search functionality issues across all tabs and adds powerful AI-driven online course discovery from all major training providers.
+
+#### Search Functionality Fixes
+All search fields now properly filter data in real-time:
+
+- **Resources Search** - Now actively filters by:
+  - Name
+  - Job title
+  - Email
+  - Department
+  - Location
+  - Updates results instantly as you type
+  - Works in combination with location dropdown filter
+  - Shows "No Matching Resources Found" message when no results
+  - Clear empty state messaging to guide users
+
+- **Competencies Search** - Now actively filters by:
+  - Competency name
+  - Category
+  - Subcategory
+  - Description
+  - Works in combination with category dropdown filter
+  - Shows "No Matching Competencies Found" message when no results
+  - Instant filtering as you type
+
+- **Course Catalog Search** - Now actively filters by:
+  - Course title
+  - Provider name
+  - Description
+  - Skill level
+  - Works in combination with provider and format dropdown filters
+  - Shows "No Matching Courses Found" message when no results
+  - Instant filtering as you type
+  - Enhanced empty state message guides users to online search
+
+#### New Feature: AI-Powered Online Course Search
+
+Revolutionary new capability to search across ALL major training provider repositories using AI:
+
+- **Search Online Button** - New prominent button in Course Catalog header
+  - Accessible to all users with configured AI API key
+  - Clean, intuitive search interface
+  - Modal dialog for search criteria input
+
+- **Comprehensive Provider Coverage** - AI searches across:
+  - **MOOCs**: Udemy, Coursera, LinkedIn Learning, Pluralsight, O'Reilly Learning
+  - **Cloud Platforms**: AWS Training, Microsoft Learn, Google Cloud Skills Boost
+  - **Security Training**: SANS Institute, Cybrary, INE
+  - **Development**: Frontend Masters, Egghead.io, Codecademy
+  - **Certifications**: CompTIA, PMI, ISACA
+  - **Universities**: edX, academic programs
+  - Many more specialized platforms
+
+- **Advanced Search Filters**:
+  - Search query (required) - describe skills or topics
+  - Preferred format - Online Self-Paced, Live, In-Person, Hybrid, or Any
+  - Skill level - Beginner, Intermediate, Advanced, Expert, or Any
+  - Maximum cost - budget limit filter (optional)
+
+- **Rich Search Results**:
+  - Returns 6-10 high-quality courses from various providers
+  - Each result shows:
+    - Course title, provider, rating with review count
+    - Cost, duration, skill level, format
+    - Certification indicator
+    - Course description
+    - Direct link to course page (opens in new tab)
+    - "Add to Catalog" button for one-click import
+  - Results displayed in scrollable grid layout
+  - Real-time status updates during search (typically 10-15 seconds)
+
+- **Smart Course Import**:
+  - One-click addition to course catalog from search results
+  - Duplicate detection - warns if course already exists
+  - Full course metadata imported automatically:
+    - All standard fields (title, provider, cost, duration, etc.)
+    - Travel requirement and estimated travel cost (for in-person)
+    - Ratings, review counts, certification status
+    - Description and course URL
+  - Visual confirmation when course added
+  - Button state changes to "Added" after import
+  - Success notification with auto-dismiss
+
+- **Error Handling & User Guidance**:
+  - Clear messaging when API key not configured
+  - Direct link to Settings from error dialog
+  - Helpful error messages if search fails
+  - "Try Again" option on failures
+  - Loading indicators during API calls
+  - Disabled buttons prevent duplicate requests
+
+- **Integration with Existing Features**:
+  - Imported courses immediately available in wizard course discovery
+  - All budget tracking features work with imported courses
+  - Travel costs properly tracked for in-person courses
+  - Courses appear in filtered catalog views
+  - Full compatibility with training plan creation
+
+#### Technical Improvements
+
+- **Optimized Rendering** - Search now updates only the results list, not entire tab
+  - Preserves search input and filter selections
+  - Faster, smoother user experience
+  - No page flicker during filtering
+
+- **Enhanced Filter Logic** - All searches use case-insensitive matching
+  - Multiple fields searched simultaneously
+  - AND logic for combining search with dropdown filters
+  - Null-safe checks prevent errors on missing data
+
+- **AI Integration** - Online course search uses same proven AI integration as wizard
+  - Structured JSON response parsing
+  - Fallback parsing for markdown-wrapped responses
+  - Comprehensive error handling
+  - API key validation before requests
+
+- **UI Polish**:
+  - Consistent empty state messaging across all tabs
+  - Better visual feedback during searches
+  - Improved button states and loading indicators
+  - Responsive modal layouts for search results
+
+### Benefits
+
+**For Users**:
+- Search actually works now - a critical usability fix
+- Can discover thousands of real courses without manual data entry
+- Saves hours of research time finding appropriate training
+- Access to up-to-date course information from all major providers
+- One-click import eliminates manual course creation
+
+**For Managers**:
+- Build comprehensive course catalogs in minutes, not hours
+- Discover courses across all providers from single interface
+- Make data-driven training decisions with ratings and reviews
+- Find optimal courses matching specific skill requirements and budgets
+
+### Breaking Changes
+
+None - all changes are backward compatible.
+
+### Migration Notes
+
+- Existing search inputs will now work as expected
+- No data migration required
+- Online course search requires AI API key (optional feature)
+- All existing courses remain unchanged
+
+---
+
 ## [1.0.13] - 2026-01-24
 
 ### Added - In-Person Training & Dual Budget Tracking
