@@ -2282,7 +2282,80 @@ function getCompetencyUsage(competencyId) {
     return count;
 }
 
+// Helper function to extract unique categories from competencyLibrary
+function getUniqueCategories() {
+    const categories = new Set();
+    competencyLibrary.forEach(comp => {
+        if (comp.category && comp.category.trim() !== '') {
+            categories.add(comp.category.trim());
+        }
+    });
+    return Array.from(categories).sort();
+}
+
+// Helper function to extract subcategories for a given category
+function getSubcategoriesForCategory(category) {
+    const subcategories = new Set();
+    competencyLibrary.forEach(comp => {
+        if (comp.category === category && comp.subcategory && comp.subcategory.trim() !== '') {
+            subcategories.add(comp.subcategory.trim());
+        }
+    });
+    return Array.from(subcategories).sort();
+}
+
+// Handle category change to update subcategory dropdown
+function handleCategoryChange() {
+    const categorySelect = document.getElementById('newCompCategory');
+    const subcategorySelect = document.getElementById('newCompSubcategory');
+    const customCategoryInput = document.getElementById('customCategoryInput');
+    const customSubcategoryInput = document.getElementById('customSubcategoryInput');
+
+    const selectedCategory = categorySelect.value;
+
+    // Show/hide custom category input
+    if (selectedCategory === '__custom__') {
+        customCategoryInput.style.display = 'block';
+        subcategorySelect.innerHTML = '<option value="">Select subcategory...</option><option value="__custom__">+ Add New Subcategory</option>';
+        subcategorySelect.disabled = false;
+    } else {
+        customCategoryInput.style.display = 'none';
+
+        // Populate subcategories for selected category
+        const subcategories = getSubcategoriesForCategory(selectedCategory);
+        subcategorySelect.innerHTML = '<option value="">Select subcategory...</option>';
+        subcategories.forEach(subcat => {
+            subcategorySelect.innerHTML += `<option value="${escapeHtml(subcat)}">${escapeHtml(subcat)}</option>`;
+        });
+        subcategorySelect.innerHTML += '<option value="__custom__">+ Add New Subcategory</option>';
+        subcategorySelect.disabled = false;
+    }
+
+    // Reset custom subcategory input
+    customSubcategoryInput.style.display = 'none';
+}
+
+// Handle subcategory change to show/hide custom input
+function handleSubcategoryChange() {
+    const subcategorySelect = document.getElementById('newCompSubcategory');
+    const customSubcategoryInput = document.getElementById('customSubcategoryInput');
+
+    if (subcategorySelect.value === '__custom__') {
+        customSubcategoryInput.style.display = 'block';
+    } else {
+        customSubcategoryInput.style.display = 'none';
+    }
+}
+
 function showAddCompetencyForm() {
+    const categories = getUniqueCategories();
+
+    let categoryOptions = '<option value="">Select category...</option>';
+    categories.forEach(cat => {
+        categoryOptions += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+    });
+    categoryOptions += '<option value="__custom__">+ Add New Category</option>';
+
     const html = `
         <div class="form-group">
             <label class="form-label form-label-required">Name</label>
@@ -2291,12 +2364,18 @@ function showAddCompetencyForm() {
 
         <div class="form-group">
             <label class="form-label">Category</label>
-            <input type="text" class="form-input" id="newCompCategory" placeholder="Programming Languages">
+            <select class="form-input" id="newCompCategory" onchange="handleCategoryChange()">
+                ${categoryOptions}
+            </select>
+            <input type="text" class="form-input" id="customCategoryInput" placeholder="Enter new category..." style="display: none; margin-top: 8px;">
         </div>
 
         <div class="form-group">
             <label class="form-label">Subcategory</label>
-            <input type="text" class="form-input" id="newCompSubcategory" placeholder="Backend Development">
+            <select class="form-input" id="newCompSubcategory" onchange="handleSubcategoryChange()" disabled>
+                <option value="">Select category first...</option>
+            </select>
+            <input type="text" class="form-input" id="customSubcategoryInput" placeholder="Enter new subcategory..." style="display: none; margin-top: 8px;">
         </div>
 
         <div class="form-group">
@@ -2320,11 +2399,34 @@ function saveNewCompetency() {
         return;
     }
 
+    // Determine category value (dropdown or custom input)
+    let category = document.getElementById('newCompCategory').value.trim();
+    if (category === '__custom__') {
+        category = document.getElementById('customCategoryInput').value.trim();
+        if (!category) {
+            alert('Please enter a category name or select an existing one');
+            return;
+        }
+    } else if (!category) {
+        category = 'Uncategorized';
+    }
+
+    // Determine subcategory value (dropdown or custom input)
+    let subcategory = document.getElementById('newCompSubcategory').value.trim();
+    if (subcategory === '__custom__') {
+        subcategory = document.getElementById('customSubcategoryInput').value.trim();
+        if (!subcategory) {
+            alert('Please enter a subcategory name');
+            return;
+        }
+    }
+    // Subcategory is optional, so empty string is acceptable
+
     const newComp = {
         id: nextCompetencyId++,
         name: name,
-        category: document.getElementById('newCompCategory').value.trim() || 'Uncategorized',
-        subcategory: document.getElementById('newCompSubcategory').value.trim(),
+        category: category,
+        subcategory: subcategory,
         description: document.getElementById('newCompDescription').value.trim(),
         levelDefinitions: {
             1: { name: 'Awareness', description: 'Basic understanding. Can follow documentation with guidance.' },

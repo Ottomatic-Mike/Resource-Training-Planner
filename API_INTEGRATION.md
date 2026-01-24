@@ -2,7 +2,7 @@
 
 **Complete guide to setting up and using AI features in the Training Plan Manager.**
 
-Version 1.0.1 | Last Updated: January 24, 2024
+Version 1.0.2 | Last Updated: January 24, 2024
 
 ---
 

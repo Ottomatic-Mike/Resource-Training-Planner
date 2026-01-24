@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2024-01-24
+
+### Fixed
+- **Competency category modularity** - Implemented dropdown menus for categories and subcategories
+  - Categories and subcategories from existing competencies now available in dropdown menus
+  - Prevents mis-categorization and reduces repeat effort
+  - Dynamic subcategory filtering based on selected category
+  - "Add New" options allow custom categories and subcategories
+  - Maintains backward compatibility with existing competency data
+
+### Added
+- **Helper functions** for competency management:
+  - `getUniqueCategories()` - Extracts all unique category names from competency library
+  - `getSubcategoriesForCategory(category)` - Extracts subcategories for a specific category
+  - `handleCategoryChange()` - Updates subcategory dropdown when category changes
+  - `handleSubcategoryChange()` - Shows/hides custom input when "Add New" is selected
+
+### Changed
+- **Add Competency form** now uses dropdown menus instead of plain text inputs for categories and subcategories
+- **Enhanced validation** in `saveNewCompetency()` to handle both dropdown selections and custom input values
+- **Improved user experience** - Consistent categorization across all competencies
+
+---
+
 ## [1.0.1] - 2024-01-24
 
 ### Fixed
@@ -233,12 +257,29 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 
 | Version | Date | Type | Description |
 |---------|------|------|-------------|
+| 1.0.2 | 2024-01-24 | Enhancement | Competency category modularity with dropdowns |
 | 1.0.1 | 2024-01-24 | Bug Fix | Fixed resource editing functionality |
 | 1.0.0 | 2024-01-24 | Initial Release | Full-featured training plan manager |
 
 ---
 
 ## Upgrade Guide
+
+### From v1.0.1 → v1.0.2
+
+**What's New:**
+- Category and subcategory dropdowns in Add Competency form
+- Existing categories and subcategories now accessible via dropdowns
+- Dynamic subcategory filtering based on category selection
+- Custom category/subcategory options still available
+
+**How to Upgrade:**
+1. Replace `training-plan-manager.html` with the new version
+2. Open in browser - your data is preserved in localStorage
+3. Test by adding a new competency - you'll see existing categories in dropdown
+4. Existing competencies remain unchanged
+
+**No data migration required** - All existing competency data remains compatible.
 
 ### From v1.0.0 → v1.0.1
 

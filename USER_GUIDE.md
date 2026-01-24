@@ -270,11 +270,17 @@ Every competency has standardized level definitions:
 
 1. Click **"+ Add Competency"**
 2. Fill in:
-   - **Name*** (e.g., "Kubernetes")
-   - **Category** (e.g., "Cloud Platforms")
-   - **Subcategory** (e.g., "Container Orchestration")
+   - **Name*** (e.g., "Kubernetes") - Required field
+   - **Category** - Select from dropdown of existing categories or choose "+ Add New Category" to create a custom one
+   - **Subcategory** - Automatically filtered based on selected category, or choose "+ Add New Subcategory" for custom
    - **Description** (what it encompasses)
 3. Click **"Add Competency"**
+
+**Category and Subcategory Dropdowns:**
+- Existing categories from your competency library appear in the dropdown menu
+- Subcategories are dynamically filtered based on the selected category
+- Use "+ Add New Category" or "+ Add New Subcategory" options to create custom entries
+- This ensures consistent categorization and reduces mis-categorization
 
 **Proficiency definitions are automatically applied.**
 
