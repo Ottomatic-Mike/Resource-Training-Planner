@@ -1765,7 +1765,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.21',
+        version: '1.0.22',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -6971,7 +6971,7 @@ function viewCalendarDetail(calendarId) {
 
     let resourcesHtml = '';
     if (assignedResources.length === 0) {
-        resourcesHtml = '<p style="color: #999; font-style: italic;">No resources assigned to this calendar</p>';
+        resourcesHtml = '<p style="color: var(--text-muted); font-style: italic;">No resources assigned to this calendar</p>';
     } else {
         resourcesHtml = '<div class="table-container" style="margin-top: 16px;"><table><thead><tr><th>Name</th><th>Title</th><th>Location</th><th>Actions</th></tr></thead><tbody>';
         assignedResources.forEach(res => {
@@ -6988,25 +6988,389 @@ function viewCalendarDetail(calendarId) {
         resourcesHtml += '</tbody></table></div>';
     }
 
-    const html = `
-        <div>
-            <h3>${cal.name}</h3>
-            <p><strong>Region:</strong> ${cal.region}</p>
-            <p><strong>Year:</strong> ${cal.year}</p>
-            <p><strong>Holidays:</strong> ${cal.holidays.length}</p>
-            <p><strong>Description:</strong> ${cal.description || 'No description'}</p>
+    // Build holidays table
+    let holidaysHtml = '';
+    if (!cal.holidays || cal.holidays.length === 0) {
+        holidaysHtml = '<p style="color: var(--text-muted); font-style: italic;">No holidays defined</p>';
+    } else {
+        // Sort holidays by date
+        const sortedHolidays = [...cal.holidays].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-            <h4 style="margin-top: 24px; margin-bottom: 8px;">Assigned Resources (${assignedResources.length})</h4>
-            ${resourcesHtml}
+        holidaysHtml = '<div class="table-container"><table><thead><tr><th>Date</th><th>Holiday Name</th><th>Type</th><th>Recurring</th></tr></thead><tbody>';
+        sortedHolidays.forEach(holiday => {
+            const formattedDate = formatDate(holiday.date);
+            const recurringBadge = holiday.isRecurring
+                ? `<span class="badge badge-info" style="font-size: 11px;" title="${escapeHtml(holiday.recurringRule || '')}">Recurring</span>`
+                : '<span class="badge badge-secondary" style="font-size: 11px;">One-time</span>';
+
+            holidaysHtml += `
+                <tr>
+                    <td><strong>${formattedDate}</strong></td>
+                    <td>${escapeHtml(holiday.name)}</td>
+                    <td>${escapeHtml(holiday.type || 'Public')}</td>
+                    <td>${recurringBadge}</td>
+                </tr>`;
+        });
+        holidaysHtml += '</tbody></table></div>';
+    }
+
+    const html = `
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Calendar Info -->
+            <div class="card" style="background: var(--neutral-50);">
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary-color);">Calendar Information</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
+                    <div><strong>Name:</strong> ${escapeHtml(cal.name)}</div>
+                    <div><strong>Region:</strong> ${escapeHtml(cal.region)}</div>
+                    <div><strong>Year:</strong> ${cal.year}</div>
+                    <div><strong>Holidays:</strong> ${cal.holidays?.length || 0}</div>
+                    <div style="grid-column: 1 / -1;"><strong>Description:</strong> ${escapeHtml(cal.description || 'No description')}</div>
+                </div>
+            </div>
+
+            <!-- Holidays Section -->
+            <div>
+                <h3 style="margin: 0 0 12px 0; font-size: 16px; color: var(--primary-color);">Holidays (${cal.holidays?.length || 0})</h3>
+                ${holidaysHtml}
+            </div>
+
+            <!-- Assigned Resources Section -->
+            <div>
+                <h3 style="margin: 0 0 12px 0; font-size: 16px; color: var(--primary-color);">Assigned Resources (${assignedResources.length})</h3>
+                ${resourcesHtml}
+            </div>
         </div>
     `;
 
     const footer = `
         <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        <button class="btn btn-primary" onclick="editCalendar(${calendarId})">Edit Calendar</button>
         <button class="btn btn-error" onclick="deleteCalendar(${calendarId})">Delete</button>
     `;
 
     openModal(`Calendar: ${cal.name}`, html, footer, 'modal-large');
+}
+
+function editCalendar(calendarId) {
+    const cal = regionalCalendars.find(c => c.id === calendarId);
+    if (!cal) return;
+
+    // Ensure holidays array exists
+    if (!cal.holidays) {
+        cal.holidays = [];
+    }
+
+    // Build holidays table for editing
+    let holidaysTableHtml = '';
+    if (cal.holidays.length === 0) {
+        holidaysTableHtml = '<p style="color: var(--text-muted); font-style: italic; margin: 12px 0;">No holidays defined yet. Click "Add Holiday" to get started.</p>';
+    } else {
+        // Sort holidays by date
+        const sortedHolidays = [...cal.holidays].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        holidaysTableHtml = '<div class="table-container"><table><thead><tr><th>Date</th><th>Holiday Name</th><th>Type</th><th>Recurring</th><th style="width: 100px;">Actions</th></tr></thead><tbody>';
+        sortedHolidays.forEach((holiday, index) => {
+            const originalIndex = cal.holidays.indexOf(holiday);
+            const formattedDate = formatDate(holiday.date);
+            const recurringText = holiday.isRecurring ? 'Yes' : 'No';
+
+            holidaysTableHtml += `
+                <tr>
+                    <td>${formattedDate}</td>
+                    <td><strong>${escapeHtml(holiday.name)}</strong></td>
+                    <td>${escapeHtml(holiday.type || 'Public')}</td>
+                    <td>${recurringText}</td>
+                    <td class="table-actions">
+                        <button class="btn btn-sm btn-ghost" onclick="editHoliday(${calendarId}, ${originalIndex})" title="Edit">Edit</button>
+                        <button class="btn btn-sm btn-ghost" onclick="deleteHoliday(${calendarId}, ${originalIndex})" title="Delete">✕</button>
+                    </td>
+                </tr>`;
+        });
+        holidaysTableHtml += '</tbody></table></div>';
+    }
+
+    const html = `
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Calendar Metadata -->
+            <div class="card" style="background: var(--neutral-50);">
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary-color);">Calendar Information</h3>
+
+                <div class="form-group">
+                    <label class="form-label form-label-required">Calendar Name</label>
+                    <input type="text" class="form-input" id="editCalName" value="${escapeHtml(cal.name)}" placeholder="US Federal Holidays">
+                </div>
+
+                <div class="form-inline">
+                    <div class="form-group">
+                        <label class="form-label">Region</label>
+                        <input type="text" class="form-input" id="editCalRegion" value="${escapeHtml(cal.region)}" placeholder="US">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Year</label>
+                        <input type="number" class="form-input" id="editCalYear" value="${cal.year}" min="2020">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="editCalDescription" placeholder="Calendar description...">${escapeHtml(cal.description || '')}</textarea>
+                </div>
+            </div>
+
+            <!-- Holidays Section -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 16px; color: var(--primary-color);">Holidays (${cal.holidays.length})</h3>
+                    <button class="btn btn-sm btn-primary" onclick="addHoliday(${calendarId})">+ Add Holiday</button>
+                </div>
+                <div id="holidaysTableContainer">
+                    ${holidaysTableHtml}
+                </div>
+            </div>
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="viewCalendarDetail(${calendarId})">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCalendarEdits(${calendarId})">Save Changes</button>
+    `;
+
+    openModal(`Edit Calendar: ${cal.name}`, html, footer, 'modal-large');
+}
+
+function saveCalendarEdits(calendarId) {
+    const cal = regionalCalendars.find(c => c.id === calendarId);
+    if (!cal) return;
+
+    const name = document.getElementById('editCalName').value.trim();
+    if (!name) {
+        alert('Please enter a calendar name');
+        return;
+    }
+
+    // Update calendar metadata
+    cal.name = name;
+    cal.region = document.getElementById('editCalRegion').value.trim() || 'Custom';
+    cal.year = parseInt(document.getElementById('editCalYear').value) || new Date().getFullYear();
+    cal.description = document.getElementById('editCalDescription').value.trim();
+    cal.lastModified = new Date().toISOString();
+
+    triggerSave();
+    renderCalendars();
+    viewCalendarDetail(calendarId);
+}
+
+function addHoliday(calendarId) {
+    const cal = regionalCalendars.find(c => c.id === calendarId);
+    if (!cal) return;
+
+    const html = `
+        <div class="form-group">
+            <label class="form-label form-label-required">Holiday Name</label>
+            <input type="text" class="form-input" id="newHolidayName" placeholder="New Year's Day" autofocus>
+        </div>
+
+        <div class="form-inline">
+            <div class="form-group">
+                <label class="form-label form-label-required">Date</label>
+                <input type="date" class="form-input" id="newHolidayDate" value="${cal.year}-01-01">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <select class="form-input" id="newHolidayType">
+                    <option value="Public">Public Holiday</option>
+                    <option value="Corporate">Corporate Event</option>
+                    <option value="Training">Training Blackout</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <input type="checkbox" id="newHolidayRecurring" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 8px;">
+                <span style="vertical-align: middle;">Recurring Holiday</span>
+            </label>
+            <div class="form-help">Check if this holiday repeats annually (e.g., Christmas, New Year)</div>
+        </div>
+
+        <div class="form-group" id="recurringRuleGroup" style="display: none;">
+            <label class="form-label">Recurring Rule</label>
+            <input type="text" class="form-input" id="newHolidayRecurringRule" placeholder="e.g., Fourth Thursday of November">
+            <div class="form-help">Describe when this holiday occurs each year</div>
+        </div>
+
+        <script>
+            document.getElementById('newHolidayRecurring').addEventListener('change', function(e) {
+                document.getElementById('recurringRuleGroup').style.display = e.target.checked ? 'block' : 'none';
+            });
+        </script>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal(); editCalendar(${calendarId})">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewHoliday(${calendarId})">Add Holiday</button>
+    `;
+
+    openModal('Add Holiday', html, footer);
+}
+
+function saveNewHoliday(calendarId) {
+    const cal = regionalCalendars.find(c => c.id === calendarId);
+    if (!cal) return;
+
+    const name = document.getElementById('newHolidayName').value.trim();
+    const date = document.getElementById('newHolidayDate').value;
+
+    if (!name) {
+        alert('Please enter a holiday name');
+        return;
+    }
+
+    if (!date) {
+        alert('Please select a date');
+        return;
+    }
+
+    const isRecurring = document.getElementById('newHolidayRecurring').checked;
+    const recurringRule = isRecurring ? document.getElementById('newHolidayRecurringRule').value.trim() : '';
+
+    const newHoliday = {
+        date: date,
+        name: name,
+        type: document.getElementById('newHolidayType').value,
+        isRecurring: isRecurring,
+        recurringRule: recurringRule
+    };
+
+    if (!cal.holidays) {
+        cal.holidays = [];
+    }
+
+    cal.holidays.push(newHoliday);
+    cal.lastModified = new Date().toISOString();
+
+    triggerSave();
+    renderCalendars();
+    closeModal();
+    editCalendar(calendarId);
+}
+
+function editHoliday(calendarId, holidayIndex) {
+    const cal = regionalCalendars.find(c => c.id === calendarId);
+    if (!cal || !cal.holidays || !cal.holidays[holidayIndex]) return;
+
+    const holiday = cal.holidays[holidayIndex];
+
+    const html = `
+        <div class="form-group">
+            <label class="form-label form-label-required">Holiday Name</label>
+            <input type="text" class="form-input" id="editHolidayName" value="${escapeHtml(holiday.name)}" placeholder="New Year's Day" autofocus>
+        </div>
+
+        <div class="form-inline">
+            <div class="form-group">
+                <label class="form-label form-label-required">Date</label>
+                <input type="date" class="form-input" id="editHolidayDate" value="${holiday.date}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <select class="form-input" id="editHolidayType">
+                    <option value="Public" ${holiday.type === 'Public' ? 'selected' : ''}>Public Holiday</option>
+                    <option value="Corporate" ${holiday.type === 'Corporate' ? 'selected' : ''}>Corporate Event</option>
+                    <option value="Training" ${holiday.type === 'Training' ? 'selected' : ''}>Training Blackout</option>
+                    <option value="Other" ${holiday.type === 'Other' ? 'selected' : ''}>Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <input type="checkbox" id="editHolidayRecurring" ${holiday.isRecurring ? 'checked' : ''} style="width: 18px; height: 18px; vertical-align: middle; margin-right: 8px;">
+                <span style="vertical-align: middle;">Recurring Holiday</span>
+            </label>
+            <div class="form-help">Check if this holiday repeats annually (e.g., Christmas, New Year)</div>
+        </div>
+
+        <div class="form-group" id="editRecurringRuleGroup" style="display: ${holiday.isRecurring ? 'block' : 'none'};">
+            <label class="form-label">Recurring Rule</label>
+            <input type="text" class="form-input" id="editHolidayRecurringRule" value="${escapeHtml(holiday.recurringRule || '')}" placeholder="e.g., Fourth Thursday of November">
+            <div class="form-help">Describe when this holiday occurs each year</div>
+        </div>
+
+        <script>
+            document.getElementById('editHolidayRecurring').addEventListener('change', function(e) {
+                document.getElementById('editRecurringRuleGroup').style.display = e.target.checked ? 'block' : 'none';
+            });
+        </script>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal(); editCalendar(${calendarId})">Cancel</button>
+        <button class="btn btn-primary" onclick="saveHolidayEdits(${calendarId}, ${holidayIndex})">Save Changes</button>
+    `;
+
+    openModal('Edit Holiday', html, footer);
+}
+
+function saveHolidayEdits(calendarId, holidayIndex) {
+    const cal = regionalCalendars.find(c => c.id === calendarId);
+    if (!cal || !cal.holidays || !cal.holidays[holidayIndex]) return;
+
+    const name = document.getElementById('editHolidayName').value.trim();
+    const date = document.getElementById('editHolidayDate').value;
+
+    if (!name) {
+        alert('Please enter a holiday name');
+        return;
+    }
+
+    if (!date) {
+        alert('Please select a date');
+        return;
+    }
+
+    const isRecurring = document.getElementById('editHolidayRecurring').checked;
+    const recurringRule = isRecurring ? document.getElementById('editHolidayRecurringRule').value.trim() : '';
+
+    // Update the holiday
+    cal.holidays[holidayIndex] = {
+        date: date,
+        name: name,
+        type: document.getElementById('editHolidayType').value,
+        isRecurring: isRecurring,
+        recurringRule: recurringRule
+    };
+
+    cal.lastModified = new Date().toISOString();
+
+    triggerSave();
+    renderCalendars();
+    closeModal();
+    editCalendar(calendarId);
+}
+
+function deleteHoliday(calendarId, holidayIndex) {
+    const cal = regionalCalendars.find(c => c.id === calendarId);
+    if (!cal || !cal.holidays || !cal.holidays[holidayIndex]) return;
+
+    const holiday = cal.holidays[holidayIndex];
+
+    if (settings.confirmBeforeDelete) {
+        if (!confirm(`Delete holiday "${holiday.name}"?`)) {
+            return;
+        }
+    }
+
+    cal.holidays.splice(holidayIndex, 1);
+    cal.lastModified = new Date().toISOString();
+
+    triggerSave();
+    renderCalendars();
+    editCalendar(calendarId);
 }
 
 function deleteCalendar(calendarId) {
@@ -7183,7 +7547,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.21',
+        version: '1.0.22',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

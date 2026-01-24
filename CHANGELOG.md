@@ -7,6 +7,114 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.22] - 2026-01-24
+
+### Added - Comprehensive Calendar Viewing and Editing
+
+**Feature Description:**
+Added full calendar detail viewing and comprehensive editing capabilities. Users can now view all holidays within a calendar and edit every aspect of calendars including metadata and individual holidays.
+
+**Previous Limitation:**
+- Calendar list showed only basic metadata (name, region, year, holiday count)
+- "View" button showed calendar info and assigned resources but NOT the actual holidays
+- No way to edit calendar details after creation
+- No way to add, edit, or delete individual holidays
+- Users could only delete entire calendars, not manage their contents
+
+**New Capabilities:**
+
+#### 1. Enhanced Calendar Detail View
+- **Structured Layout** with three sections:
+  - Calendar Information card with metadata
+  - Holidays table showing all holidays sorted by date
+  - Assigned Resources table
+- **Holiday Display** includes:
+  - Date (formatted)
+  - Holiday name
+  - Type (Public, Corporate, Training, Other)
+  - Recurring status with visual badge
+- **Clean Visual Design** with cards and proper spacing
+- **Edit Button** to enter edit mode
+
+#### 2. Full Calendar Editing
+- **Edit Calendar Metadata**:
+  - Calendar name (required)
+  - Region
+  - Year
+  - Description
+- **Holiday Management** with sortable table:
+  - View all holidays sorted by date
+  - Edit individual holidays
+  - Delete individual holidays
+  - Add new holidays
+- **Actions per Holiday**:
+  - Edit button - opens holiday editor
+  - Delete button (✕) - removes holiday with confirmation
+
+#### 3. Add/Edit Holiday Dialog
+- **Holiday Fields**:
+  - Name (required)
+  - Date picker (required)
+  - Type dropdown (Public Holiday, Corporate Event, Training Blackout, Other)
+  - Recurring checkbox
+  - Recurring rule text (conditionally shown)
+- **Smart UI**:
+  - Recurring rule field only shows when "Recurring Holiday" is checked
+  - Date defaults to January 1 of calendar year for new holidays
+  - Preserves all existing data when editing
+- **Validation**:
+  - Name required
+  - Date required
+  - Type defaults to "Public Holiday"
+
+#### 4. User Flow
+**Viewing Calendars:**
+1. Calendars tab → Calendar list table
+2. Click "View" → See calendar details with ALL holidays displayed
+3. Click "Edit Calendar" → Enter edit mode
+
+**Editing Calendars:**
+1. In edit mode → Update calendar name/region/year/description
+2. Click "Add Holiday" → Add new holiday dialog
+3. Click "Edit" on any holiday → Edit holiday dialog
+4. Click "✕" on any holiday → Delete with confirmation
+5. Click "Save Changes" → Updates calendar and returns to view mode
+6. Click "Cancel" → Returns to view mode without saving
+
+**Holiday Management:**
+1. Add Holiday → Fill form → Click "Add Holiday"
+2. Edit Holiday → Modify fields → Click "Save Changes"
+3. Delete Holiday → Click ✕ → Confirm → Holiday removed
+
+#### 5. Data Integrity
+- All changes trigger auto-save
+- `lastModified` timestamp updated on calendar changes
+- Calendar rendering refreshed after edits
+- Holiday array always maintained (empty array if no holidays)
+- Proper sorting of holidays by date in display
+
+**Technical Implementation:**
+- New function: `editCalendar(calendarId)` - Opens calendar editor
+- New function: `saveCalendarEdits(calendarId)` - Saves calendar metadata
+- New function: `addHoliday(calendarId)` - Opens add holiday dialog
+- New function: `saveNewHoliday(calendarId)` - Adds new holiday to calendar
+- New function: `editHoliday(calendarId, holidayIndex)` - Opens edit holiday dialog
+- New function: `saveHolidayEdits(calendarId, holidayIndex)` - Updates existing holiday
+- New function: `deleteHoliday(calendarId, holidayIndex)` - Removes holiday from calendar
+- Enhanced: `viewCalendarDetail(calendarId)` - Now displays full holiday table with dates
+
+**Files Modified:**
+- `training-plan-manager.html` - Added 7 new functions, enhanced viewCalendarDetail (Lines 6958-7349)
+
+**Benefits:**
+- Complete visibility into calendar contents
+- No need to delete and recreate calendars to modify them
+- Granular control over individual holidays
+- Better data management for planning training around holidays
+- Clean, intuitive UI matching application design standards
+
+---
+
 ## [1.0.21] - 2026-01-24
 
 ### Fixed - In-Person Capability Display Consistency
