@@ -81,7 +81,92 @@ The CORS proxy does **not** bypass or eliminate browser security. Browsers still
 - `README.md`: 2 corrections (feature list + "New in v2.0.2" description)
 - `app/server.js`: 1 correction (comment describing proxy endpoint)
 - `CHANGELOG.md`: 5 corrections (various historical entries)
+- `START_HERE.md`: Complete rewrite for web service architecture (see below)
 - All version files: 2.0.3 → 2.0.4
+
+---
+
+### Fixed - START_HERE.md Completely Rewritten for Web Service Architecture
+
+**Issue Resolved:** START_HERE.md contained outdated v1.x instructions telling users to "just open the HTML file" without any reference to installation or setup
+
+#### Problem
+
+START_HERE.md was written for the v1.x standalone HTML architecture and never updated for v2.0.x web service architecture. Critical issues:
+
+**Incorrect Instructions:**
+- Line 9-12: "Double-click `training-plan-manager.html` - No installation needed!"
+- Line 284: "Do I need to install anything? No! Just open the HTML file. Zero installation."
+- No mention of Docker or Node.js installation
+- No mention of running a server
+- No reference to INSTALLATION.md
+- Implied the app ran from `file://` protocol
+
+**Impact:**
+- Users trying to "start here" would be completely lost
+- No guidance on actual prerequisites (Docker/Node.js)
+- Wasted time attempting to open non-existent HTML files
+- Missed the entire web service architecture
+- Poor first-user experience
+
+#### Solution
+
+**Completely rewrote START_HERE.md from scratch for v2.0.x architecture:**
+
+**New Structure:**
+1. **Prerequisites - SET UP FIRST** (Lines 7-26)
+   - Clear, bold directive: "Go to INSTALLATION.md NOW"
+   - Explains Docker vs Node.js choice
+   - Lists what installation guide provides
+   - Estimated time: 5-10 minutes
+
+2. **Verify Installation** (Lines 30-51)
+   - How to start the application (Docker/Node.js commands)
+   - Navigate to http://localhost:3000
+   - Health check verification
+   - Troubleshooting reference
+
+3. **First 10 Minutes** (Lines 55-102)
+   - Load sample data (updated UI location: Settings → Data Management)
+   - Explore Dashboard, Resources, Competencies, Courses
+   - Accurate tab navigation for v2.0.x
+
+4. **Updated Content Throughout:**
+   - All references to http://localhost:3000 (not file:// protocol)
+   - Docker/Node.js management commands
+   - Web service architecture understanding
+   - Server must be running to use app
+   - Browser localStorage with server-side proxy
+
+**New Q&A Section:**
+- Q: Do I need to keep the Docker container running? **Yes!**
+- Q: Can I access this from another computer? **No** (localhost only)
+- Q: How do I stop the application? **Docker: `docker compose down`**
+- Q: How do I update to a newer version? **Git pull + rebuild + restart**
+
+**New Pro Tips:**
+- Keep Docker/Node.js running
+- Bookmark http://localhost:3000
+- Weekly exports for backups
+- Browser DevTools for troubleshooting
+
+#### Files Modified
+
+- `START_HERE.md`: Complete rewrite (444 lines) - v1.x → v2.0.x architecture
+  - Removed all v1.x "open HTML file" instructions
+  - Added mandatory installation prerequisite section
+  - Updated all URLs to http://localhost:3000
+  - Added Docker/Node.js server management
+  - Clarified data storage (browser localStorage + web service)
+  - Added web service-specific Q&A
+
+#### Impact
+
+- ✅ **Correct first-user experience** - Users directed to install first
+- ✅ **No confusion** - Clear prerequisites before starting
+- ✅ **Accurate architecture** - Reflects v2.0.x web service design
+- ✅ **Proper onboarding** - Installation → Verification → Exploration
+- ✅ **Reduced support burden** - Users follow correct setup path
 
 #### Note
 
