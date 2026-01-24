@@ -1765,7 +1765,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.20',
+        version: '1.0.21',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -3123,7 +3123,7 @@ function renderResourcesList(filteredResources = null) {
         const assignedCourses = resource.assignedCourses || [];
 
         // In-person capability indicator
-        const inPersonBadge = resource.canAttendInPerson
+        const inPersonBadge = resource.canAttendInPerson !== false
             ? '<span class="badge badge-success" style="font-size: 10px;">✓ In-Person</span>'
             : '<span class="badge badge-secondary" style="font-size: 10px;">Remote Only</span>';
 
@@ -7183,7 +7183,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.20',
+        version: '1.0.21',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

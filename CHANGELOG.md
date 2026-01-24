@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.21] - 2026-01-24
+
+### Fixed - In-Person Capability Display Consistency
+
+**Bug Description:**
+The "Can Attend In-Person Classes" checkbox in the resource edit form was not consistently displaying across different views. When a resource had `canAttendInPerson` set to `undefined` (legacy resources created before v1.0.13), the Resources table showed "Remote Only" while the resource detail view showed "✓ Yes", creating confusion.
+
+**Root Cause:**
+The Resources table used a simple truthy check (`resource.canAttendInPerson ? ...`), which treats `undefined` as falsy and displays "Remote Only". However, the resource detail view and edit form used `resource.canAttendInPerson !== false`, which treats `undefined` as truthy and shows "✓ Yes" or checks the checkbox by default.
+
+**Fix Applied:**
+- Updated the Resources table display logic (line 3126) to use `resource.canAttendInPerson !== false` instead of a simple truthy check
+- This ensures consistency across all views:
+  - Resources table: Shows "✓ In-Person" for `true` or `undefined`, "Remote Only" for `false`
+  - Resource detail view: Shows "✓ Yes" for `true` or `undefined`, "✗ No (Remote Only)" for `false`
+  - Edit form: Checkbox is checked for `true` or `undefined`, unchecked for `false`
+  - Wizard review: Shows "⚠️ Remote Only" warning only when explicitly `false`
+
+**Impact:**
+- Legacy resources with `undefined` values now consistently show as "✓ In-Person" across all views
+- New resources default to in-person capability (checkbox checked by default)
+- Only resources explicitly marked as `canAttendInPerson: false` show "Remote Only"
+- User experience is now consistent and predictable
+
+**Files Modified:**
+- `training-plan-manager.html` - Line 3126 (Resources table display logic)
+
+---
+
 ## [1.0.20] - 2026-01-24
 
 ### Changed - Sortable Table Views for Courses and Competencies
