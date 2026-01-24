@@ -7,6 +7,143 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.8] - 2026-01-24
+
+### Added - CRITICAL: Resource-Competency Linking & AI Context Integration
+
+This release resolves the catastrophic issue where competencies and training plans were not visibly linked to resources. The application now provides seamless competency management and AI-powered recommendations that account for resource competencies.
+
+#### Resource Detail View - Completely Enhanced
+- **Current Competencies Section** - View and manage all current competencies for a resource
+  - Visual level indicators (1-5 dots) showing proficiency
+  - Level names displayed (Awareness, Beginner, Intermediate, Advanced, Expert)
+  - Competency name, category, and current level clearly shown
+  - Quick remove button for each competency
+  - Count of current competencies in section header
+  - "+ Add Competency" button for easy addition
+- **Desired Competencies / Goals Section** - Set and track target competencies
+  - Shows both current and target proficiency levels for each competency
+  - Visual level indicators for target levels
+  - Clear progression path (e.g., "From Level 2 → 4")
+  - Competency category and name displayed
+  - Quick remove button for each goal
+  - Count of desired competencies in section header
+  - "+ Add Goal" button for setting new targets
+- **Training Plans Section** - View all plans associated with the resource
+  - Displays all training plans created for this resource
+  - Shows plan title, creation date, number of courses, and budget
+  - AI-Assisted badge indicator for plans using AI recommendations
+  - Status badge (Draft, Approved, etc.) with color coding
+  - Click any plan card to view full details
+  - "+ Create Plan" button to start new wizard for this resource
+  - Count of training plans in section header
+- **Profile Section** - Enhanced layout with better organization
+  - Grid layout for basic information
+  - Calendar link integration for assigned regional calendar
+  - Budget tracking (spent / total)
+  - Weekly training hours display
+
+#### Competency Management UI
+- **Add Competency Modal** - Comprehensive interface for assigning competencies
+  - Dropdown with all available competencies grouped by category
+  - Shows competency name and subcategory in selection
+  - Proficiency level selector (1-5) with descriptive names
+  - Dynamic level definitions display based on selected competency
+  - Shows all 5 level definitions with descriptions for context
+  - Separate flows for current competencies vs desired competencies
+  - Prevents duplicate assignments
+  - Validates all required fields before saving
+- **Remove Competency** - Clean removal with confirmation
+  - Confirmation dialog showing competency name
+  - Separate handling for current vs desired competencies
+  - Immediate visual update after removal
+  - Auto-saves changes to localStorage
+  - Reopens resource detail view after removal
+
+#### AI Integration - Competency-Aware Recommendations
+- **AI Competency Assessment Enhancement**
+  - Now includes resource's existing current competencies in analysis prompt
+  - Shows level and category for each existing competency
+  - AI builds upon existing knowledge rather than ignoring it
+  - Prompts AI to suggest additional relevant competencies not already listed
+  - Provides full context: job title, department, location, and existing competencies
+- **AI Goal Recommendations Enhancement**
+  - Includes both current AND desired competencies in recommendations
+  - Shows current levels and target levels for context
+  - AI considers existing goals when suggesting new ones
+  - Suggests deepening existing skills AND acquiring complementary new competencies
+  - Comprehensive context: role, location, current competencies, desired competencies, and AI assessment
+- **AI Course Discovery Enhancement**
+  - Includes current competencies with proficiency levels in course search
+  - Includes desired competencies with progression paths (e.g., "From Level 2 → 4")
+  - AI recommends courses appropriate for current skill level
+  - AI ensures courses help achieve desired competency levels
+  - Explains how each course builds upon CURRENT competencies to reach DESIRED levels
+  - 5-point rationale for each course including competency progression context
+
+#### Wizard Integration
+- **Pre-selected Resource** - Start wizard from resource detail view
+  - "+ Create Plan" button in resource detail view pre-selects that resource
+  - `startNewPlan(resourceId)` now accepts optional resource ID parameter
+  - Wizard automatically selects the resource on Step 1
+  - Seamless flow from viewing resource to creating their training plan
+- **Competency Context Throughout Wizard** - All wizard steps now aware of resource competencies
+  - Step 2: AI knows existing competencies when assessing
+  - Step 3: AI knows current and desired competencies when recommending goals
+  - Step 4: AI knows competency context when discovering courses
+  - Better recommendations that build upon existing knowledge
+
+#### Data Structures Enhanced
+- **Resource Competency Arrays** - Now properly utilized
+  - `currentCompetencies`: Array of `{competencyId, level, assessedDate, assessedBy}`
+  - `desiredCompetencies`: Array of `{competencyId, targetLevel, priority, deadline, setDate}`
+  - Both arrays auto-initialize if missing
+  - Proper validation and duplicate checking
+- **Competency Integration** - Links to competency library
+  - Competencies selected from global competency library
+  - References maintained via competencyId
+  - Level definitions pulled from competency library for display
+  - Category and name shown from library reference
+
+#### Functions Added
+- `manageResourceCompetencies(resourceId, type)` - Opens modal to add competencies (current or desired)
+- `saveResourceCompetency(resourceId, type)` - Saves new competency assignment with level
+- `removeResourceCompetency(resourceId, competencyId, type)` - Removes competency from resource
+- `updateCompetencyLevelHelp()` - Dynamic display of level definitions based on selected competency
+- `viewResourceDetail()` - Completely rewritten with comprehensive 4-section layout
+- `startNewPlan(preselectedResourceId)` - Enhanced to accept optional resource ID
+
+#### Functions Enhanced
+- `runCompetencyAssessment()` - Now includes current competencies context in AI prompt
+- `runGoalRecommendations()` - Now includes current and desired competencies in AI prompt
+- `runCourseDiscovery()` - Now includes competency progression context in AI prompt
+
+### Fixed
+- **CATASTROPHIC BUG** - Competencies were not visibly linked to resources (now fixed)
+- **CATASTROPHIC BUG** - Training plans were not visible on resource profiles (now fixed)
+- **MAJOR ISSUE** - AI was not using resource competencies in recommendations (now fixed)
+- **UX ISSUE** - No way to manage resource competencies through UI (now fixed)
+- **UX ISSUE** - No way to set desired competency goals for resources (now fixed)
+- **UX ISSUE** - No visual feedback on competency proficiency levels (now fixed with level indicators)
+
+### Changed
+- Resource detail modal now uses `modal-xlarge` class for wider display (1200px max-width)
+- Resource detail view changed from simple info display to comprehensive 4-section management interface
+- Edit button text changed from "Edit" to "Edit Profile" for clarity
+- Wizard can now be started with a pre-selected resource from resource detail view
+
+### Technical Details
+- Version bumped to 1.0.8 in both saveToLocalStorage() and exportToJSON()
+- All new functions properly integrated with auto-save via triggerSave()
+- All new functions properly integrated with modal system via closeModal() and openModal()
+- Competency level indicators use existing CSS classes (level-indicator, level-box, filled)
+- Uses existing getLevelName() function for level name display
+- Uses existing formatDate() function for date formatting
+- Uses existing formatCurrency() function for budget display
+- Maintains backward compatibility with existing data structures
+
+---
+
 ## [1.0.7] - 2026-01-24
 
 ### Added - CRITICAL: Fully Functional Training Plan System

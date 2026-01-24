@@ -1366,7 +1366,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.0',
+        version: '1.0.8',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2472,28 +2472,349 @@ function viewResourceDetail(resourceId) {
         }
     }
 
+    // Get resource's training plans
+    const resourcePlans = trainingPlans.filter(p => p.resourceId === resourceId);
+
+    // Build current competencies display
+    let currentCompetenciesHtml = '';
+    if (resource.currentCompetencies && resource.currentCompetencies.length > 0) {
+        currentCompetenciesHtml = '<div class="table-container" style="margin-top: 12px;"><table><thead><tr><th>Competency</th><th>Category</th><th>Current Level</th><th style="width: 60px;">Actions</th></tr></thead><tbody>';
+        resource.currentCompetencies.forEach(comp => {
+            const competency = competencyLibrary.find(c => c.id === comp.competencyId);
+            if (competency) {
+                const levelName = getLevelName(comp.level);
+                let levelIndicator = '<div class="level-indicator">';
+                for (let i = 1; i <= 5; i++) {
+                    levelIndicator += `<div class="level-box ${i <= comp.level ? 'filled' : ''}"></div>`;
+                }
+                levelIndicator += '</div>';
+
+                currentCompetenciesHtml += `
+                    <tr>
+                        <td><strong>${escapeHtml(competency.name)}</strong></td>
+                        <td>${escapeHtml(competency.category)}</td>
+                        <td>${levelIndicator} <span style="font-size: 12px; color: var(--text-muted);">${levelName}</span></td>
+                        <td><button class="btn btn-sm btn-ghost" onclick="removeResourceCompetency(${resourceId}, ${comp.competencyId}, 'current')" title="Remove">✕</button></td>
+                    </tr>
+                `;
+            }
+        });
+        currentCompetenciesHtml += '</tbody></table></div>';
+    } else {
+        currentCompetenciesHtml = '<p style="color: var(--text-muted); font-style: italic; margin-top: 12px;">No current competencies assigned</p>';
+    }
+
+    // Build desired competencies display
+    let desiredCompetenciesHtml = '';
+    if (resource.desiredCompetencies && resource.desiredCompetencies.length > 0) {
+        desiredCompetenciesHtml = '<div class="table-container" style="margin-top: 12px;"><table><thead><tr><th>Competency</th><th>Category</th><th>Current</th><th>Target Level</th><th style="width: 60px;">Actions</th></tr></thead><tbody>';
+        resource.desiredCompetencies.forEach(comp => {
+            const competency = competencyLibrary.find(c => c.id === comp.competencyId);
+            if (competency) {
+                const currentComp = resource.currentCompetencies.find(cc => cc.competencyId === comp.competencyId);
+                const currentLevel = currentComp ? currentComp.level : 0;
+                const targetLevelName = getLevelName(comp.targetLevel);
+                const currentLevelName = currentLevel > 0 ? getLevelName(currentLevel) : 'None';
+
+                let targetLevelIndicator = '<div class="level-indicator">';
+                for (let i = 1; i <= 5; i++) {
+                    targetLevelIndicator += `<div class="level-box ${i <= comp.targetLevel ? 'filled' : ''}"></div>`;
+                }
+                targetLevelIndicator += '</div>';
+
+                desiredCompetenciesHtml += `
+                    <tr>
+                        <td><strong>${escapeHtml(competency.name)}</strong></td>
+                        <td>${escapeHtml(competency.category)}</td>
+                        <td style="font-size: 12px; color: var(--text-muted);">${currentLevelName}</td>
+                        <td>${targetLevelIndicator} <span style="font-size: 12px; color: var(--text-muted);">${targetLevelName}</span></td>
+                        <td><button class="btn btn-sm btn-ghost" onclick="removeResourceCompetency(${resourceId}, ${comp.competencyId}, 'desired')" title="Remove">✕</button></td>
+                    </tr>
+                `;
+            }
+        });
+        desiredCompetenciesHtml += '</tbody></table></div>';
+    } else {
+        desiredCompetenciesHtml = '<p style="color: var(--text-muted); font-style: italic; margin-top: 12px;">No desired competencies set</p>';
+    }
+
+    // Build training plans display
+    let trainingPlansHtml = '';
+    if (resourcePlans.length > 0) {
+        trainingPlansHtml = '<div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">';
+        resourcePlans.forEach(plan => {
+            const statusColor = plan.status === 'Approved' ? '#10b981' : plan.status === 'Draft' ? '#f59e0b' : '#6b7280';
+            const aiAssisted = plan.aiRecommendations && Object.keys(plan.aiRecommendations).length > 0;
+            trainingPlansHtml += `
+                <div class="card" style="cursor: pointer; margin: 0;" onclick="closeModal(); switchTab(5); setTimeout(() => viewPlanDetails(${plan.id}), 100);">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px;">${escapeHtml(plan.title)}</h4>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted);">
+                                <span>Created: ${formatDate(plan.createdDate)}</span>
+                                <span>•</span>
+                                <span>${plan.scheduledCourses ? plan.scheduledCourses.length : 0} courses</span>
+                                <span>•</span>
+                                <span>Budget: ${formatCurrency(plan.totalCost || 0)}</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            ${aiAssisted ? '<span class="badge badge-info" style="font-size: 11px;">AI-Assisted</span>' : ''}
+                            <span class="badge" style="background: ${statusColor}; color: white; font-size: 11px;">${plan.status}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        trainingPlansHtml += '</div>';
+    } else {
+        trainingPlansHtml = '<p style="color: var(--text-muted); font-style: italic; margin-top: 12px;">No training plans created yet</p>';
+    }
+
     const html = `
-        <div>
-            <h3>${resource.name}</h3>
-            <p><strong>Title:</strong> ${resource.jobTitle || 'N/A'}</p>
-            <p><strong>Department:</strong> ${resource.department || 'N/A'}</p>
-            <p><strong>Location:</strong> ${resource.location || 'N/A'}</p>
-            <p><strong>Email:</strong> ${resource.email || 'N/A'}</p>
-            <p><strong>Regional Calendar:</strong> ${calendarInfo}</p>
-            <p><strong>Budget:</strong> ${formatCurrency(resource.budgetSpent)} / ${formatCurrency(resource.annualTrainingBudget)}</p>
-            <p><strong>Weekly Training Hours:</strong> ${resource.weeklyTrainingHours || 0}</p>
-            <p><strong>Competencies:</strong> ${resource.currentCompetencies.length}</p>
-            <p><strong>Assigned Courses:</strong> ${resource.assignedCourses.length}</p>
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Profile Section -->
+            <div class="card" style="background: var(--neutral-50);">
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary-color);">Profile</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
+                    <div><strong>Title:</strong> ${resource.jobTitle || 'N/A'}</div>
+                    <div><strong>Department:</strong> ${resource.department || 'N/A'}</div>
+                    <div><strong>Location:</strong> ${resource.location || 'N/A'}</div>
+                    <div><strong>Email:</strong> ${resource.email || 'N/A'}</div>
+                    <div style="grid-column: 1 / -1;"><strong>Regional Calendar:</strong> ${calendarInfo}</div>
+                    <div><strong>Budget:</strong> ${formatCurrency(resource.budgetSpent)} / ${formatCurrency(resource.annualTrainingBudget)}</div>
+                    <div><strong>Weekly Training Hours:</strong> ${resource.weeklyTrainingHours || 0}</div>
+                </div>
+            </div>
+
+            <!-- Current Competencies Section -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 16px; color: var(--primary-color);">Current Competencies (${resource.currentCompetencies.length})</h3>
+                    <button class="btn btn-sm btn-primary" onclick="manageResourceCompetencies(${resourceId}, 'current')">+ Add Competency</button>
+                </div>
+                ${currentCompetenciesHtml}
+            </div>
+
+            <!-- Desired Competencies Section -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 16px; color: var(--primary-color);">Desired Competencies / Goals (${resource.desiredCompetencies.length})</h3>
+                    <button class="btn btn-sm btn-primary" onclick="manageResourceCompetencies(${resourceId}, 'desired')">+ Add Goal</button>
+                </div>
+                ${desiredCompetenciesHtml}
+            </div>
+
+            <!-- Training Plans Section -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 16px; color: var(--primary-color);">Training Plans (${resourcePlans.length})</h3>
+                    <button class="btn btn-sm btn-primary" onclick="closeModal(); switchTab(5); setTimeout(() => startWizard(${resourceId}), 100);">+ Create Plan</button>
+                </div>
+                ${trainingPlansHtml}
+            </div>
         </div>
     `;
 
     const footer = `
         <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-        <button class="btn btn-secondary" onclick="editResource(${resourceId})">Edit</button>
+        <button class="btn btn-secondary" onclick="editResource(${resourceId})">Edit Profile</button>
         <button class="btn btn-error" onclick="deleteResource(${resourceId})">Delete</button>
     `;
 
-    openModal(`Resource: ${resource.name}`, html, footer);
+    openModal(`Resource: ${resource.name}`, html, footer, 'modal-xlarge');
+}
+
+function manageResourceCompetencies(resourceId, type) {
+    const resource = resources.find(r => r.id === resourceId);
+    if (!resource) return;
+
+    const isCurrentType = type === 'current';
+    const title = isCurrentType ? 'Add Current Competency' : 'Add Desired Competency / Goal';
+    const description = isCurrentType
+        ? 'Select a competency and set the current proficiency level for this resource.'
+        : 'Select a competency and set the target proficiency level this resource should achieve.';
+
+    // Get competencies not already added
+    const existingIds = isCurrentType
+        ? (resource.currentCompetencies || []).map(c => c.competencyId)
+        : (resource.desiredCompetencies || []).map(c => c.competencyId);
+
+    const availableCompetencies = competencyLibrary.filter(c => !existingIds.includes(c.id));
+
+    if (availableCompetencies.length === 0) {
+        alert('All available competencies have been assigned to this resource.');
+        return;
+    }
+
+    // Build competency options grouped by category
+    const categories = {};
+    availableCompetencies.forEach(comp => {
+        if (!categories[comp.category]) {
+            categories[comp.category] = [];
+        }
+        categories[comp.category].push(comp);
+    });
+
+    let competencyOptions = '<option value="">-- Select Competency --</option>';
+    Object.keys(categories).sort().forEach(category => {
+        competencyOptions += `<optgroup label="${escapeHtml(category)}">`;
+        categories[category].sort((a, b) => a.name.localeCompare(b.name)).forEach(comp => {
+            competencyOptions += `<option value="${comp.id}">${escapeHtml(comp.name)}${comp.subcategory ? ' (' + escapeHtml(comp.subcategory) + ')' : ''}</option>`;
+        });
+        competencyOptions += '</optgroup>';
+    });
+
+    const html = `
+        <div>
+            <p style="margin-bottom: 20px; color: var(--text-secondary);">${description}</p>
+
+            <div class="form-group">
+                <label class="form-label form-label-required">Competency</label>
+                <select class="form-input" id="selectedCompetency" onchange="updateCompetencyLevelHelp()">
+                    ${competencyOptions}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label form-label-required">${isCurrentType ? 'Current' : 'Target'} Proficiency Level</label>
+                <select class="form-input" id="selectedLevel">
+                    <option value="">-- Select Level --</option>
+                    <option value="1">1 - Awareness</option>
+                    <option value="2">2 - Beginner</option>
+                    <option value="3">3 - Intermediate</option>
+                    <option value="4">4 - Advanced</option>
+                    <option value="5">5 - Expert</option>
+                </select>
+            </div>
+
+            <div id="levelHelp" style="background: var(--neutral-50); padding: 12px; border-radius: var(--radius-md); margin-top: 12px; display: none;">
+                <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">Level Definitions</h4>
+                <div id="levelDefinitions" style="font-size: 12px; color: var(--text-secondary);"></div>
+            </div>
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveResourceCompetency(${resourceId}, '${type}')">Add Competency</button>
+    `;
+
+    openModal(title, html, footer);
+
+    // Add script to show level definitions when competency is selected
+    window.updateCompetencyLevelHelp = function() {
+        const selectedId = parseInt(document.getElementById('selectedCompetency').value);
+        const helpDiv = document.getElementById('levelHelp');
+        const defsDiv = document.getElementById('levelDefinitions');
+
+        if (selectedId) {
+            const competency = competencyLibrary.find(c => c.id === selectedId);
+            if (competency && competency.levelDefinitions) {
+                let html = '';
+                for (let level = 1; level <= 5; level++) {
+                    const def = competency.levelDefinitions[level];
+                    if (def) {
+                        html += `<div style="margin-bottom: 6px;"><strong>Level ${level} (${def.name}):</strong> ${def.description}</div>`;
+                    }
+                }
+                defsDiv.innerHTML = html;
+                helpDiv.style.display = 'block';
+            }
+        } else {
+            helpDiv.style.display = 'none';
+        }
+    };
+}
+
+function saveResourceCompetency(resourceId, type) {
+    const resource = resources.find(r => r.id === resourceId);
+    if (!resource) return;
+
+    const competencyId = parseInt(document.getElementById('selectedCompetency').value);
+    const level = parseInt(document.getElementById('selectedLevel').value);
+
+    if (!competencyId) {
+        alert('Please select a competency');
+        return;
+    }
+
+    if (!level || level < 1 || level > 5) {
+        alert('Please select a proficiency level');
+        return;
+    }
+
+    const isCurrentType = type === 'current';
+    const targetArray = isCurrentType ? 'currentCompetencies' : 'desiredCompetencies';
+
+    // Initialize array if it doesn't exist
+    if (!resource[targetArray]) {
+        resource[targetArray] = [];
+    }
+
+    // Check if already exists
+    const existing = resource[targetArray].find(c => c.competencyId === competencyId);
+    if (existing) {
+        alert('This competency is already assigned to this resource');
+        return;
+    }
+
+    // Add the competency
+    if (isCurrentType) {
+        resource.currentCompetencies.push({
+            competencyId: competencyId,
+            level: level,
+            assessedDate: new Date().toISOString(),
+            assessedBy: 'Manager'
+        });
+    } else {
+        resource.desiredCompetencies.push({
+            competencyId: competencyId,
+            targetLevel: level,
+            priority: 'Medium',
+            deadline: null,
+            setDate: new Date().toISOString()
+        });
+    }
+
+    resource.lastModified = new Date().toISOString();
+
+    closeModal();
+    triggerSave();
+
+    // Reopen the resource detail view
+    setTimeout(() => viewResourceDetail(resourceId), 100);
+}
+
+function removeResourceCompetency(resourceId, competencyId, type) {
+    const resource = resources.find(r => r.id === resourceId);
+    if (!resource) return;
+
+    const competency = competencyLibrary.find(c => c.id === competencyId);
+    if (!competency) return;
+
+    if (settings.confirmBeforeDelete) {
+        if (!confirm(`Remove "${competency.name}" from ${type === 'current' ? 'current competencies' : 'desired competencies'}?`)) {
+            return;
+        }
+    }
+
+    const targetArray = type === 'current' ? 'currentCompetencies' : 'desiredCompetencies';
+
+    if (!resource[targetArray]) {
+        resource[targetArray] = [];
+    }
+
+    const index = resource[targetArray].findIndex(c => c.competencyId === competencyId);
+    if (index > -1) {
+        resource[targetArray].splice(index, 1);
+        resource.lastModified = new Date().toISOString();
+
+        triggerSave();
+
+        // Reopen the resource detail view
+        viewResourceDetail(resourceId);
+    }
 }
 
 function deleteResource(resourceId) {
@@ -3898,13 +4219,13 @@ function deletePlan(planId) {
     }
 }
 
-function startNewPlan() {
+function startNewPlan(preselectedResourceId = null) {
     wizardState = {
         active: true,
         currentStep: 1,
         totalSteps: 6,
         data: {
-            resourceId: null,
+            resourceId: preselectedResourceId,
             competencies: [],
             goals: [],
             selectedCourses: [],
@@ -4160,11 +4481,27 @@ async function runCompetencyAssessment() {
     btnText.textContent = '⏳ Analyzing...';
 
     try {
+        // Build current competencies context
+        let currentCompetenciesContext = '';
+        if (resource.currentCompetencies && resource.currentCompetencies.length > 0) {
+            currentCompetenciesContext = '\n\nCurrent Competencies (already assessed):';
+            resource.currentCompetencies.forEach(comp => {
+                const competency = competencyLibrary.find(c => c.id === comp.competencyId);
+                if (competency) {
+                    const levelName = getLevelName(comp.level);
+                    currentCompetenciesContext += `\n- ${competency.name} (${competency.category}): ${levelName} (Level ${comp.level}/5)`;
+                }
+            });
+            currentCompetenciesContext += '\n\nPlease INCLUDE these existing competencies in your analysis and suggest additional relevant competencies not already listed.';
+        }
+
         const userPrompt = `Analyze this role and suggest 5-8 key competencies:
 Job Title: ${resource.jobTitle || 'Not specified'}
 Department: ${resource.department || 'Not specified'}
 Current Role: ${resource.name}
-Additional context: This is a technical role requiring assessment of relevant skills and competencies.`;
+Location: ${resource.location || 'Not specified'}${currentCompetenciesContext}
+
+Additional context: This is a technical role requiring assessment of relevant skills and competencies. Build upon their existing competencies where applicable.`;
 
         const response = await callClaudeAPI(wizardState.prompts.competencyAssessment, userPrompt);
 
@@ -4290,15 +4627,44 @@ async function runGoalRecommendations() {
     btnText.textContent = '⏳ Analyzing...';
 
     try {
-        const competencies = wizardState.data.aiOutputs.competencyAssessment || resource.currentCompetencies;
+        // Build comprehensive competency context
+        let currentCompetenciesDetail = '';
+        if (resource.currentCompetencies && resource.currentCompetencies.length > 0) {
+            currentCompetenciesDetail = '\n\nCurrent Competencies:';
+            resource.currentCompetencies.forEach(comp => {
+                const competency = competencyLibrary.find(c => c.id === comp.competencyId);
+                if (competency) {
+                    const levelName = getLevelName(comp.level);
+                    currentCompetenciesDetail += `\n- ${competency.name} (${competency.category}): ${levelName} (Level ${comp.level}/5)`;
+                }
+            });
+        }
+
+        let desiredCompetenciesDetail = '';
+        if (resource.desiredCompetencies && resource.desiredCompetencies.length > 0) {
+            desiredCompetenciesDetail = '\n\nAlready Desired Competencies (Goals):';
+            resource.desiredCompetencies.forEach(comp => {
+                const competency = competencyLibrary.find(c => c.id === comp.competencyId);
+                if (competency) {
+                    const targetLevelName = getLevelName(comp.targetLevel);
+                    desiredCompetenciesDetail += `\n- ${competency.name}: Target Level ${comp.targetLevel}/5 (${targetLevelName})`;
+                }
+            });
+        }
+
+        // Include AI assessment if available
+        let aiAssessmentContext = '';
+        if (wizardState.data.aiOutputs.competencyAssessment) {
+            aiAssessmentContext = '\n\nAI Competency Assessment Results:\n' + JSON.stringify(wizardState.data.aiOutputs.competencyAssessment, null, 2);
+        }
 
         const userPrompt = `Suggest 3-5 training goals for:
 Name: ${resource.name}
 Title: ${resource.jobTitle || 'Not specified'}
 Department: ${resource.department || 'Not specified'}
-Current Competencies: ${JSON.stringify(competencies, null, 2)}
+Location: ${resource.location || 'Not specified'}${currentCompetenciesDetail}${desiredCompetenciesDetail}${aiAssessmentContext}
 
-Based on their current competencies, suggest ambitious but achievable training goals that will advance their career.`;
+Based on their current competencies and existing goals, suggest ambitious but achievable NEW training goals that will advance their career. Consider both deepening existing skills and acquiring complementary new competencies.`;
 
         const response = await callClaudeAPI(wizardState.prompts.goalRecommendation, userPrompt);
 
@@ -4433,20 +4799,50 @@ async function runCourseDiscovery() {
     try {
         const goals = wizardState.data.aiOutputs.trainingGoals || [];
 
-        const userPrompt = `Find and recommend 4-6 high-quality training courses for these goals:
+        // Build competency context for course recommendations
+        let currentCompetenciesContext = '';
+        if (resource.currentCompetencies && resource.currentCompetencies.length > 0) {
+            currentCompetenciesContext = '\n\nCurrent Competencies:';
+            resource.currentCompetencies.forEach(comp => {
+                const competency = competencyLibrary.find(c => c.id === comp.competencyId);
+                if (competency) {
+                    const levelName = getLevelName(comp.level);
+                    currentCompetenciesContext += `\n- ${competency.name} (${competency.category}): ${levelName} (Level ${comp.level}/5)`;
+                }
+            });
+        }
+
+        let desiredCompetenciesContext = '';
+        if (resource.desiredCompetencies && resource.desiredCompetencies.length > 0) {
+            desiredCompetenciesContext = '\n\nDesired Competencies / Goals:';
+            resource.desiredCompetencies.forEach(comp => {
+                const competency = competencyLibrary.find(c => c.id === comp.competencyId);
+                if (competency) {
+                    const currentComp = resource.currentCompetencies.find(cc => cc.competencyId === comp.competencyId);
+                    const currentLevel = currentComp ? currentComp.level : 0;
+                    const targetLevelName = getLevelName(comp.targetLevel);
+                    desiredCompetenciesContext += `\n- ${competency.name}: From Level ${currentLevel} → ${comp.targetLevel} (${targetLevelName})`;
+                }
+            });
+        }
+
+        const userPrompt = `Find and recommend 4-6 high-quality training courses for:
 
 Resource: ${resource.name} (${resource.jobTitle || 'No title'})
-Training Goals: ${JSON.stringify(goals, null, 2)}
-Budget: ${formatCurrency(resource.annualTrainingBudget || 5000)}
+Department: ${resource.department || 'Not specified'}
 Location: ${resource.location || 'Remote'}
+Budget: ${formatCurrency(resource.annualTrainingBudget || 5000)}${currentCompetenciesContext}${desiredCompetenciesContext}
+
+Training Goals: ${JSON.stringify(goals, null, 2)}
 
 For EACH course, provide:
 1. A detailed explanation of HOW this course addresses the specific training goals
 2. WHY this course is the best choice compared to alternatives
 3. WHAT specific skills and knowledge the learner will gain
 4. HOW it fits into their overall career development journey
+5. How it builds upon their CURRENT competencies to reach their DESIRED competency levels
 
-Be very specific and insightful. Focus on the VALUE and IMPACT of each course.`;
+Be very specific and insightful. Focus on the VALUE and IMPACT of each course. Ensure courses are appropriate for their current skill level and will help them reach their goals.`;
 
         const response = await callClaudeAPI(wizardState.prompts.courseDiscovery, userPrompt);
 
@@ -5093,7 +5489,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.0',
+        version: '1.0.8',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
