@@ -2,7 +2,7 @@
 
 **Complete guide to setting up and using AI features in the Training Plan Manager.**
 
-Version 1.0.5 | Last Updated: January 24, 2024
+Version 1.0.6 | Last Updated: January 24, 2026
 
 ---
 
@@ -345,27 +345,36 @@ Each model displays:
 - **Description** - What the model is best for
 - **Key Strengths** - Capabilities as badges (e.g., "Complex reasoning", "Cost-effective")
 - **Best For** - Specific use case for training planning
-- **Cost** - Per 1M tokens with color coding (green=low, orange=medium, red=high)
+- **Pricing** - Clear format showing input/output costs per 1M tokens
+- **Example Cost** - Typical actual cost for a 3K token analysis (NEW in v1.0.6)
 
-**Available Models:**
+**Available Models:** *(Updated January 2026)*
 
 *Anthropic Claude:*
-- Claude 3.5 Sonnet (New) ⭐ RECOMMENDED
-- Claude 3.5 Sonnet (Previous)
-- Claude 3 Opus (Highest intelligence, higher cost)
-- Claude 3 Sonnet (Balanced)
-- Claude 3 Haiku (Fast, cost-effective)
+- **Claude Opus 4.5** ⭐ RECOMMENDED - Flagship model, highest intelligence ($5/$25 per 1M tokens)
+- **Claude Sonnet 4.5** ⭐ RECOMMENDED - Best balance of capability and cost ($3/$15 per 1M tokens)
+- Claude 3.5 Sonnet (Oct 2024) - Previous flagship, still capable ($3/$15 per 1M tokens)
+- Claude 3.5 Sonnet (Jun 2024) - Earlier version ($3/$15 per 1M tokens)
+- Claude 3 Opus (Legacy) - Consider upgrading to Opus 4.5 ($15/$75 per 1M tokens)
+- Claude 3.5 Haiku - Fast and cost-effective ($1/$5 per 1M tokens)
 
 *OpenAI:*
-- GPT-4 Turbo ⭐ RECOMMENDED
-- GPT-4 Turbo Preview
-- GPT-4 (Original, slower)
-- GPT-3.5 Turbo (Fast, cost-effective)
+- **GPT-4.1** ⭐ RECOMMENDED - Latest flagship, superior reasoning ($2/$8 per 1M tokens)
+- **GPT-4.1 Mini** ⭐ RECOMMENDED - Fast and cost-effective ($0.40/$1.60 per 1M tokens)
+- GPT-4o - Multimodal capabilities ($2.50/$10 per 1M tokens)
+- GPT-4o Mini - Fast multimodal ($0.15/$0.60 per 1M tokens)
+- GPT-4 Turbo (Legacy) - Consider upgrading to GPT-4.1 ($10/$30 per 1M tokens)
+- GPT-3.5 Turbo (Legacy) - Limited for complex tasks ($0.50/$1.50 per 1M tokens)
 
 *Google Gemini:*
-- Gemini 1.5 Pro ⭐ RECOMMENDED
-- Gemini 1.5 Flash (Fast, lighter)
-- Gemini Pro (Original)
+- **Gemini 3 Flash** ⭐ RECOMMENDED - Frontier performance at excellent value ($0.50/$3 per 1M tokens)
+- **Gemini 2.5 Flash** ⭐ RECOMMENDED - Fast and capable ($0.15/$0.60 per 1M tokens)
+- Gemini 2.5 Flash-Lite - Ultra cost-effective ($0.10/$0.40 per 1M tokens)
+- Gemini 2.0 Flash-Lite - DEPRECATED (retiring March 31, 2026) ($0.075/$0.30 per 1M tokens)
+- Gemini 1.5 Pro (Legacy) - Consider Gemini 3 Flash for better value ($3.50/$10.50 per 1M tokens)
+- Gemini 1.5 Flash (Legacy) - Consider upgrading to 2.5 or 3 Flash ($0.35/$1.05 per 1M tokens)
+
+**Pricing Note:** Costs shown are per 1 million tokens. Example: A typical 3,000 token request with Claude Sonnet 4.5 costs approximately $0.054 total (not $3!).
 
 **API Key:**
 - Password field (hidden)
@@ -399,25 +408,33 @@ Each model displays:
 ### Choosing the Right Model
 
 **For Most Users (Recommended ⭐):**
-- **Claude 3.5 Sonnet (New)** - Best balance of capability and cost
-- **GPT-4 Turbo** - Strong analytical capabilities
-- **Gemini 1.5 Pro** - Excellent for extensive context
+- **Claude Sonnet 4.5** - Best overall balance of capability and cost ($3/$15 per 1M)
+- **GPT-4.1** - Excellent reasoning and instruction following ($2/$8 per 1M)
+- **Gemini 3 Flash** - Frontier performance at excellent value ($0.50/$3 per 1M)
 
 **For Maximum Quality:**
-- **Claude 3 Opus** - Highest intelligence, best for complex frameworks
+- **Claude Opus 4.5** - Highest intelligence, best for complex frameworks ($5/$25 per 1M)
 - Use when accuracy is paramount and cost is secondary
+- 67% cheaper than previous Claude Opus 4 while being more capable
 
 **For Cost-Effectiveness:**
-- **Claude 3 Haiku** - Fast, low cost, good for simple suggestions
-- **GPT-3.5 Turbo** - Quick responses for basic competency queries
-- **Gemini 1.5 Flash** - Very low cost, rapid planning
+- **GPT-4.1 Mini** - Excellent quality at low cost ($0.40/$1.60 per 1M)
+- **Gemini 2.5 Flash** - Fast and capable for most tasks ($0.15/$0.60 per 1M)
+- **Gemini 2.5 Flash-Lite** - Ultra low cost for simple queries ($0.10/$0.40 per 1M)
+- **Claude 3.5 Haiku** - Fast Claude model for quick suggestions ($1/$5 per 1M)
+
+**Legacy Models (Consider Upgrading):**
+- Claude 3 Opus → Upgrade to **Claude Opus 4.5** (better + cheaper)
+- GPT-4 Turbo → Upgrade to **GPT-4.1** (better + cheaper)
+- Gemini 1.5 Pro → Upgrade to **Gemini 3 Flash** (better + cheaper)
 
 **Selection Tips:**
 1. **Start with recommended models** - They're optimized for training planning
-2. **Check the cost indicator** - Color coded for easy budgeting
+2. **Check the example cost** - See actual typical request charges (e.g., ~$0.054 for 3K tokens)
 3. **Review key strengths** - Match capabilities to your needs
 4. **Read the use case** - Specific guidance for training plan creation
-5. **Switch if needed** - All models work with your existing data
+5. **Consider newer models** - Latest flagships offer better value than legacy options
+6. **Switch if needed** - All models work with your existing data
 
 ### Switching Providers
 

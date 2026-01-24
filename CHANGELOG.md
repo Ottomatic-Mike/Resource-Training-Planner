@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.6] - 2026-01-24
+
+### Added
+- **Latest AI Models from All Providers** - Comprehensive update with newest flagship models
+  - **Anthropic Claude 4.5 Series**: Added Opus 4.5 and Sonnet 4.5 (flagship models)
+  - **OpenAI GPT-4.1 Series**: Added GPT-4.1 and GPT-4.1 Mini (latest models)
+  - **Google Gemini 3 Series**: Added Gemini 3 Flash (frontier model)
+  - **Google Gemini 2.5 Series**: Added Gemini 2.5 Flash and Flash-Lite
+  - Total model count increased from 12 to 18 models across all providers
+  - Last Updated timestamp (January 24, 2026) added to model database
+  - Example cost calculations for each model (e.g., "Typical 3K token analysis: ~$0.054 total")
+
+### Changed
+- **Pricing Display Clarity** - Completely redesigned to eliminate confusion
+  - Changed format from "$3 input / $15 output (per 1M tokens)" to "Input: $3/1M tokens | Output: $15/1M tokens"
+  - Added practical example costs showing actual typical usage charges
+  - Users now see both technical pricing and real-world cost examples
+  - Removed redundant "(per 1M tokens)" suffix that caused confusion
+- **Recommended Models Updated** - New flagship models now marked as recommended
+  - Anthropic: Claude Opus 4.5 & Sonnet 4.5 (both recommended for different use cases)
+  - OpenAI: GPT-4.1 & GPT-4.1 Mini (both recommended)
+  - Google: Gemini 3 Flash & 2.5 Flash (both recommended)
+- **Model Descriptions** - Enhanced with deprecation notices and upgrade guidance
+  - Legacy models clearly marked (e.g., "Legacy - consider upgrading")
+  - Deprecated models flagged (Gemini 2.0 Flash-Lite retiring March 31, 2026)
+  - Clear upgrade paths suggested for older models
+- **Pricing Updates** - All models reflect accurate 2026 API pricing
+  - Claude Opus 4.5: $5/$25 per 1M (67% cheaper than previous Opus 4)
+  - Claude Sonnet 4.5: $3/$15 per 1M
+  - GPT-4.1: $2/$8 per 1M (more affordable than GPT-4 Turbo)
+  - Gemini 3 Flash: $0.50/$3 per 1M (frontier performance at excellent value)
+
+### Fixed
+- **Model Cost Transparency** - Resolved user confusion about actual API costs
+  - Users previously thought "$3 input / $15 output" meant $3 per request
+  - New format clearly shows per-million-token pricing
+  - Example costs show typical request charges (e.g., ~$0.054 for 3K tokens)
+- **Outdated Model Database** - All models updated to latest available versions
+  - Claude models now include 4.5 series
+  - OpenAI models now include 4.1 series
+  - Google models now include Gemini 3 and 2.5 series
+- **Model Information Accuracy** - Corrected model IDs, capabilities, and pricing across all providers
+
+### Technical Details
+
+**New Model IDs Added:**
+- `claude-opus-4-5-20251101` (Anthropic)
+- `claude-sonnet-4-5-20250929` (Anthropic)
+- `gpt-4.1-2025-04-14` (OpenAI)
+- `gpt-4.1-mini-2025-04-14` (OpenAI)
+- `gemini-3-flash-preview` (Google)
+- `gemini-2.5-flash` (Google)
+- `gemini-2.5-flash-lite` (Google)
+- `gemini-2.0-flash-lite` (Google - deprecated)
+
+**Backward Compatibility:**
+- All existing model selections remain valid
+- Automatic migration to recommended models if previously selected model is now legacy
+- Settings validation ensures smooth upgrade path
+
+---
+
 ## [1.0.5] - 2024-01-24
 
 ### Added
@@ -336,6 +398,7 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 
 | Version | Date | Type | Description |
 |---------|------|------|-------------|
+| 1.0.6 | 2026-01-24 | Major Update | Latest AI models and clearer pricing display |
 | 1.0.5 | 2024-01-24 | Feature | Intelligent AI model selection system |
 | 1.0.4 | 2024-01-24 | Feature | Resource-calendar correlation system |
 | 1.0.3 | 2024-01-24 | Feature | Category/subcategory management system |
@@ -346,6 +409,40 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 ---
 
 ## Upgrade Guide
+
+### From v1.0.5 → v1.0.6
+
+**What's New:**
+- Latest flagship models from all three AI providers (Claude 4.5, GPT-4.1, Gemini 3)
+- 18 total models (up from 12) including new 4.5 and 4.1 series
+- Clearer pricing display with example costs for typical requests
+- Deprecated model warnings and upgrade guidance
+- Last Updated timestamp showing model database freshness
+
+**Pricing Display Changes:**
+- Old format: "$3 input / $15 output (per 1M tokens)" ❌ Confusing
+- New format: "Input: $3/1M tokens | Output: $15/1M tokens" ✓ Clear
+- Added examples: "Typical 3K token analysis: ~$0.054 total" ✓ Practical
+
+**How to Upgrade:**
+1. Replace `training-plan-manager.html` with the new version
+2. Open in browser - your data and settings are preserved in localStorage
+3. Open Settings (⚙️) to see the new models and pricing display
+4. Your existing model selection remains valid
+5. Consider upgrading to newer recommended models:
+   - Claude 3.5 Sonnet → Claude Sonnet 4.5 or Opus 4.5
+   - GPT-4 Turbo → GPT-4.1 or GPT-4.1 Mini
+   - Gemini 1.5 Pro → Gemini 3 Flash or 2.5 Flash
+
+**Benefits:**
+- Access to newest, most capable AI models
+- Better cost transparency - no more confusion about pricing
+- Clearer upgrade paths from legacy models
+- More cost-effective options (e.g., GPT-4.1 Mini, Gemini 2.5 Flash-Lite)
+
+**No data migration required** - All existing settings remain compatible. Model selections are automatically validated and migrated if needed.
+
+---
 
 ### From v1.0.4 → v1.0.5
 
