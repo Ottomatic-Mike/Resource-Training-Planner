@@ -7,6 +7,155 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.7] - 2026-01-24
+
+### Added - CRITICAL: Fully Functional Training Plan System
+
+This release transforms the training plan functionality from placeholder to fully operational with comprehensive AI integration.
+
+#### Training Plan Viewing & Management
+- **Plan Detail View** - Click any training plan card to see comprehensive details
+  - Complete AI recommendations with detailed rationale for each suggestion
+  - Competency assessment results with WHY each competency matters
+  - Training goals with priority levels and clear reasoning
+  - Course recommendations with detailed explanations of value and impact
+  - Scheduled courses timeline and budget breakdown
+  - Plan deletion capability
+- **Plan Cards Enhanced** - Added click handlers and AI-assisted badge indicators
+- **Delete Plan Function** - Ability to remove training plans with confirmation
+
+#### Fully Functional AI-Assisted Wizard
+- **Step 2: AI Competency Assessment** - Actually works now!
+  - Customizable AI prompts with edit/reset functionality
+  - Real-time AI analysis of job roles and competency identification
+  - Display of identified competencies with proficiency levels and rationale
+  - Clear explanation of WHY each competency is important
+- **Step 3: AI Training Goal Recommendations** - Fully operational
+  - Customizable goal recommendation prompts
+  - Priority-based goal suggestions (Critical, High, Medium, Low)
+  - Detailed rationale explaining WHY each goal advances career growth
+  - Visual priority indicators with color coding
+- **Step 4: AI Course Discovery** - Game-changing functionality
+  - Customizable course discovery prompts
+  - Detailed rationale for EACH course recommendation explaining:
+    * HOW the course addresses specific training goals
+    * WHY this course is superior to alternatives
+    * WHAT specific skills/knowledge will be gained
+    * HOW it fits into overall development journey
+  - Relevance scoring (0-100%) with color-coded indicators
+  - Course provider, cost, duration, and format details
+  - Direct links to course URLs
+- **Step 6: Comprehensive Review** - Complete redesign
+  - Full summary of all AI recommendations
+  - Budget comparison showing estimated vs available
+  - Warnings for budget overruns
+  - Visual summary of competencies, goals, and courses
+  - Clear indication of AI-assisted vs manual plan creation
+
+#### AI Prompt Customization System
+- **Editable Prompts** - Users can customize AI prompts for each wizard step
+  - Toggle between view and edit modes
+  - Save custom prompts that persist through wizard
+  - Reset to default prompts anytime
+  - Monospace display for easy prompt editing
+- **Prompt Categories**:
+  - Competency Assessment prompts
+  - Goal Recommendation prompts
+  - Course Discovery prompts (with emphasis on detailed rationale)
+
+#### Enhanced Plan Data Structure
+- **AI Recommendations Saved** - All AI outputs preserved in plan
+  - Competency assessment results
+  - Training goals with priorities
+  - Course recommendations with full rationale
+- **Scheduled Courses** - Properly structured with:
+  - Course details (title, provider, cost, duration, format)
+  - Start dates and status tracking
+  - Relevance scores
+  - WHY rationale for each course
+- **Budget Tracking** - Accurate budget calculations
+  - Projected spend from course costs
+  - Contingency buffer calculation
+  - Budget alerts in review step
+- **Gap Analysis** - Structured competency gap data
+  - Critical gaps identified
+  - Level gaps with target levels
+  - Estimated time to close gaps
+
+### Changed
+- **Wizard State** - Enhanced to include:
+  - AI outputs for all steps
+  - Customizable prompts for each AI function
+  - Prompt edit state tracking
+- **wizardFinish Function** - Complete rewrite to:
+  - Save all AI recommendations
+  - Build proper scheduled courses array
+  - Calculate budgets accurately
+  - Generate meaningful plan descriptions
+  - Show success modal with plan summary and quick view button
+- **Plan Cards** - Now clickable with cursor pointer
+  - Added AI-Assisted badge when plan has AI data
+  - Clean visual hierarchy
+
+### Fixed
+- **CRITICAL: Training Plans Now Visible** - Plans are now displayed after creation and can be clicked to view details
+- **CRITICAL: AI Recommendations Now Visible** - All AI outputs are saved and displayed in plan details
+- **CRITICAL: Course Rationale Now Provided** - Each course shows detailed explanation of WHY it's recommended
+- **Wizard Steps Actually Work** - Steps 2, 3, and 4 now functional with real AI integration
+- **Plan Data Persistence** - All AI recommendations properly saved to localStorage
+- **Budget Calculations** - Accurate budget tracking from course costs
+
+### Technical Details
+
+**New Functions Added:**
+- `viewPlanDetails(planId)` - Comprehensive plan detail modal with all AI outputs
+- `deletePlan(planId)` - Remove training plans
+- `togglePromptEdit(promptType)` - Toggle prompt editing UI
+- `savePromptEdit(promptType)` - Save custom prompts
+- `resetPrompt(promptType)` - Reset prompts to defaults
+- `runCompetencyAssessment()` - Execute AI competency analysis
+- `runGoalRecommendations()` - Execute AI goal suggestions
+- `runCourseDiscovery()` - Execute AI course discovery with detailed rationale
+
+**Enhanced Functions:**
+- `renderWizardStep2()` - Fully functional with AI and prompt customization
+- `renderWizardStep3()` - Fully functional with goal recommendations
+- `renderWizardStep4()` - Fully functional with course discovery and WHY rationale
+- `renderWizardStep6()` - Comprehensive review with all AI data
+- `renderPlansList()` - Added click handlers and AI badges
+- `wizardFinish()` - Complete rewrite to save all AI data
+- `startNewPlan()` - Initialize with default customizable prompts
+
+**CSS Added:**
+- `.modal-xlarge` - Extra large modal for plan details (1200px max-width)
+
+**Data Structure Enhancements:**
+- `wizardState.prompts` - Stores customizable AI prompts
+- `wizardState.showPromptEdit` - Tracks prompt edit UI state
+- `wizardState.data.aiOutputs` - Stores all AI results
+- `plan.aiRecommendations` - Comprehensive AI data in saved plans
+- `plan.scheduledCourses` - Proper course structure with rationale
+
+### User Impact
+
+**Before this release:**
+- ❌ Training plans created but invisible
+- ❌ Wizard steps were non-functional placeholders
+- ❌ No AI recommendations actually generated
+- ❌ No way to see course rationale
+- ❌ No prompt customization
+
+**After this release:**
+- ✅ Training plans fully visible and clickable
+- ✅ Complete AI-assisted wizard workflow
+- ✅ Detailed AI recommendations with clear reasoning
+- ✅ Comprehensive course rationale explaining VALUE
+- ✅ Full prompt customization for fine-tuning
+- ✅ Professional plan detail view
+- ✅ Budget tracking and warnings
+
+---
+
 ## [1.0.6] - 2026-01-24
 
 ### Added
@@ -398,6 +547,7 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 
 | Version | Date | Type | Description |
 |---------|------|------|-------------|
+| 1.0.7 | 2026-01-24 | CRITICAL Fix | Fully functional training plan system with AI integration |
 | 1.0.6 | 2026-01-24 | Major Update | Latest AI models and clearer pricing display |
 | 1.0.5 | 2024-01-24 | Feature | Intelligent AI model selection system |
 | 1.0.4 | 2024-01-24 | Feature | Resource-calendar correlation system |
@@ -409,6 +559,57 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 ---
 
 ## Upgrade Guide
+
+### From v1.0.6 → v1.0.7
+
+**What's New:**
+- **CRITICAL**: Training plans are now fully functional and visible
+- Complete AI-assisted wizard with working Steps 2, 3, and 4
+- Clickable plan cards with comprehensive detail views
+- AI prompt customization for fine-tuning recommendations
+- Detailed course rationale explaining WHY each course is recommended
+- Budget tracking and warnings in review step
+- Professional plan detail modal with all AI insights
+
+**What's Fixed:**
+- Training plans now actually display after creation (CRITICAL BUG FIX)
+- Wizard steps 2-4 are now functional instead of placeholders
+- AI recommendations are now saved and viewable
+- Course recommendations include detailed "WHY" rationale
+- Budget calculations are now accurate
+
+**How to Upgrade:**
+1. Replace `training-plan-manager.html` with the new version
+2. Open in browser - your existing data is preserved
+3. **Existing training plans**: If you have any training plans from v1.0.6, they won't have AI recommendations (they were never generated). Delete them and create new ones.
+4. **Create a new training plan** to see the fully functional wizard:
+   - Step 1: Select a resource
+   - Step 2: Run AI Competency Assessment (edit prompt if desired)
+   - Step 3: Get AI Goal Recommendations (customize prompts as needed)
+   - Step 4: Discover Courses with detailed WHY rationale (customize prompts)
+   - Step 5: Review schedule
+   - Step 6: Review complete plan with all AI insights
+   - Click Finish to create the plan
+5. **View the plan**: Click on any plan card to see comprehensive details with all AI recommendations
+
+**Benefits:**
+- Training plans are now the centerpiece of the application (as intended!)
+- Clear visibility into WHY each course is recommended
+- Ability to fine-tune AI prompts for better recommendations
+- Professional presentation of training plans
+- Accurate budget tracking
+
+**Breaking Changes:**
+- None - all existing data remains compatible
+- Plans created in v1.0.6 won't have AI data (it was never generated), but they'll still display
+
+**Recommended Actions After Upgrade:**
+1. Delete any training plans created in v1.0.6 (they have no real data)
+2. Create a test training plan using the wizard to see all new features
+3. Experiment with customizing AI prompts to get better recommendations
+4. Review the detailed course rationale to understand recommendation quality
+
+---
 
 ### From v1.0.5 → v1.0.6
 

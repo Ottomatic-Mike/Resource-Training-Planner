@@ -622,6 +622,10 @@ tbody tr:hover {
     max-width: 900px;
 }
 
+.modal-xlarge {
+    max-width: 1200px;
+}
+
 .modal-header {
     padding: 24px;
     border-bottom: 1px solid var(--border-light);
@@ -3663,7 +3667,7 @@ function renderPlansList() {
         const resourceName = resource ? resource.name : 'Unknown';
 
         html += `
-            <div class="card">
+            <div class="card" onclick="viewPlanDetails(${plan.id})" style="cursor: pointer;">
                 <div class="card-header">
                     <div>
                         <h3 class="card-title">${escapeHtml(plan.planName)}</h3>
@@ -3678,6 +3682,7 @@ function renderPlansList() {
                     </div>
                     <div><strong>Budget:</strong> ${formatCurrency(plan.allocatedBudget || 0)}</div>
                     <div><strong>Courses:</strong> ${plan.scheduledCourses?.length || 0}</div>
+                    ${plan.aiRecommendations && Object.keys(plan.aiRecommendations).length > 0 ? '<div style="margin-top: 8px;"><span class="badge badge-info">AI-Assisted</span></div>' : ''}
                 </div>
             </div>
         `;
@@ -3685,6 +3690,212 @@ function renderPlansList() {
 
     html += '</div>';
     return html;
+}
+
+function viewPlanDetails(planId) {
+    const plan = trainingPlans.find(p => p.id === planId);
+    if (!plan) return;
+
+    const resource = resources.find(r => r.id === plan.resourceId);
+    if (!resource) return;
+
+    let html = `
+        <div style="max-width: 900px;">
+            <div style="margin-bottom: 24px;">
+                <h2 style="margin: 0 0 8px 0;">${escapeHtml(plan.planName)}</h2>
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <span class="card-subtitle">${resource.name} • ${resource.jobTitle || 'No title'}</span>
+                    ${getStatusBadge(plan.status)}
+                    ${plan.aiRecommendations && Object.keys(plan.aiRecommendations).length > 0 ? '<span class="badge badge-info">AI-Assisted</span>' : ''}
+                </div>
+            </div>
+
+            <div style="background: var(--neutral-50); padding: 20px; border-radius: var(--radius-lg); margin-bottom: 24px;">
+                <h3 style="margin: 0 0 16px 0; font-size: 16px;">Plan Overview</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div>
+                        <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Period</div>
+                        <div style="font-weight: 500;">${formatDate(plan.planPeriod?.startDate)} - ${formatDate(plan.planPeriod?.endDate)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Budget</div>
+                        <div style="font-weight: 500;">${formatCurrency(plan.allocatedBudget || 0)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Courses</div>
+                        <div style="font-weight: 500;">${plan.scheduledCourses?.length || 0} scheduled</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Created</div>
+                        <div style="font-weight: 500;">${formatDate(plan.createdDate)}</div>
+                    </div>
+                </div>
+            </div>
+    `;
+
+    // AI Recommendations Section
+    if (plan.aiRecommendations && Object.keys(plan.aiRecommendations).length > 0) {
+        html += '<div style="margin-bottom: 24px;">';
+        html += '<h3 style="margin: 0 0 16px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;"><span>🤖</span> AI Recommendations & Insights</h3>';
+
+        // Competency Assessment
+        if (plan.aiRecommendations.competencyAssessment) {
+            html += '<div style="background: white; border: 1px solid var(--neutral-200); padding: 20px; border-radius: var(--radius-md); margin-bottom: 16px;">';
+            html += '<h4 style="margin: 0 0 12px 0; font-size: 15px; color: var(--primary-color);">Competency Assessment</h4>';
+            if (Array.isArray(plan.aiRecommendations.competencyAssessment)) {
+                html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+                plan.aiRecommendations.competencyAssessment.forEach(comp => {
+                    html += `
+                        <div style="border-left: 3px solid var(--secondary-color); padding-left: 12px;">
+                            <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(comp.name || 'Unknown Competency')}</div>
+                            <div style="font-size: 13px; color: var(--neutral-700); margin-bottom: 4px;">
+                                <strong>Current Level:</strong> ${comp.currentLevel || 'N/A'}/5 |
+                                <strong>Category:</strong> ${escapeHtml(comp.category || 'Uncategorized')}
+                            </div>
+                            <div style="font-size: 13px; color: var(--neutral-600); font-style: italic;">
+                                ${escapeHtml(comp.rationale || 'No rationale provided')}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += `<p style="margin: 0; font-size: 14px; color: var(--neutral-600);">${escapeHtml(String(plan.aiRecommendations.competencyAssessment))}</p>`;
+            }
+            html += '</div>';
+        }
+
+        // Training Goals
+        if (plan.aiRecommendations.trainingGoals) {
+            html += '<div style="background: white; border: 1px solid var(--neutral-200); padding: 20px; border-radius: var(--radius-md); margin-bottom: 16px;">';
+            html += '<h4 style="margin: 0 0 12px 0; font-size: 15px; color: var(--primary-color);">Recommended Training Goals</h4>';
+            if (Array.isArray(plan.aiRecommendations.trainingGoals)) {
+                html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+                plan.aiRecommendations.trainingGoals.forEach(goal => {
+                    const priorityColor = {
+                        'Critical': '#ef4444',
+                        'High': '#f97316',
+                        'Medium': '#f59e0b',
+                        'Low': '#22c55e'
+                    }[goal.priority] || '#6b7280';
+                    html += `
+                        <div style="border-left: 3px solid ${priorityColor}; padding-left: 12px;">
+                            <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                ${escapeHtml(goal.competencyName || 'Unknown Goal')}
+                                <span style="font-size: 11px; padding: 2px 8px; background: ${priorityColor}; color: white; border-radius: 12px;">${goal.priority || 'Unknown'}</span>
+                            </div>
+                            <div style="font-size: 13px; color: var(--neutral-700); margin-bottom: 4px;">
+                                <strong>Target Level:</strong> ${goal.targetLevel || 'N/A'}/5
+                            </div>
+                            <div style="font-size: 13px; color: var(--neutral-600); font-style: italic;">
+                                <strong>Why:</strong> ${escapeHtml(goal.rationale || 'No rationale provided')}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += `<p style="margin: 0; font-size: 14px; color: var(--neutral-600);">${escapeHtml(String(plan.aiRecommendations.trainingGoals))}</p>`;
+            }
+            html += '</div>';
+        }
+
+        // Course Recommendations
+        if (plan.aiRecommendations.courseRecommendations) {
+            html += '<div style="background: white; border: 1px solid var(--neutral-200); padding: 20px; border-radius: var(--radius-md);">';
+            html += '<h4 style="margin: 0 0 12px 0; font-size: 15px; color: var(--primary-color);">AI-Recommended Courses</h4>';
+            if (Array.isArray(plan.aiRecommendations.courseRecommendations)) {
+                html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
+                plan.aiRecommendations.courseRecommendations.forEach((course, idx) => {
+                    const relevancePercent = (course.relevanceScore || 0) * 10;
+                    const relevanceColor = relevancePercent >= 80 ? '#22c55e' : relevancePercent >= 60 ? '#f59e0b' : '#ef4444';
+                    html += `
+                        <div style="border: 1px solid var(--neutral-200); padding: 16px; border-radius: var(--radius-md); background: var(--neutral-50);">
+                            <div style="display: flex; justify-content: between; align-items: start; gap: 12px; margin-bottom: 8px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">${idx + 1}. ${escapeHtml(course.title || 'Unknown Course')}</div>
+                                    <div style="font-size: 13px; color: var(--neutral-700);">
+                                        ${escapeHtml(course.provider || 'Unknown Provider')} •
+                                        ${formatCurrency(course.cost || 0)} •
+                                        ${course.duration || 'Unknown duration'} •
+                                        ${escapeHtml(course.format || 'Unknown format')}
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 11px; color: var(--neutral-600); margin-bottom: 2px;">Relevance</div>
+                                    <div style="font-weight: 700; font-size: 18px; color: ${relevanceColor};">${relevancePercent}%</div>
+                                </div>
+                            </div>
+                            <div style="background: white; padding: 12px; border-radius: 4px; margin-top: 8px;">
+                                <div style="font-size: 12px; font-weight: 600; color: var(--primary-color); margin-bottom: 4px;">WHY THIS COURSE:</div>
+                                <div style="font-size: 13px; color: var(--neutral-700); line-height: 1.5;">
+                                    ${escapeHtml(course.rationale || 'This course aligns with the training goals and helps develop required competencies.')}
+                                </div>
+                            </div>
+                            ${course.url ? `<div style="margin-top: 8px;"><a href="${escapeHtml(course.url)}" target="_blank" style="font-size: 13px; color: var(--primary-color);">View Course →</a></div>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += `<p style="margin: 0; font-size: 14px; color: var(--neutral-600);">${escapeHtml(String(plan.aiRecommendations.courseRecommendations))}</p>`;
+            }
+            html += '</div>';
+        }
+
+        html += '</div>';
+    } else {
+        html += '<div class="alert alert-info" style="margin-bottom: 24px;">This plan was created without AI assistance. No AI recommendations available.</div>';
+    }
+
+    // Scheduled Courses Section
+    if (plan.scheduledCourses && plan.scheduledCourses.length > 0) {
+        html += '<div style="margin-bottom: 24px;">';
+        html += '<h3 style="margin: 0 0 16px 0; font-size: 18px;">Scheduled Courses</h3>';
+        html += '<div style="background: white; border: 1px solid var(--neutral-200); border-radius: var(--radius-md); overflow: hidden;">';
+        html += '<table style="width: 100%; border-collapse: collapse;">';
+        html += '<thead style="background: var(--neutral-100);"><tr>';
+        html += '<th style="padding: 12px; text-align: left; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--neutral-200);">Course</th>';
+        html += '<th style="padding: 12px; text-align: left; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--neutral-200);">Start Date</th>';
+        html += '<th style="padding: 12px; text-align: left; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--neutral-200);">Duration</th>';
+        html += '<th style="padding: 12px; text-align: left; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--neutral-200);">Status</th>';
+        html += '</tr></thead><tbody>';
+        plan.scheduledCourses.forEach((course, idx) => {
+            html += `<tr style="${idx % 2 === 0 ? 'background: var(--neutral-50);' : ''}">`;
+            html += `<td style="padding: 12px; font-size: 14px;">${escapeHtml(course.title || 'Unknown Course')}</td>`;
+            html += `<td style="padding: 12px; font-size: 14px;">${formatDate(course.startDate)}</td>`;
+            html += `<td style="padding: 12px; font-size: 14px;">${course.duration || 'N/A'}</td>`;
+            html += `<td style="padding: 12px; font-size: 14px;">${getStatusBadge(course.status || 'Planned')}</td>`;
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        html += '</div>';
+        html += '</div>';
+    }
+
+    // Actions
+    html += '<div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--neutral-200); display: flex; gap: 12px; justify-content: flex-end;">';
+    html += `<button class="btn btn-ghost" onclick="closeModal()">Close</button>`;
+    html += `<button class="btn btn-danger" onclick="deletePlan(${plan.id})">Delete Plan</button>`;
+    html += '</div>';
+
+    html += '</div>';
+
+    openModal('Training Plan Details', html, 'modal-xlarge');
+}
+
+function deletePlan(planId) {
+    if (!confirm('Are you sure you want to delete this training plan? This cannot be undone.')) {
+        return;
+    }
+
+    const index = trainingPlans.findIndex(p => p.id === planId);
+    if (index > -1) {
+        trainingPlans.splice(index, 1);
+        closeModal();
+        triggerSave();
+        renderTrainingPlans();
+    }
 }
 
 function startNewPlan() {
@@ -3698,7 +3909,31 @@ function startNewPlan() {
             goals: [],
             selectedCourses: [],
             schedule: [],
-            planDetails: {}
+            planDetails: {},
+            aiOutputs: {
+                competencyAssessment: null,
+                trainingGoals: null,
+                courseRecommendations: null
+            }
+        },
+        prompts: {
+            competencyAssessment: `You are an expert HR consultant specializing in technical competency assessment.
+Analyze the provided job role and suggest relevant technical competencies with proficiency levels.
+Return your response as a JSON array of objects with: name, category, currentLevel (1-5), rationale.
+Be specific about why each competency is important for this role and how it contributes to their effectiveness.`,
+            goalRecommendation: `You are a career development advisor. Based on the resource's current competencies and role,
+suggest training goals that will help them advance in their career. Return JSON array with: competencyName,
+targetLevel (1-5), priority (Critical/High/Medium/Low), rationale.
+For each goal, explain WHY this particular competency is critical for their growth and how it will benefit their career trajectory.`,
+            courseDiscovery: `You are a training course advisor. Search for and recommend training courses
+that match the specified goals and constraints. Return JSON array with: title, provider, cost, duration,
+url, format, skillLevel, relevanceScore (1-10), rationale.
+For EACH course, provide a detailed rationale explaining:
+1. How this specific course addresses the training goals
+2. Why this course is superior to alternatives
+3. What specific skills/knowledge the learner will gain
+4. How it fits into their overall development journey
+Be very specific and insightful in your recommendations.`
         }
     };
     renderTrainingPlans();
@@ -3802,56 +4037,442 @@ function renderWizardStep2() {
     const resource = resources.find(r => r.id === wizardState.data.resourceId);
     if (!resource) return '<p>Resource not found</p>';
 
-    return `
-        <h3>Assess Competencies</h3>
-        <p>Current competencies for ${resource.name}</p>
+    const hasAssessment = wizardState.data.aiOutputs.competencyAssessment;
 
-        <div class="alert alert-info">
-            <strong>AI Assessment Available:</strong> Use AI to analyze the resource's job role and suggest competencies.
-            ${settings.apiKey ? '' : '<br><em>Configure your API key in Settings first.</em>'}
+    let html = `
+        <h3>Step 2: AI Competency Assessment</h3>
+        <p style="margin-bottom: 20px;">Use AI to analyze ${resource.name}'s role and assess current competencies.</p>
+
+        ${!settings.apiKey ? '<div class="alert alert-warning" style="margin-bottom: 20px;"><strong>⚠️ API Key Required:</strong> Configure your AI API key in Settings to use AI features.</div>' : ''}
+
+        <div style="background: var(--neutral-50); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 14px; font-weight: 600;">AI Prompt (Customizable)</h4>
+                <button class="btn btn-ghost btn-sm" onclick="togglePromptEdit('competencyAssessment')" id="togglePromptBtn_competencyAssessment">
+                    ${wizardState.showPromptEdit?.competencyAssessment ? 'Hide' : 'Edit Prompt'}
+                </button>
+            </div>
+            <div id="promptView_competencyAssessment" style="${wizardState.showPromptEdit?.competencyAssessment ? 'display: none;' : ''}">
+                <div style="font-size: 13px; color: var(--neutral-700); line-height: 1.6; white-space: pre-wrap; font-family: monospace; background: white; padding: 12px; border-radius: 4px; border: 1px solid var(--neutral-200);">
+                    ${escapeHtml(wizardState.prompts.competencyAssessment)}
+                </div>
+            </div>
+            <div id="promptEdit_competencyAssessment" style="${wizardState.showPromptEdit?.competencyAssessment ? '' : 'display: none;'}">
+                <textarea id="promptText_competencyAssessment" style="width: 100%; min-height: 150px; font-family: monospace; font-size: 13px; padding: 12px; border: 1px solid var(--neutral-300); border-radius: 4px; resize: vertical;">${escapeHtml(wizardState.prompts.competencyAssessment)}</textarea>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                    <button class="btn btn-primary btn-sm" onclick="savePromptEdit('competencyAssessment')">Save Prompt</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetPrompt('competencyAssessment')">Reset to Default</button>
+                </div>
+            </div>
         </div>
 
-        <div style="margin-top: 20px;">
-            <p>Current competencies: ${resource.currentCompetencies.length}</p>
-            <p>You can continue to define goals in the next step.</p>
+        <div style="margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="runCompetencyAssessment()" ${!settings.apiKey ? 'disabled' : ''} id="runAssessmentBtn">
+                <span id="assessmentBtnText">🤖 Run AI Competency Assessment</span>
+            </button>
         </div>
+
+        <div id="assessmentResults" style="margin-top: 20px;">
     `;
+
+    if (hasAssessment) {
+        html += '<div class="alert alert-success" style="margin-bottom: 16px;">✓ AI Assessment Complete</div>';
+
+        if (Array.isArray(hasAssessment)) {
+            html += '<div style="background: white; border: 1px solid var(--neutral-200); border-radius: var(--radius-md); padding: 20px;">';
+            html += '<h4 style="margin: 0 0 16px 0; font-size: 15px;">Identified Competencies</h4>';
+            html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            hasAssessment.forEach(comp => {
+                html += `
+                    <div style="border-left: 3px solid var(--secondary-color); padding-left: 12px; background: var(--neutral-50); padding: 12px; border-radius: 4px;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(comp.name)}</div>
+                        <div style="font-size: 13px; color: var(--neutral-700); margin-bottom: 4px;">
+                            <strong>Level:</strong> ${comp.currentLevel}/5 |
+                            <strong>Category:</strong> ${escapeHtml(comp.category)}
+                        </div>
+                        <div style="font-size: 13px; color: var(--neutral-600); font-style: italic;">
+                            <strong>Why:</strong> ${escapeHtml(comp.rationale)}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+        } else {
+            html += `<div class="alert alert-info">${escapeHtml(String(hasAssessment))}</div>`;
+        }
+    } else {
+        html += '<div class="alert alert-info">Click "Run AI Competency Assessment" to analyze this resource\'s competencies.</div>';
+    }
+
+    html += '</div>';
+
+    return html;
+}
+
+function togglePromptEdit(promptType) {
+    if (!wizardState.showPromptEdit) wizardState.showPromptEdit = {};
+    wizardState.showPromptEdit[promptType] = !wizardState.showPromptEdit[promptType];
+    renderTrainingPlans();
+}
+
+function savePromptEdit(promptType) {
+    const textarea = document.getElementById(`promptText_${promptType}`);
+    if (textarea) {
+        wizardState.prompts[promptType] = textarea.value;
+        wizardState.showPromptEdit[promptType] = false;
+        renderTrainingPlans();
+    }
+}
+
+function resetPrompt(promptType) {
+    const defaults = {
+        competencyAssessment: `You are an expert HR consultant specializing in technical competency assessment.
+Analyze the provided job role and suggest relevant technical competencies with proficiency levels.
+Return your response as a JSON array of objects with: name, category, currentLevel (1-5), rationale.
+Be specific about why each competency is important for this role and how it contributes to their effectiveness.`,
+        goalRecommendation: `You are a career development advisor. Based on the resource's current competencies and role,
+suggest training goals that will help them advance in their career. Return JSON array with: competencyName,
+targetLevel (1-5), priority (Critical/High/Medium/Low), rationale.
+For each goal, explain WHY this particular competency is critical for their growth and how it will benefit their career trajectory.`,
+        courseDiscovery: `You are a training course advisor. Search for and recommend training courses
+that match the specified goals and constraints. Return JSON array with: title, provider, cost, duration,
+url, format, skillLevel, relevanceScore (1-10), rationale.
+For EACH course, provide a detailed rationale explaining:
+1. How this specific course addresses the training goals
+2. Why this course is superior to alternatives
+3. What specific skills/knowledge the learner will gain
+4. How it fits into their overall development journey
+Be very specific and insightful in your recommendations.`
+    };
+
+    wizardState.prompts[promptType] = defaults[promptType];
+    renderTrainingPlans();
+}
+
+async function runCompetencyAssessment() {
+    const resource = resources.find(r => r.id === wizardState.data.resourceId);
+    if (!resource) return;
+
+    const btn = document.getElementById('runAssessmentBtn');
+    const btnText = document.getElementById('assessmentBtnText');
+
+    btn.disabled = true;
+    btnText.textContent = '⏳ Analyzing...';
+
+    try {
+        const userPrompt = `Analyze this role and suggest 5-8 key competencies:
+Job Title: ${resource.jobTitle || 'Not specified'}
+Department: ${resource.department || 'Not specified'}
+Current Role: ${resource.name}
+Additional context: This is a technical role requiring assessment of relevant skills and competencies.`;
+
+        const response = await callClaudeAPI(wizardState.prompts.competencyAssessment, userPrompt);
+
+        // Try to parse JSON response
+        let parsedResponse;
+        try {
+            parsedResponse = JSON.parse(response);
+        } catch (e) {
+            // If not JSON, try to extract JSON from response
+            const jsonMatch = response.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                parsedResponse = JSON.parse(jsonMatch[0]);
+            } else {
+                parsedResponse = response; // Store raw response
+            }
+        }
+
+        wizardState.data.aiOutputs.competencyAssessment = parsedResponse;
+        renderTrainingPlans();
+
+    } catch (error) {
+        alert(`AI Assessment Failed: ${error.message}`);
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = '🤖 Run AI Competency Assessment';
+    }
 }
 
 function renderWizardStep3() {
     const resource = resources.find(r => r.id === wizardState.data.resourceId);
     if (!resource) return '<p>Resource not found</p>';
 
-    return `
-        <h3>Define Training Goals</h3>
-        <p>What should ${resource.name} achieve through training?</p>
+    const hasGoals = wizardState.data.aiOutputs.trainingGoals;
+    const hasAssessment = wizardState.data.aiOutputs.competencyAssessment;
 
-        <div class="alert alert-info">
-            <strong>AI Suggestions Available:</strong> Get AI-powered goal recommendations based on career progression and team needs.
+    let html = `
+        <h3>Step 3: AI Training Goal Recommendations</h3>
+        <p style="margin-bottom: 20px;">Get AI-powered recommendations for training goals that will advance ${resource.name}'s career.</p>
+
+        ${!hasAssessment ? '<div class="alert alert-warning" style="margin-bottom: 20px;"><strong>Tip:</strong> Run the competency assessment in Step 2 first for better goal recommendations.</div>' : ''}
+        ${!settings.apiKey ? '<div class="alert alert-warning" style="margin-bottom: 20px;"><strong>⚠️ API Key Required:</strong> Configure your AI API key in Settings to use AI features.</div>' : ''}
+
+        <div style="background: var(--neutral-50); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 14px; font-weight: 600;">AI Prompt (Customizable)</h4>
+                <button class="btn btn-ghost btn-sm" onclick="togglePromptEdit('goalRecommendation')" id="togglePromptBtn_goalRecommendation">
+                    ${wizardState.showPromptEdit?.goalRecommendation ? 'Hide' : 'Edit Prompt'}
+                </button>
+            </div>
+            <div id="promptView_goalRecommendation" style="${wizardState.showPromptEdit?.goalRecommendation ? 'display: none;' : ''}">
+                <div style="font-size: 13px; color: var(--neutral-700); line-height: 1.6; white-space: pre-wrap; font-family: monospace; background: white; padding: 12px; border-radius: 4px; border: 1px solid var(--neutral-200);">
+                    ${escapeHtml(wizardState.prompts.goalRecommendation)}
+                </div>
+            </div>
+            <div id="promptEdit_goalRecommendation" style="${wizardState.showPromptEdit?.goalRecommendation ? '' : 'display: none;'}">
+                <textarea id="promptText_goalRecommendation" style="width: 100%; min-height: 150px; font-family: monospace; font-size: 13px; padding: 12px; border: 1px solid var(--neutral-300); border-radius: 4px; resize: vertical;">${escapeHtml(wizardState.prompts.goalRecommendation)}</textarea>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                    <button class="btn btn-primary btn-sm" onclick="savePromptEdit('goalRecommendation')">Save Prompt</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetPrompt('goalRecommendation')">Reset to Default</button>
+                </div>
+            </div>
         </div>
 
-        <div style="margin-top: 20px;">
-            <p>Desired competencies: ${resource.desiredCompetencies.length}</p>
-            <p>Continue to discover courses that match these goals.</p>
+        <div style="margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="runGoalRecommendations()" ${!settings.apiKey ? 'disabled' : ''} id="runGoalsBtn">
+                <span id="goalsBtnText">🤖 Get AI Goal Recommendations</span>
+            </button>
         </div>
+
+        <div id="goalsResults" style="margin-top: 20px;">
     `;
+
+    if (hasGoals) {
+        html += '<div class="alert alert-success" style="margin-bottom: 16px;">✓ AI Goal Recommendations Complete</div>';
+
+        if (Array.isArray(hasGoals)) {
+            html += '<div style="background: white; border: 1px solid var(--neutral-200); border-radius: var(--radius-md); padding: 20px;">';
+            html += '<h4 style="margin: 0 0 16px 0; font-size: 15px;">Recommended Training Goals</h4>';
+            html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            hasGoals.forEach(goal => {
+                const priorityColor = {
+                    'Critical': '#ef4444',
+                    'High': '#f97316',
+                    'Medium': '#f59e0b',
+                    'Low': '#22c55e'
+                }[goal.priority] || '#6b7280';
+                html += `
+                    <div style="border-left: 3px solid ${priorityColor}; padding-left: 12px; background: var(--neutral-50); padding: 12px; border-radius: 4px;">
+                        <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                            ${escapeHtml(goal.competencyName)}
+                            <span style="font-size: 11px; padding: 2px 8px; background: ${priorityColor}; color: white; border-radius: 12px;">${goal.priority}</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--neutral-700); margin-bottom: 4px;">
+                            <strong>Target Level:</strong> ${goal.targetLevel}/5
+                        </div>
+                        <div style="font-size: 13px; color: var(--neutral-600); font-style: italic;">
+                            <strong>Why:</strong> ${escapeHtml(goal.rationale)}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+        } else {
+            html += `<div class="alert alert-info">${escapeHtml(String(hasGoals))}</div>`;
+        }
+    } else {
+        html += '<div class="alert alert-info">Click "Get AI Goal Recommendations" to get personalized training goals.</div>';
+    }
+
+    html += '</div>';
+
+    return html;
+}
+
+async function runGoalRecommendations() {
+    const resource = resources.find(r => r.id === wizardState.data.resourceId);
+    if (!resource) return;
+
+    const btn = document.getElementById('runGoalsBtn');
+    const btnText = document.getElementById('goalsBtnText');
+
+    btn.disabled = true;
+    btnText.textContent = '⏳ Analyzing...';
+
+    try {
+        const competencies = wizardState.data.aiOutputs.competencyAssessment || resource.currentCompetencies;
+
+        const userPrompt = `Suggest 3-5 training goals for:
+Name: ${resource.name}
+Title: ${resource.jobTitle || 'Not specified'}
+Department: ${resource.department || 'Not specified'}
+Current Competencies: ${JSON.stringify(competencies, null, 2)}
+
+Based on their current competencies, suggest ambitious but achievable training goals that will advance their career.`;
+
+        const response = await callClaudeAPI(wizardState.prompts.goalRecommendation, userPrompt);
+
+        // Try to parse JSON response
+        let parsedResponse;
+        try {
+            parsedResponse = JSON.parse(response);
+        } catch (e) {
+            const jsonMatch = response.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                parsedResponse = JSON.parse(jsonMatch[0]);
+            } else {
+                parsedResponse = response;
+            }
+        }
+
+        wizardState.data.aiOutputs.trainingGoals = parsedResponse;
+        renderTrainingPlans();
+
+    } catch (error) {
+        alert(`AI Goal Recommendations Failed: ${error.message}`);
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = '🤖 Get AI Goal Recommendations';
+    }
 }
 
 function renderWizardStep4() {
-    return `
-        <h3>Discover Training Courses</h3>
-        <p>Find courses that match the training goals.</p>
+    const resource = resources.find(r => r.id === wizardState.data.resourceId);
+    if (!resource) return '<p>Resource not found</p>';
 
-        <div class="alert alert-info">
-            <strong>AI Course Discovery:</strong> Let AI search and recommend the best courses from across the web.
-            ${settings.apiKey ? '' : '<br><em>Configure your API key in Settings first.</em>'}
+    const hasCourses = wizardState.data.aiOutputs.courseRecommendations;
+    const hasGoals = wizardState.data.aiOutputs.trainingGoals;
+
+    let html = `
+        <h3>Step 4: AI Course Discovery & Recommendations</h3>
+        <p style="margin-bottom: 20px;">Get AI-powered course recommendations with detailed reasoning about WHY each course is valuable.</p>
+
+        ${!hasGoals ? '<div class="alert alert-warning" style="margin-bottom: 20px;"><strong>Tip:</strong> Define training goals in Step 3 first for better course recommendations.</div>' : ''}
+        ${!settings.apiKey ? '<div class="alert alert-warning" style="margin-bottom: 20px;"><strong>⚠️ API Key Required:</strong> Configure your AI API key in Settings to use AI features.</div>' : ''}
+
+        <div style="background: var(--neutral-50); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 14px; font-weight: 600;">AI Prompt (Customizable)</h4>
+                <button class="btn btn-ghost btn-sm" onclick="togglePromptEdit('courseDiscovery')" id="togglePromptBtn_courseDiscovery">
+                    ${wizardState.showPromptEdit?.courseDiscovery ? 'Hide' : 'Edit Prompt'}
+                </button>
+            </div>
+            <div id="promptView_courseDiscovery" style="${wizardState.showPromptEdit?.courseDiscovery ? 'display: none;' : ''}">
+                <div style="font-size: 13px; color: var(--neutral-700); line-height: 1.6; white-space: pre-wrap; font-family: monospace; background: white; padding: 12px; border-radius: 4px; border: 1px solid var(--neutral-200);">
+                    ${escapeHtml(wizardState.prompts.courseDiscovery)}
+                </div>
+            </div>
+            <div id="promptEdit_courseDiscovery" style="${wizardState.showPromptEdit?.courseDiscovery ? '' : 'display: none;'}">
+                <textarea id="promptText_courseDiscovery" style="width: 100%; min-height: 200px; font-family: monospace; font-size: 13px; padding: 12px; border: 1px solid var(--neutral-300); border-radius: 4px; resize: vertical;">${escapeHtml(wizardState.prompts.courseDiscovery)}</textarea>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                    <button class="btn btn-primary btn-sm" onclick="savePromptEdit('courseDiscovery')">Save Prompt</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetPrompt('courseDiscovery')">Reset to Default</button>
+                </div>
+            </div>
         </div>
 
-        <div style="margin-top: 20px;">
-            <p>Selected courses: ${wizardState.data.selectedCourses.length}</p>
-            <p>You can also browse the course catalog and select courses manually.</p>
+        <div style="margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="runCourseDiscovery()" ${!settings.apiKey ? 'disabled' : ''} id="runCoursesBtn">
+                <span id="coursesBtnText">🤖 Discover Courses with AI</span>
+            </button>
         </div>
+
+        <div id="coursesResults" style="margin-top: 20px;">
     `;
+
+    if (hasCourses) {
+        html += '<div class="alert alert-success" style="margin-bottom: 16px;">✓ AI Course Discovery Complete</div>';
+
+        if (Array.isArray(hasCourses)) {
+            html += '<div style="background: white; border: 1px solid var(--neutral-200); border-radius: var(--radius-md); padding: 20px;">';
+            html += '<h4 style="margin: 0 0 16px 0; font-size: 15px;">AI-Recommended Courses</h4>';
+            html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
+            hasCourses.forEach((course, idx) => {
+                const relevancePercent = (course.relevanceScore || 0) * 10;
+                const relevanceColor = relevancePercent >= 80 ? '#22c55e' : relevancePercent >= 60 ? '#f59e0b' : '#ef4444';
+                html += `
+                    <div style="border: 1px solid var(--neutral-200); padding: 16px; border-radius: var(--radius-md); background: var(--neutral-50);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">${idx + 1}. ${escapeHtml(course.title)}</div>
+                                <div style="font-size: 13px; color: var(--neutral-700);">
+                                    ${escapeHtml(course.provider || 'Unknown')} •
+                                    ${formatCurrency(course.cost || 0)} •
+                                    ${course.duration || 'Unknown duration'} •
+                                    ${escapeHtml(course.format || 'Unknown')}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 11px; color: var(--neutral-600); margin-bottom: 2px;">Relevance</div>
+                                <div style="font-weight: 700; font-size: 18px; color: ${relevanceColor};">${relevancePercent}%</div>
+                            </div>
+                        </div>
+                        <div style="background: #fffbeb; border-left: 3px solid #f59e0b; padding: 12px; border-radius: 4px; margin-top: 8px;">
+                            <div style="font-size: 12px; font-weight: 600; color: #92400e; margin-bottom: 4px;">💡 WHY THIS COURSE IS RECOMMENDED:</div>
+                            <div style="font-size: 13px; color: #78350f; line-height: 1.5;">
+                                ${escapeHtml(course.rationale || 'This course aligns with the training goals and helps develop required competencies.')}
+                            </div>
+                        </div>
+                        ${course.url ? `<div style="margin-top: 8px;"><a href="${escapeHtml(course.url)}" target="_blank" style="font-size: 13px; color: var(--primary-color); text-decoration: none;">🔗 View Course Details →</a></div>` : ''}
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+        } else {
+            html += `<div class="alert alert-info">${escapeHtml(String(hasCourses))}</div>`;
+        }
+    } else {
+        html += '<div class="alert alert-info">Click "Discover Courses with AI" to get personalized course recommendations with detailed rationale.</div>';
+    }
+
+    html += '</div>';
+
+    return html;
+}
+
+async function runCourseDiscovery() {
+    const resource = resources.find(r => r.id === wizardState.data.resourceId);
+    if (!resource) return;
+
+    const btn = document.getElementById('runCoursesBtn');
+    const btnText = document.getElementById('coursesBtnText');
+
+    btn.disabled = true;
+    btnText.textContent = '⏳ Discovering Courses...';
+
+    try {
+        const goals = wizardState.data.aiOutputs.trainingGoals || [];
+
+        const userPrompt = `Find and recommend 4-6 high-quality training courses for these goals:
+
+Resource: ${resource.name} (${resource.jobTitle || 'No title'})
+Training Goals: ${JSON.stringify(goals, null, 2)}
+Budget: ${formatCurrency(resource.annualTrainingBudget || 5000)}
+Location: ${resource.location || 'Remote'}
+
+For EACH course, provide:
+1. A detailed explanation of HOW this course addresses the specific training goals
+2. WHY this course is the best choice compared to alternatives
+3. WHAT specific skills and knowledge the learner will gain
+4. HOW it fits into their overall career development journey
+
+Be very specific and insightful. Focus on the VALUE and IMPACT of each course.`;
+
+        const response = await callClaudeAPI(wizardState.prompts.courseDiscovery, userPrompt);
+
+        // Try to parse JSON response
+        let parsedResponse;
+        try {
+            parsedResponse = JSON.parse(response);
+        } catch (e) {
+            const jsonMatch = response.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                parsedResponse = JSON.parse(jsonMatch[0]);
+            } else {
+                parsedResponse = response;
+            }
+        }
+
+        wizardState.data.aiOutputs.courseRecommendations = parsedResponse;
+        wizardState.data.selectedCourses = parsedResponse; // Also save to selectedCourses
+        renderTrainingPlans();
+
+    } catch (error) {
+        alert(`AI Course Discovery Failed: ${error.message}`);
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = '🤖 Discover Courses with AI';
+    }
 }
 
 function renderWizardStep5() {
@@ -3873,23 +4494,146 @@ function renderWizardStep6() {
     const resource = resources.find(r => r.id === wizardState.data.resourceId);
     if (!resource) return '<p>Resource not found</p>';
 
-    return `
-        <h3>Review Training Plan</h3>
-        <p>Review and approve the training plan for ${resource.name}</p>
+    const hasAssessment = wizardState.data.aiOutputs.competencyAssessment;
+    const hasGoals = wizardState.data.aiOutputs.trainingGoals;
+    const hasCourses = wizardState.data.aiOutputs.courseRecommendations;
 
-        <div style="background: var(--neutral-50); padding: 20px; border-radius: var(--radius-lg); margin-top: 20px;">
-            <h4>Plan Summary</h4>
-            <p><strong>Resource:</strong> ${resource.name}</p>
-            <p><strong>Current Competencies:</strong> ${resource.currentCompetencies.length}</p>
-            <p><strong>Training Goals:</strong> ${resource.desiredCompetencies.length}</p>
-            <p><strong>Selected Courses:</strong> ${wizardState.data.selectedCourses.length}</p>
-            <p><strong>Estimated Budget:</strong> ${formatCurrency(0)}</p>
+    // Calculate estimated budget from courses
+    let estimatedBudget = 0;
+    if (Array.isArray(hasCourses)) {
+        estimatedBudget = hasCourses.reduce((sum, course) => sum + (course.cost || 0), 0);
+    }
+
+    let html = `
+        <h3>Step 6: Review & Finalize Training Plan</h3>
+        <p style="margin-bottom: 20px;">Review all AI recommendations before creating the training plan for ${resource.name}.</p>
+
+        <div style="background: white; border: 2px solid var(--primary-color); padding: 20px; border-radius: var(--radius-lg); margin-bottom: 24px;">
+            <h4 style="margin: 0 0 16px 0; color: var(--primary-color);">Plan Overview</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Resource</div>
+                    <div style="font-weight: 600;">${escapeHtml(resource.name)}</div>
+                    <div style="font-size: 13px; color: var(--neutral-600);">${escapeHtml(resource.jobTitle || 'No title')}</div>
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Available Budget</div>
+                    <div style="font-weight: 600; font-size: 18px; color: var(--primary-color);">${formatCurrency(resource.annualTrainingBudget || 0)}</div>
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Est. Course Cost</div>
+                    <div style="font-weight: 600; font-size: 18px; ${estimatedBudget > (resource.annualTrainingBudget || 0) ? 'color: #ef4444;' : 'color: #22c55e;'}">${formatCurrency(estimatedBudget)}</div>
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">AI Status</div>
+                    <div style="font-weight: 600; color: ${hasAssessment && hasGoals && hasCourses ? '#22c55e' : '#f59e0b'};">
+                        ${hasAssessment && hasGoals && hasCourses ? '✓ Fully AI-Assisted' : '⚠️ Partial AI Data'}
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="alert alert-success" style="margin-top: 20px;">
-            Click "Finish" to create this training plan.
+        ${estimatedBudget > (resource.annualTrainingBudget || 0) ? `
+            <div class="alert alert-warning" style="margin-bottom: 20px;">
+                <strong>⚠️ Budget Alert:</strong> Estimated course costs (${formatCurrency(estimatedBudget)}) exceed available budget (${formatCurrency(resource.annualTrainingBudget || 0)}).
+            </div>
+        ` : ''}
+    `;
+
+    // AI Competency Assessment Review
+    if (hasAssessment && Array.isArray(hasAssessment)) {
+        html += `
+            <div style="margin-bottom: 24px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>✓</span> Competency Assessment (${hasAssessment.length} identified)
+                </h4>
+                <div style="background: var(--neutral-50); padding: 16px; border-radius: var(--radius-md); border-left: 3px solid var(--secondary-color);">
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${hasAssessment.map(c => `<span class="badge badge-secondary">${escapeHtml(c.name)} (${c.currentLevel}/5)</span>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // AI Training Goals Review
+    if (hasGoals && Array.isArray(hasGoals)) {
+        html += `
+            <div style="margin-bottom: 24px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>✓</span> Training Goals (${hasGoals.length} goals)
+                </h4>
+                <div style="background: var(--neutral-50); padding: 16px; border-radius: var(--radius-md); border-left: 3px solid #f59e0b;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${hasGoals.map(g => {
+                            const priorityColor = {
+                                'Critical': '#ef4444',
+                                'High': '#f97316',
+                                'Medium': '#f59e0b',
+                                'Low': '#22c55e'
+                            }[g.priority] || '#6b7280';
+                            return `<div style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                                <span style="font-size: 11px; padding: 2px 8px; background: ${priorityColor}; color: white; border-radius: 12px; min-width: 60px; text-align: center;">${g.priority}</span>
+                                <span style="font-weight: 600;">${escapeHtml(g.competencyName)}</span>
+                                <span style="color: var(--neutral-600);">→ Level ${g.targetLevel}/5</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // AI Course Recommendations Review
+    if (hasCourses && Array.isArray(hasCourses)) {
+        html += `
+            <div style="margin-bottom: 24px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>✓</span> Recommended Courses (${hasCourses.length} courses)
+                </h4>
+                <div style="background: var(--neutral-50); padding: 16px; border-radius: var(--radius-md); border-left: 3px solid var(--primary-color);">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        ${hasCourses.map((course, idx) => {
+                            const relevancePercent = (course.relevanceScore || 0) * 10;
+                            return `<div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid var(--neutral-200);">
+                                <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; margin-bottom: 4px;">${idx + 1}. ${escapeHtml(course.title)}</div>
+                                        <div style="font-size: 13px; color: var(--neutral-700);">
+                                            ${escapeHtml(course.provider || 'Unknown')} • ${formatCurrency(course.cost || 0)} • ${course.duration || 'Unknown'}
+                                        </div>
+                                    </div>
+                                    <div style="font-weight: 700; color: ${relevancePercent >= 80 ? '#22c55e' : '#f59e0b'}; font-size: 16px;">
+                                        ${relevancePercent}%
+                                    </div>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Warnings if missing AI data
+    if (!hasAssessment || !hasGoals || !hasCourses) {
+        html += '<div class="alert alert-info" style="margin-bottom: 20px;">';
+        html += '<strong>Note:</strong> Some AI features were not used. ';
+        if (!hasAssessment) html += 'No competency assessment. ';
+        if (!hasGoals) html += 'No training goals. ';
+        if (!hasCourses) html += 'No course recommendations. ';
+        html += 'You can go back to complete these steps for better results.';
+        html += '</div>';
+    }
+
+    html += `
+        <div class="alert alert-success" style="margin-top: 24px;">
+            <strong>Ready to Create!</strong> Click "Finish" below to create this AI-assisted training plan.
+            All recommendations and insights will be saved with the plan.
         </div>
     `;
+
+    return html;
 }
 
 function wizardNextStep() {
@@ -3922,28 +4666,68 @@ function wizardFinish() {
     const resource = resources.find(r => r.id === wizardState.data.resourceId);
     if (!resource) return;
 
+    // Calculate estimated budget from courses
+    let estimatedBudget = 0;
+    const courses = wizardState.data.aiOutputs.courseRecommendations || [];
+    if (Array.isArray(courses)) {
+        estimatedBudget = courses.reduce((sum, course) => sum + (course.cost || 0), 0);
+    }
+
+    // Build scheduled courses array with proper structure
+    const scheduledCourses = [];
+    if (Array.isArray(courses)) {
+        courses.forEach(course => {
+            scheduledCourses.push({
+                title: course.title || 'Unknown Course',
+                provider: course.provider || 'Unknown Provider',
+                cost: course.cost || 0,
+                duration: course.duration || 'Unknown',
+                format: course.format || 'Unknown',
+                url: course.url || '',
+                startDate: new Date().toISOString().split('T')[0],
+                status: 'Planned',
+                relevanceScore: course.relevanceScore || 0,
+                rationale: course.rationale || ''
+            });
+        });
+    }
+
+    // Build primary objective from goals
+    let primaryObjective = 'Skill development and career growth';
+    const goals = wizardState.data.aiOutputs.trainingGoals;
+    if (Array.isArray(goals) && goals.length > 0) {
+        const criticalGoals = goals.filter(g => g.priority === 'Critical');
+        if (criticalGoals.length > 0) {
+            primaryObjective = `Develop ${criticalGoals.map(g => g.competencyName).join(', ')} to advance career progression`;
+        }
+    }
+
     const newPlan = {
         id: nextPlanId++,
         resourceId: resource.id,
         planName: `${resource.name} Training Plan ${new Date().getFullYear()}`,
-        planDescription: 'AI-assisted training plan',
+        planDescription: `AI-assisted training plan${Array.isArray(goals) && goals.length > 0 ? ` focusing on ${goals.length} key development goal${goals.length > 1 ? 's' : ''}` : ''}`,
         planPeriod: {
             startDate: new Date().toISOString().split('T')[0],
             endDate: new Date(Date.now() + 180*24*60*60*1000).toISOString().split('T')[0]
         },
-        primaryObjective: 'Skill development and career growth',
-        desiredOutcomes: [],
-        successMetrics: [],
+        primaryObjective: primaryObjective,
+        desiredOutcomes: Array.isArray(goals) ? goals.map(g => `Achieve ${g.competencyName} at level ${g.targetLevel}/5`) : [],
+        successMetrics: Array.isArray(goals) ? goals.map(g => `${g.competencyName} proficiency improvement`) : [],
         allocatedBudget: resource.annualTrainingBudget || 0,
-        projectedSpend: 0,
-        contingencyBuffer: 0,
-        scheduledCourses: [],
+        projectedSpend: estimatedBudget,
+        contingencyBuffer: Math.max(0, (resource.annualTrainingBudget || 0) - estimatedBudget),
+        scheduledCourses: scheduledCourses,
         gapAnalysis: {
-            criticalGaps: [],
-            levelGaps: [],
-            estimatedTimeToClose: 0
+            criticalGaps: Array.isArray(goals) ? goals.filter(g => g.priority === 'Critical').map(g => g.competencyName) : [],
+            levelGaps: Array.isArray(goals) ? goals.map(g => ({competency: g.competencyName, targetLevel: g.targetLevel})) : [],
+            estimatedTimeToClose: scheduledCourses.length > 0 ? 180 : 0
         },
-        aiRecommendations: {},
+        aiRecommendations: {
+            competencyAssessment: wizardState.data.aiOutputs.competencyAssessment || null,
+            trainingGoals: wizardState.data.aiOutputs.trainingGoals || null,
+            courseRecommendations: wizardState.data.aiOutputs.courseRecommendations || null
+        },
         status: 'Draft',
         approvedDate: null,
         approvedBy: null,
@@ -3957,9 +4741,27 @@ function wizardFinish() {
     triggerSave();
     renderTrainingPlans();
 
-    openModal('Success', `
-        <div class="alert alert-success">
-            Training plan created successfully for ${resource.name}!
+    // Show success message with plan summary
+    const hasAI = (wizardState.data.aiOutputs.competencyAssessment || wizardState.data.aiOutputs.trainingGoals || wizardState.data.aiOutputs.courseRecommendations);
+
+    openModal('Training Plan Created Successfully', `
+        <div class="alert alert-success" style="margin-bottom: 20px;">
+            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">✓ Training Plan Created!</div>
+            <div>Successfully created training plan for ${escapeHtml(resource.name)}</div>
+        </div>
+
+        <div style="background: var(--neutral-50); padding: 16px; border-radius: var(--radius-md);">
+            <h4 style="margin: 0 0 12px 0; font-size: 15px;">Plan Summary</h4>
+            <div style="display: grid; gap: 8px; font-size: 14px;">
+                <div><strong>Courses:</strong> ${scheduledCourses.length} scheduled</div>
+                <div><strong>Estimated Cost:</strong> ${formatCurrency(estimatedBudget)}</div>
+                <div><strong>Budget Remaining:</strong> ${formatCurrency(Math.max(0, (resource.annualTrainingBudget || 0) - estimatedBudget))}</div>
+                <div><strong>AI-Assisted:</strong> ${hasAI ? '✓ Yes' : 'No'}</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <button class="btn btn-primary" onclick="closeModal(); viewPlanDetails(${newPlan.id});">View Plan Details</button>
         </div>
     `);
 }
