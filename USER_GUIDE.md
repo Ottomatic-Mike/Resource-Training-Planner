@@ -2,7 +2,7 @@
 
 **Complete reference documentation for all features and workflows.**
 
-Version 1.0.0 | Last Updated: January 24, 2024
+Version 1.0.1 | Last Updated: January 24, 2024
 
 ---
 
@@ -177,12 +177,27 @@ Click any resource card to open a modal with:
 
 ### Editing a Resource
 
-1. View resource details
-2. Click **"Edit"**
-3. Modify any field
-4. Click **"Save"**
+1. Click any resource card to view details
+2. Click **"Edit"** button in the modal
+3. Modify any field in the edit form:
+   - Name, job title, department
+   - Location and email
+   - Annual training budget
+   - **Budget spent** (track actual spending)
+   - Weekly training hours
+4. Click **"Save Changes"**
 
-**Note:** Changing budget or hours affects future plan calculations.
+**What You Can Edit:**
+- All basic information fields
+- Budget allocation and spending
+- Training time availability
+- Contact information
+
+**Important Notes:**
+- Changing **Annual Training Budget** affects remaining budget calculations
+- Changing **Weekly Training Hours** affects future plan scheduling
+- **Budget Spent** field lets you track actual expenditures vs. planned budget
+- Last modified timestamp is automatically updated
 
 ### Deleting a Resource
 

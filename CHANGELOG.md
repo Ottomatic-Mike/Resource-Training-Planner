@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2024-01-24
+
+### Fixed
+- **Resource editing functionality** - Implemented missing `editResource()` and `saveResourceEdits()` functions
+  - Edit button in resource detail modal now fully functional
+  - All resource fields can be edited: name, title, department, location, email, budgets, weekly hours
+  - Added **Budget Spent** field to edit form for tracking actual expenditures
+  - Form pre-populates with current resource data
+  - Validation ensures name field is required
+  - Last modified timestamp automatically updates on save
+  - Maintains same clean UI/UX as add resource form
+
+### Changed
+- **Enhanced budget tracking** - Budget spent can now be edited directly when updating a resource
+- **Improved user experience** - Users can now modify resource information after initial creation
+
+---
+
 ## [1.0.0] - 2024-01-24
 
 ### Added - Initial Release
@@ -215,11 +233,25 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 
 | Version | Date | Type | Description |
 |---------|------|------|-------------|
+| 1.0.1 | 2024-01-24 | Bug Fix | Fixed resource editing functionality |
 | 1.0.0 | 2024-01-24 | Initial Release | Full-featured training plan manager |
 
 ---
 
 ## Upgrade Guide
+
+### From v1.0.0 → v1.0.1
+
+**What's New:**
+- Resource editing now fully functional
+- Budget spent field added to edit form
+
+**How to Upgrade:**
+1. Replace `training-plan-manager.html` with the new version
+2. Open in browser - your data is preserved in localStorage
+3. Test the edit functionality by clicking any resource card, then "Edit"
+
+**No data migration required** - All existing data remains compatible.
 
 ### From No Previous Version → v1.0.0
 

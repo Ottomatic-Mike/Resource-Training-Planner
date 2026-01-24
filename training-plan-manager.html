@@ -2126,6 +2126,88 @@ function deleteResource(resourceId) {
     }
 }
 
+function editResource(resourceId) {
+    const resource = resources.find(r => r.id === resourceId);
+    if (!resource) return;
+
+    const html = `
+        <div class="form-group">
+            <label class="form-label form-label-required">Name</label>
+            <input type="text" class="form-input" id="editResourceName" value="${escapeHtml(resource.name)}" placeholder="John Smith">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Job Title</label>
+            <input type="text" class="form-input" id="editResourceTitle" value="${escapeHtml(resource.jobTitle || '')}" placeholder="Senior Developer">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Department</label>
+            <input type="text" class="form-input" id="editResourceDepartment" value="${escapeHtml(resource.department || '')}" placeholder="Engineering">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" class="form-input" id="editResourceLocation" value="${escapeHtml(resource.location || '')}" placeholder="New York, USA">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="editResourceEmail" value="${escapeHtml(resource.email || '')}" placeholder="john@company.com">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Annual Training Budget</label>
+            <input type="number" class="form-input" id="editResourceBudget" value="${resource.annualTrainingBudget || 0}" min="0">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Budget Spent</label>
+            <input type="number" class="form-input" id="editResourceBudgetSpent" value="${resource.budgetSpent || 0}" min="0">
+            <div class="form-help">Track actual spending on training for this resource</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Weekly Training Hours</label>
+            <input type="number" class="form-input" id="editResourceHours" value="${resource.weeklyTrainingHours || 5}" min="1" max="40">
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveResourceEdits(${resourceId})">Save Changes</button>
+    `;
+
+    openModal('Edit Resource: ' + resource.name, html, footer);
+}
+
+function saveResourceEdits(resourceId) {
+    const name = document.getElementById('editResourceName').value.trim();
+    if (!name) {
+        alert('Please enter a name');
+        return;
+    }
+
+    const resource = resources.find(r => r.id === resourceId);
+    if (!resource) return;
+
+    // Update resource fields
+    resource.name = name;
+    resource.email = document.getElementById('editResourceEmail').value.trim();
+    resource.jobTitle = document.getElementById('editResourceTitle').value.trim();
+    resource.department = document.getElementById('editResourceDepartment').value.trim();
+    resource.location = document.getElementById('editResourceLocation').value.trim();
+    resource.annualTrainingBudget = parseFloat(document.getElementById('editResourceBudget').value) || 0;
+    resource.budgetSpent = parseFloat(document.getElementById('editResourceBudgetSpent').value) || 0;
+    resource.weeklyTrainingHours = parseInt(document.getElementById('editResourceHours').value) || 5;
+    resource.lastModified = new Date().toISOString();
+
+    closeModal();
+    triggerSave();
+    renderResources();
+    renderDashboard();
+}
+
 // === COMPETENCY LIBRARY (TAB 3) ===
 function renderCompetencies() {
     const content = document.getElementById('competenciesContent');
