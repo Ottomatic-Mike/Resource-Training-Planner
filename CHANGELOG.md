@@ -7,6 +7,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.27] - 2026-01-24
+
+### Documentation - Comprehensive Deployment Guide
+
+**Enhancement Type:** Documentation & User Guidance
+**Impact:** Improves user experience for AI feature adoption
+**Breaking Changes:** None - zero code changes
+
+**What Changed:**
+
+Created comprehensive deployment documentation to guide users toward the optimal setup for using AI features while preserving the standalone architecture.
+
+#### New Files
+
+**1. DEPLOYMENT.md** - Complete deployment guide with:
+- Quick decision guide (table comparing 5 deployment options)
+- Detailed explanation of CORS and why it matters
+- Step-by-step guides for:
+  - **GitHub Pages** (recommended for teams)
+  - **Netlify** (easiest drag & drop)
+  - **Vercel** (developer-friendly)
+  - **Local web server** (testing/development)
+  - **CORS proxy** (fallback option)
+- Comparison matrix of all options
+- Troubleshooting section
+- Security considerations
+- Recommended production setup
+
+#### Updated Files
+
+**2. README.md** - Enhanced Quick Start section:
+- Clarified standalone usage (works for all features except AI)
+- Added prominent deployment section with comparison table
+- Linked to DEPLOYMENT.md throughout
+- Updated AI Integration Setup with prerequisite deployment section
+- Added DEPLOYMENT.md to Documentation section
+
+**Why This Matters:**
+
+The v1.0.26 smart CORS handling made the proxy optional, but users still need guidance on the best deployment approach. This documentation:
+
+1. **Preserves Standalone Architecture**: No code changes - standalone file remains fully functional
+2. **Guides AI Feature Users**: Clear path to deploy for full functionality
+3. **Reduces Support Burden**: Comprehensive troubleshooting and step-by-step guides
+4. **Offers Flexibility**: 5 deployment options for different use cases
+5. **Emphasizes Free Options**: All recommended deployments are free
+
+**User Journey:**
+
+```
+Download HTML → Try Standalone → Want AI Features?
+  ↓
+  No → Keep using standalone (perfect)
+  ↓
+  Yes → Read DEPLOYMENT.md → Choose deployment option → Deploy (5 min) → Full AI access
+```
+
+**Recommendation Hierarchy:**
+
+1. **For Teams/Production:** GitHub Pages or Netlify (permanent hosting)
+2. **For Testing/Development:** Local web server (Python/Node.js)
+3. **For Fallback:** CORS proxy (if can't deploy)
+
+**Files Modified:**
+- `DEPLOYMENT.md` (new - 600+ lines of comprehensive guidance)
+- `README.md` (updated - added deployment sections and links)
+
+**Technical Details:**
+- Zero application code changes
+- Maintains full backward compatibility
+- No version changes to HTML file needed
+- Pure documentation enhancement
+
+---
+
 ## [1.0.26] - 2026-01-24
 
 ### Enhanced - Smart CORS Handling with Optional Proxy & Direct API Calls

@@ -69,31 +69,61 @@ A powerful, self-contained web application that enables engineering managers to 
 
 ## 🚀 Quick Start
 
-### Option 1: Open Directly (Fastest)
+### Option 1: Open Directly (Fastest - No AI Features)
 
 1. **Download** the `training-plan-manager.html` file
 2. **Double-click** to open in your default browser
 3. **Click** "Load Sample Data" in the Reports tab to see it in action
 
-### Option 2: Clone Repository
+**Works great for:** Data management, manual training plans, reports
+**Limitation:** AI features disabled due to browser CORS restrictions
 
-```bash
-git clone https://github.com/Ottomatic-Mike/Resource-Training-Planning.git
-cd Resource-Training-Planning
-# Open training-plan-manager.html in your browser
-```
+### Option 2: Deploy to Web Server (Recommended for AI Features)
 
-### Option 3: Use from Web Server
+**For full AI-powered features, deploy to a free web server:**
+
+**Easiest (5 minutes):**
+- **[GitHub Pages](DEPLOYMENT.md#option-1-github-pages-recommended)** - Free, permanent hosting
+- **[Netlify](DEPLOYMENT.md#option-2-netlify-easiest)** - Drag & drop deployment
+- **[Vercel](DEPLOYMENT.md#option-3-vercel-developer-friendly)** - One-command deploy
+
+**See [DEPLOYMENT.md](DEPLOYMENT.md) for complete step-by-step guides.**
+
+### Option 3: Local Web Server (Testing/Development)
 
 ```bash
 # Using Python
-python -m http.server 8000
+python -m http.server 8080
 
 # Using Node.js
-npx http-server
+npx http-server -p 8080
 
-# Then navigate to http://localhost:8000/training-plan-manager.html
+# Then navigate to http://localhost:8080/training-plan-manager.html
 ```
+
+**Works great for:** Testing, development, AI features (with API key)
+**Limitation:** Only accessible on your computer
+
+---
+
+## 🌐 Deployment Guide
+
+**To use AI features (competency assessment, goal suggestions, course discovery), you need to deploy the application to a web server.**
+
+### Why Deploy?
+
+Browser security (CORS) prevents local HTML files from making API calls to external services like Anthropic, OpenAI, or Google. Deploying to any web server solves this completely.
+
+### Quick Deployment Options
+
+| Method | Setup Time | Best For | Cost |
+|--------|-----------|----------|------|
+| [GitHub Pages](DEPLOYMENT.md#option-1-github-pages-recommended) | 5 min | Teams, permanent hosting | Free |
+| [Netlify](DEPLOYMENT.md#option-2-netlify-easiest) | 3 min | Non-technical users | Free |
+| [Vercel](DEPLOYMENT.md#option-3-vercel-developer-friendly) | 5 min | Developers | Free |
+| [Local Server](DEPLOYMENT.md#option-4-local-web-server-testing) | 2 min | Testing, offline use | Free |
+
+**📘 Complete Guide:** [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ---
 
@@ -157,6 +187,17 @@ npx http-server
 ---
 
 ## 🤖 AI Integration Setup
+
+### Prerequisites
+
+**⚠️ Important:** To use AI features, you must deploy the application to a web server to avoid CORS restrictions.
+
+**Quick Deploy Options:**
+- **[GitHub Pages](DEPLOYMENT.md#option-1-github-pages-recommended)** (5 minutes, free)
+- **[Netlify](DEPLOYMENT.md#option-2-netlify-easiest)** (3 minutes, free)
+- **[Local Server](DEPLOYMENT.md#option-4-local-web-server-testing)** (2 minutes, testing only)
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for complete deployment guide.
 
 ### Supported Providers
 
@@ -359,6 +400,7 @@ Modify `loadSampleCompetencies()`, `loadSampleCourses()`, etc. to customize the 
 
 ## 📚 Documentation
 
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deploy to web server for AI features (recommended)
 - **[USER_GUIDE.md](USER_GUIDE.md)** - Comprehensive user manual
 - **[API_INTEGRATION.md](API_INTEGRATION.md)** - AI setup and configuration
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history
