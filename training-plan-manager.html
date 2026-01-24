@@ -1765,7 +1765,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.22',
+        version: '1.0.23',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -7206,7 +7206,7 @@ function addHoliday(calendarId) {
             document.getElementById('newHolidayRecurring').addEventListener('change', function(e) {
                 document.getElementById('recurringRuleGroup').style.display = e.target.checked ? 'block' : 'none';
             });
-        </script>
+        <\/script>
     `;
 
     const footer = `
@@ -7264,6 +7264,13 @@ function editHoliday(calendarId, holidayIndex) {
 
     const holiday = cal.holidays[holidayIndex];
 
+    // Ensure date is in yyyy-MM-dd format
+    let dateValue = '';
+    if (holiday.date) {
+        // If date is ISO format (with time), extract just the date part
+        dateValue = holiday.date.split('T')[0];
+    }
+
     const html = `
         <div class="form-group">
             <label class="form-label form-label-required">Holiday Name</label>
@@ -7273,7 +7280,7 @@ function editHoliday(calendarId, holidayIndex) {
         <div class="form-inline">
             <div class="form-group">
                 <label class="form-label form-label-required">Date</label>
-                <input type="date" class="form-input" id="editHolidayDate" value="${holiday.date}">
+                <input type="date" class="form-input" id="editHolidayDate" value="${dateValue}">
             </div>
 
             <div class="form-group">
@@ -7305,7 +7312,7 @@ function editHoliday(calendarId, holidayIndex) {
             document.getElementById('editHolidayRecurring').addEventListener('change', function(e) {
                 document.getElementById('editRecurringRuleGroup').style.display = e.target.checked ? 'block' : 'none';
             });
-        </script>
+        <\/script>
     `;
 
     const footer = `
@@ -7547,7 +7554,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.22',
+        version: '1.0.23',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

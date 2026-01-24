@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.23] - 2026-01-24
+
+### Fixed - Critical JavaScript Syntax Errors in Calendar Editing
+
+**Critical Errors Fixed:**
+Two critical errors were preventing the application from rendering correctly after the v1.0.22 calendar editing feature was added.
+
+**Error 1: Uncaught SyntaxError at Line 7209**
+- **Issue:** `</script>` tag embedded in template literal caused JavaScript parsing to fail
+- **Root Cause:** Browser's HTML parser interprets `</script>` as closing the actual script block, even when inside a string/template literal
+- **Fix:** Escaped closing script tags using `<\/script>` in both `addHoliday()` and `editHoliday()` functions
+- **Locations:** Lines 7209 and 7308
+
+**Error 2: Date Input Format Validation Error at Line 7276**
+- **Issue:** "The specified value does not conform to the required format, yyyy-MM-dd"
+- **Root Cause:** HTML5 date input requires exactly yyyy-MM-dd format; ISO dates with time (yyyy-MM-ddTHH:mm:ss) are rejected
+- **Fix:** Added date sanitization in `editHoliday()` to extract just the date portion using `holiday.date.split('T')[0]`
+- **Impact:** Handles both simple date strings and ISO format dates correctly
+
+**Technical Details:**
+The embedded `<script>` tags in template literals are used to add dynamic behavior to modal forms (showing/hiding the recurring rule field when the recurring checkbox is toggled). The browser's HTML parser scans for `</script>` before the JavaScript parser processes the string, causing premature script termination.
+
+Solution: Escape the forward slash in closing script tags within template literals:
+```javascript
+// Before (broken):
+</script>
+
+// After (fixed):
+<\/script>
+```
+
+**Files Modified:**
+- `training-plan-manager.html` - Lines 7209, 7267-7277, 7308
+
+**Testing:**
+- Verified calendar view renders without errors
+- Verified edit calendar modal opens correctly
+- Verified add holiday dialog works
+- Verified edit holiday dialog works with proper date formatting
+- Verified recurring rule field toggles correctly
+- Tested with sample data containing various date formats
+
+---
+
 ## [1.0.22] - 2026-01-24
 
 ### Added - Comprehensive Calendar Viewing and Editing
