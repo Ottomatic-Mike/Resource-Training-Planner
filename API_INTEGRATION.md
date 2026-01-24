@@ -2,7 +2,7 @@
 
 **Complete guide to setting up and using AI features in the Training Plan Manager.**
 
-Version 1.0.4 | Last Updated: January 24, 2024
+Version 1.0.5 | Last Updated: January 24, 2024
 
 ---
 
@@ -331,14 +331,41 @@ Access via **Settings ⚙️** button.
 **AI Provider:**
 - Dropdown: Anthropic, OpenAI, Google
 - Choose your preferred provider
+- Models update automatically when provider changes
 
 **AI Model:**
-- Text input
-- Enter exact model name
-- Examples:
-  - `claude-3-5-sonnet-20241022`
-  - `gpt-4-turbo-preview`
-  - `gemini-pro`
+- **Intelligent Dropdown** with model information (NEW in v1.0.5)
+- Displays all available models for selected provider
+- Shows recommended models with ⭐ badge
+- Automatically selects recommended model when changing providers
+
+**Model Information Card:**
+Each model displays:
+- **Name and Recommendation Badge** - Clearly marked recommended models
+- **Description** - What the model is best for
+- **Key Strengths** - Capabilities as badges (e.g., "Complex reasoning", "Cost-effective")
+- **Best For** - Specific use case for training planning
+- **Cost** - Per 1M tokens with color coding (green=low, orange=medium, red=high)
+
+**Available Models:**
+
+*Anthropic Claude:*
+- Claude 3.5 Sonnet (New) ⭐ RECOMMENDED
+- Claude 3.5 Sonnet (Previous)
+- Claude 3 Opus (Highest intelligence, higher cost)
+- Claude 3 Sonnet (Balanced)
+- Claude 3 Haiku (Fast, cost-effective)
+
+*OpenAI:*
+- GPT-4 Turbo ⭐ RECOMMENDED
+- GPT-4 Turbo Preview
+- GPT-4 (Original, slower)
+- GPT-3.5 Turbo (Fast, cost-effective)
+
+*Google Gemini:*
+- Gemini 1.5 Pro ⭐ RECOMMENDED
+- Gemini 1.5 Flash (Fast, lighter)
+- Gemini Pro (Original)
 
 **API Key:**
 - Password field (hidden)
@@ -369,15 +396,41 @@ Access via **Settings ⚙️** button.
 - Course discovery: 0.7-0.9
 - Schedule optimization: 0.3
 
+### Choosing the Right Model
+
+**For Most Users (Recommended ⭐):**
+- **Claude 3.5 Sonnet (New)** - Best balance of capability and cost
+- **GPT-4 Turbo** - Strong analytical capabilities
+- **Gemini 1.5 Pro** - Excellent for extensive context
+
+**For Maximum Quality:**
+- **Claude 3 Opus** - Highest intelligence, best for complex frameworks
+- Use when accuracy is paramount and cost is secondary
+
+**For Cost-Effectiveness:**
+- **Claude 3 Haiku** - Fast, low cost, good for simple suggestions
+- **GPT-3.5 Turbo** - Quick responses for basic competency queries
+- **Gemini 1.5 Flash** - Very low cost, rapid planning
+
+**Selection Tips:**
+1. **Start with recommended models** - They're optimized for training planning
+2. **Check the cost indicator** - Color coded for easy budgeting
+3. **Review key strengths** - Match capabilities to your needs
+4. **Read the use case** - Specific guidance for training plan creation
+5. **Switch if needed** - All models work with your existing data
+
 ### Switching Providers
 
 1. Go to Settings
 2. Change AI Provider dropdown
-3. Update API Key for new provider
-4. Update Model name
+3. Model automatically updates to recommended model for new provider
+4. Update API Key for new provider
 5. Save
 
-**Data preserved:** Your resources, competencies, etc. are provider-agnostic.
+**Automatic Model Selection:**
+- Switching providers automatically selects the recommended model
+- Invalid model/provider combinations are corrected automatically
+- Your existing data is preserved and provider-agnostic
 
 ---
 

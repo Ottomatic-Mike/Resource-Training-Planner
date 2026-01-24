@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.5] - 2024-01-24
+
+### Added
+- **Intelligent AI Model Selection System** - Comprehensive model selection with guidance and recommendations
+  - Model dropdown for each AI provider replacing manual text input
+  - Detailed model information cards showing strengths, use cases, and costs
+  - Recommended model badges (⭐) for optimal training planning
+  - Cost indicators with color coding (low, medium, high, very-high)
+  - Key strengths display as badges for each model
+  - Use case descriptions specific to training plan creation
+  - Cost per 1M tokens for budgeting decisions
+  - Model database with 5 Anthropic models, 4 OpenAI models, 3 Google models
+
+### Changed
+- **AI Model field** - Changed from text input to intelligent dropdown with model details
+- **Settings layout** - Organized into sections (AI Configuration, Application Settings)
+- **Model selection** - Automatically updates when changing providers to show relevant models
+- **Provider switching** - Automatically selects recommended model when changing providers
+- **Default models** - Set to recommended models: Claude 3.5 Sonnet (New), GPT-4 Turbo, Gemini 1.5 Pro
+
+### Fixed
+- **Model validation** - Ensures selected model is valid for chosen provider
+- **Backward compatibility** - Validates and updates models for existing users on load
+- **Provider mismatch** - Automatically corrects invalid model/provider combinations
+
+---
+
 ## [1.0.4] - 2024-01-24
 
 ### Added
@@ -309,6 +336,7 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 
 | Version | Date | Type | Description |
 |---------|------|------|-------------|
+| 1.0.5 | 2024-01-24 | Feature | Intelligent AI model selection system |
 | 1.0.4 | 2024-01-24 | Feature | Resource-calendar correlation system |
 | 1.0.3 | 2024-01-24 | Feature | Category/subcategory management system |
 | 1.0.2 | 2024-01-24 | Enhancement | Competency category modularity with dropdowns |
@@ -318,6 +346,24 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 ---
 
 ## Upgrade Guide
+
+### From v1.0.4 → v1.0.5
+
+**What's New:**
+- Model dropdown with intelligent selection replacing text input
+- Model information cards with strengths, costs, and recommendations
+- Recommended model badges for easy identification
+- Automatic model validation and correction
+- Organized settings layout with sections
+
+**How to Upgrade:**
+1. Replace `training-plan-manager.html` with the new version
+2. Open in browser - your data is preserved in localStorage
+3. Your existing AI provider and model selections are validated automatically
+4. Open Settings (⚙️) to see the new model selection interface
+5. If your current model was invalid, it will be updated to the recommended model
+
+**No data migration required** - All existing settings remain compatible. Invalid model/provider combinations are automatically corrected.
 
 ### From v1.0.3 → v1.0.4
 

@@ -1406,6 +1406,9 @@ function loadFromLocalStorage() {
         nextCalendarId = data.nextCalendarId || 1;
         nextPlanId = data.nextPlanId || 1;
 
+        // Validate AI model for provider (ensures backward compatibility)
+        validateAIModelForProvider();
+
         return true;
     } catch (e) {
         console.error('Failed to load:', e);
@@ -1538,73 +1541,319 @@ function closeModal() {
 }
 
 // === SETTINGS FUNCTIONS ===
+// AI Model Information Database
+const aiModels = {
+    anthropic: [
+        {
+            id: 'claude-3-5-sonnet-20241022',
+            name: 'Claude 3.5 Sonnet (New)',
+            recommended: true,
+            description: 'Latest and most capable model. Best for training plan analysis, competency assessment, and course recommendations.',
+            strengths: ['Complex reasoning', 'Technical analysis', 'Detailed planning', 'Code understanding'],
+            costPer1M: '$3 input / $15 output',
+            costLevel: 'medium',
+            useCase: 'Ideal for comprehensive training plan creation with detailed competency mapping'
+        },
+        {
+            id: 'claude-3-5-sonnet-20240620',
+            name: 'Claude 3.5 Sonnet (Previous)',
+            recommended: false,
+            description: 'Previous version. Still highly capable for most training planning tasks.',
+            strengths: ['Complex reasoning', 'Technical analysis', 'Planning'],
+            costPer1M: '$3 input / $15 output',
+            costLevel: 'medium',
+            useCase: 'Good for training plan creation, slightly older version'
+        },
+        {
+            id: 'claude-3-opus-20240229',
+            name: 'Claude 3 Opus',
+            recommended: false,
+            description: 'Most powerful model. Best for complex multi-step analysis and detailed competency frameworks.',
+            strengths: ['Highest intelligence', 'Complex analysis', 'Expert-level reasoning', 'Comprehensive planning'],
+            costPer1M: '$15 input / $75 output',
+            costLevel: 'high',
+            useCase: 'Use for enterprise-level training frameworks requiring maximum accuracy'
+        },
+        {
+            id: 'claude-3-sonnet-20240229',
+            name: 'Claude 3 Sonnet',
+            recommended: false,
+            description: 'Balanced performance. Good for standard training plan creation.',
+            strengths: ['Balanced performance', 'Good reasoning', 'Cost-effective'],
+            costPer1M: '$3 input / $15 output',
+            costLevel: 'medium',
+            useCase: 'Suitable for most training planning tasks with good balance'
+        },
+        {
+            id: 'claude-3-haiku-20240307',
+            name: 'Claude 3 Haiku',
+            recommended: false,
+            description: 'Fastest and most cost-effective. Good for simple competency suggestions.',
+            strengths: ['Fast', 'Cost-effective', 'Quick responses'],
+            costPer1M: '$0.25 input / $1.25 output',
+            costLevel: 'low',
+            useCase: 'Best for simple queries and quick competency suggestions'
+        }
+    ],
+    openai: [
+        {
+            id: 'gpt-4-turbo-2024-04-09',
+            name: 'GPT-4 Turbo',
+            recommended: true,
+            description: 'Latest GPT-4 Turbo. Excellent for training plan analysis and course recommendations.',
+            strengths: ['Strong reasoning', 'Wide knowledge', 'Detailed analysis', 'Good at structured output'],
+            costPer1M: '$10 input / $30 output',
+            costLevel: 'high',
+            useCase: 'Ideal for comprehensive training planning with strong analytical capabilities'
+        },
+        {
+            id: 'gpt-4-1106-preview',
+            name: 'GPT-4 Turbo Preview',
+            recommended: false,
+            description: 'Preview version of GPT-4 Turbo. Very capable for most training tasks.',
+            strengths: ['Strong reasoning', 'JSON mode', 'Good analysis'],
+            costPer1M: '$10 input / $30 output',
+            costLevel: 'high',
+            useCase: 'Good for training plan creation with structured output needs'
+        },
+        {
+            id: 'gpt-4',
+            name: 'GPT-4',
+            recommended: false,
+            description: 'Original GPT-4. Reliable for training planning but slower and more expensive.',
+            strengths: ['Proven reliability', 'Strong reasoning', 'Wide knowledge'],
+            costPer1M: '$30 input / $60 output',
+            costLevel: 'very-high',
+            useCase: 'Use when maximum reliability is required'
+        },
+        {
+            id: 'gpt-3.5-turbo',
+            name: 'GPT-3.5 Turbo',
+            recommended: false,
+            description: 'Fast and cost-effective. Suitable for simple competency suggestions.',
+            strengths: ['Fast', 'Cost-effective', 'Good for simple tasks'],
+            costPer1M: '$0.50 input / $1.50 output',
+            costLevel: 'low',
+            useCase: 'Best for quick suggestions and simple training recommendations'
+        }
+    ],
+    google: [
+        {
+            id: 'gemini-1.5-pro-latest',
+            name: 'Gemini 1.5 Pro',
+            recommended: true,
+            description: 'Latest Gemini Pro. Excellent for training planning with very large context window.',
+            strengths: ['Huge context window', 'Strong reasoning', 'Multimodal', 'Cost-effective'],
+            costPer1M: '$3.50 input / $10.50 output',
+            costLevel: 'medium',
+            useCase: 'Ideal for training plans requiring extensive context and documentation'
+        },
+        {
+            id: 'gemini-1.5-flash-latest',
+            name: 'Gemini 1.5 Flash',
+            recommended: false,
+            description: 'Faster, lighter version. Good for quick competency assessments.',
+            strengths: ['Fast', 'Cost-effective', 'Good context window', 'Quick responses'],
+            costPer1M: '$0.35 input / $1.05 output',
+            costLevel: 'low',
+            useCase: 'Best for quick competency suggestions and rapid planning'
+        },
+        {
+            id: 'gemini-pro',
+            name: 'Gemini Pro',
+            recommended: false,
+            description: 'Original Gemini Pro. Reliable for general training planning tasks.',
+            strengths: ['Balanced performance', 'Good reasoning', 'Multimodal'],
+            costPer1M: '$0.50 input / $1.50 output',
+            costLevel: 'low',
+            useCase: 'Suitable for standard training planning workflows'
+        }
+    ]
+};
+
+// Ensure AI model is valid for provider
+function validateAIModelForProvider() {
+    const provider = settings.aiProvider || 'anthropic';
+    const models = aiModels[provider] || [];
+
+    // Check if current model is valid for current provider
+    const isValidModel = models.some(m => m.id === settings.aiModel);
+
+    if (!isValidModel) {
+        // Set to recommended model for this provider
+        const recommendedModel = models.find(m => m.recommended) || models[0];
+        if (recommendedModel) {
+            settings.aiModel = recommendedModel.id;
+        }
+    }
+}
+
+function updateModelDropdown() {
+    const provider = document.getElementById('settingAiProvider').value;
+    const modelSelect = document.getElementById('settingAiModel');
+    const modelInfo = document.getElementById('modelInfo');
+
+    const models = aiModels[provider] || [];
+
+    // If switching providers, set to recommended model for new provider
+    const currentModelValid = models.some(m => m.id === settings.aiModel);
+    if (!currentModelValid) {
+        const recommendedModel = models.find(m => m.recommended) || models[0];
+        settings.aiModel = recommendedModel ? recommendedModel.id : '';
+    }
+
+    // Build model dropdown
+    let options = '';
+    models.forEach(model => {
+        const recommended = model.recommended ? ' ⭐ RECOMMENDED' : '';
+        const selected = settings.aiModel === model.id ? 'selected' : '';
+        options += `<option value="${model.id}" ${selected}>${model.name}${recommended}</option>`;
+    });
+
+    modelSelect.innerHTML = options;
+
+    // Update model info display
+    updateModelInfo();
+}
+
+function updateModelInfo() {
+    const provider = document.getElementById('settingAiProvider').value;
+    const modelId = document.getElementById('settingAiModel').value;
+    const modelInfo = document.getElementById('modelInfo');
+
+    const models = aiModels[provider] || [];
+    const selectedModel = models.find(m => m.id === modelId);
+
+    if (!selectedModel) {
+        modelInfo.innerHTML = '';
+        return;
+    }
+
+    const costColor = {
+        'low': '#22c55e',
+        'medium': '#f59e0b',
+        'high': '#f97316',
+        'very-high': '#ef4444'
+    }[selectedModel.costLevel] || '#666';
+
+    const recommendedBadge = selectedModel.recommended
+        ? '<span class="badge badge-success" style="margin-left: 8px;">⭐ Recommended</span>'
+        : '';
+
+    modelInfo.innerHTML = `
+        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin-top: 12px;">
+            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                <strong style="font-size: 15px;">${selectedModel.name}</strong>
+                ${recommendedBadge}
+            </div>
+
+            <p style="margin: 8px 0; color: #495057; font-size: 14px;">${selectedModel.description}</p>
+
+            <div style="margin: 12px 0;">
+                <div style="font-size: 13px; font-weight: 600; color: #495057; margin-bottom: 6px;">Key Strengths:</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    ${selectedModel.strengths.map(s => `<span class="badge badge-info" style="font-size: 12px;">${s}</span>`).join('')}
+                </div>
+            </div>
+
+            <div style="margin: 12px 0;">
+                <div style="font-size: 13px; font-weight: 600; color: #495057; margin-bottom: 4px;">Best For:</div>
+                <p style="margin: 0; font-size: 13px; color: #6c757d; font-style: italic;">${selectedModel.useCase}</p>
+            </div>
+
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #dee2e6;">
+                <span style="font-size: 13px; color: #6c757d;">Cost: </span>
+                <strong style="color: ${costColor}; font-size: 13px;">${selectedModel.costPer1M}</strong>
+                <span style="font-size: 12px; color: #adb5bd;"> (per 1M tokens)</span>
+            </div>
+        </div>
+    `;
+}
+
 function openSettings() {
+    const currentProvider = settings.aiProvider || 'anthropic';
+    const currentModel = settings.aiModel || aiModels[currentProvider][0].id;
+
     const html = `
-        <div class="form-group">
-            <label class="form-label">AI Provider</label>
-            <select class="form-select" id="settingAiProvider">
-                <option value="anthropic" ${settings.aiProvider === 'anthropic' ? 'selected' : ''}>Anthropic (Claude)</option>
-                <option value="openai" ${settings.aiProvider === 'openai' ? 'selected' : ''}>OpenAI (GPT-4)</option>
-                <option value="google" ${settings.aiProvider === 'google' ? 'selected' : ''}>Google (Gemini)</option>
-            </select>
+        <div style="padding: 8px 0;">
+            <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">AI Configuration</h3>
+
+            <div class="form-group">
+                <label class="form-label">AI Provider</label>
+                <select class="form-select" id="settingAiProvider" onchange="updateModelDropdown()">
+                    <option value="anthropic" ${currentProvider === 'anthropic' ? 'selected' : ''}>Anthropic (Claude)</option>
+                    <option value="openai" ${currentProvider === 'openai' ? 'selected' : ''}>OpenAI (GPT-4)</option>
+                    <option value="google" ${currentProvider === 'google' ? 'selected' : ''}>Google (Gemini)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">AI Model</label>
+                <select class="form-select" id="settingAiModel" onchange="updateModelInfo()">
+                    <!-- Populated by updateModelDropdown() -->
+                </select>
+                <div id="modelInfo"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">API Key</label>
+                <input type="password" class="form-input" id="settingApiKey" value="${settings.apiKey}" placeholder="Enter your API key">
+                <div class="form-help">Your API key is stored locally and never sent anywhere except to the AI provider.</div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label">AI Model</label>
-            <input type="text" class="form-input" id="settingAiModel" value="${settings.aiModel}" placeholder="claude-3-5-sonnet-20241022">
-        </div>
+        <div style="padding: 24px 0 8px 0;">
+            <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">Application Settings</h3>
 
-        <div class="form-group">
-            <label class="form-label">API Key</label>
-            <input type="password" class="form-input" id="settingApiKey" value="${settings.apiKey}" placeholder="Enter your API key">
-            <div class="form-help">Your API key is stored locally and never sent anywhere except to the AI provider.</div>
-        </div>
+            <div class="form-group">
+                <label class="form-label">Currency</label>
+                <select class="form-select" id="settingCurrency">
+                    <option value="USD" ${settings.currency === 'USD' ? 'selected' : ''}>USD ($)</option>
+                    <option value="EUR" ${settings.currency === 'EUR' ? 'selected' : ''}>EUR (€)</option>
+                    <option value="GBP" ${settings.currency === 'GBP' ? 'selected' : ''}>GBP (£)</option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label class="form-label">Currency</label>
-            <select class="form-select" id="settingCurrency">
-                <option value="USD" ${settings.currency === 'USD' ? 'selected' : ''}>USD ($)</option>
-                <option value="EUR" ${settings.currency === 'EUR' ? 'selected' : ''}>EUR (€)</option>
-                <option value="GBP" ${settings.currency === 'GBP' ? 'selected' : ''}>GBP (£)</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label class="form-label">Date Format</label>
+                <select class="form-select" id="settingDateFormat">
+                    <option value="MM/DD/YYYY" ${settings.dateFormat === 'MM/DD/YYYY' ? 'selected' : ''}>MM/DD/YYYY</option>
+                    <option value="DD/MM/YYYY" ${settings.dateFormat === 'DD/MM/YYYY' ? 'selected' : ''}>DD/MM/YYYY</option>
+                    <option value="YYYY-MM-DD" ${settings.dateFormat === 'YYYY-MM-DD' ? 'selected' : ''}>YYYY-MM-DD</option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label class="form-label">Date Format</label>
-            <select class="form-select" id="settingDateFormat">
-                <option value="MM/DD/YYYY" ${settings.dateFormat === 'MM/DD/YYYY' ? 'selected' : ''}>MM/DD/YYYY</option>
-                <option value="DD/MM/YYYY" ${settings.dateFormat === 'DD/MM/YYYY' ? 'selected' : ''}>DD/MM/YYYY</option>
-                <option value="YYYY-MM-DD" ${settings.dateFormat === 'YYYY-MM-DD' ? 'selected' : ''}>YYYY-MM-DD</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label class="form-label">Default Weekly Training Hours</label>
+                <input type="number" class="form-input" id="settingDefaultWeeklyHours" value="${settings.defaultWeeklyHours}" min="1" max="40">
+            </div>
 
-        <div class="form-group">
-            <label class="form-label">Default Weekly Training Hours</label>
-            <input type="number" class="form-input" id="settingDefaultWeeklyHours" value="${settings.defaultWeeklyHours}" min="1" max="40">
-        </div>
+            <div class="form-group">
+                <label class="form-label">Default Annual Budget</label>
+                <input type="number" class="form-input" id="settingDefaultBudget" value="${settings.defaultBudget}" min="0">
+            </div>
 
-        <div class="form-group">
-            <label class="form-label">Default Annual Budget</label>
-            <input type="number" class="form-input" id="settingDefaultBudget" value="${settings.defaultBudget}" min="0">
-        </div>
+            <div class="form-group">
+                <label class="form-checkbox">
+                    <input type="checkbox" id="settingAutoSave" ${settings.autoSaveEnabled ? 'checked' : ''}>
+                    <span>Enable auto-save</span>
+                </label>
+            </div>
 
-        <div class="form-group">
-            <label class="form-checkbox">
-                <input type="checkbox" id="settingAutoSave" ${settings.autoSaveEnabled ? 'checked' : ''}>
-                <span>Enable auto-save</span>
-            </label>
-        </div>
-
-        <div class="form-group">
-            <label class="form-checkbox">
-                <input type="checkbox" id="settingConfirmDelete" ${settings.confirmBeforeDelete ? 'checked' : ''}>
-                <span>Confirm before deleting items</span>
-            </label>
+            <div class="form-group">
+                <label class="form-checkbox">
+                    <input type="checkbox" id="settingConfirmDelete" ${settings.confirmBeforeDelete ? 'checked' : ''}>
+                    <span>Confirm before deleting items</span>
+                </label>
+            </div>
         </div>
     `;
 
     document.getElementById('settingsContent').innerHTML = html;
     document.getElementById('settingsModal').classList.add('active');
+
+    // Initialize model dropdown
+    updateModelDropdown();
 }
 
 function closeSettings() {
