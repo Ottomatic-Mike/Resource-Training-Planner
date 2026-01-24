@@ -322,6 +322,132 @@ Click **"View"** to see:
 - Removed from all desired competency goals
 - Cannot be undone (unless you restore from backup)
 
+### Managing Categories and Subcategories
+
+**Access:** Click **"Manage Categories"** button in the Competencies tab header
+
+The Category Management system provides a centralized interface for creating and organizing categories and subcategories independently from competencies.
+
+#### Viewing All Categories
+
+The main Category Management view displays:
+- **Category name** - The main classification group
+- **Subcategories** - All subcategories under each category (displayed as badges)
+- **Competency count** - How many competencies use this category
+- **Actions** - View Details, Edit, Delete buttons for each category
+
+#### Adding a New Category
+
+1. Click **"Manage Categories"** in Competencies tab
+2. Click **"+ Add Category"**
+3. Enter:
+   - **Category Name*** (Required) - e.g., "Programming Languages", "Cloud Platforms"
+   - **Description** (Optional) - What types of competencies belong here
+4. Click **"Add Category"**
+
+The category is immediately available when adding new competencies.
+
+#### Adding a New Subcategory
+
+1. Click **"Manage Categories"** in Competencies tab
+2. Click **"+ Add Subcategory"**
+3. Select:
+   - **Parent Category*** (Required) - The category this subcategory belongs to
+4. Enter:
+   - **Subcategory Name*** (Required) - e.g., "Backend Development", "Container Orchestration"
+   - **Description** (Optional) - What types of competencies belong here
+5. Click **"Add Subcategory"**
+
+The subcategory is immediately available when adding competencies to that category.
+
+#### Viewing Category Details
+
+1. Click **"View Details"** on any category
+2. See:
+   - All subcategories in this category with edit/delete actions
+   - Competency count for each subcategory
+   - All competencies in this category
+   - Subcategory assignment for each competency
+
+#### Editing a Category
+
+1. Click **"Edit"** on any category
+2. Modify the category name
+3. Click **"Save Changes"**
+
+**Impact:** All competencies in this category are automatically updated with the new name.
+
+#### Editing a Subcategory
+
+1. Click **"View Details"** on the parent category
+2. Click **"Edit"** on the subcategory you want to change
+3. Modify the subcategory name (parent category cannot be changed)
+4. Click **"Save Changes"**
+
+**Impact:** All competencies with this subcategory are automatically updated with the new name.
+
+**Note:** To move a subcategory to a different category, you must delete it and recreate it under the new parent.
+
+#### Deleting a Category
+
+1. Click **"Delete"** on any category
+2. Review warning showing affected competencies
+3. Confirm deletion
+
+**Impact:**
+- All competencies in this category are set to "Uncategorized"
+- All subcategories under this category remain on affected competencies
+- Cannot be undone (unless you restore from backup)
+
+#### Deleting a Subcategory
+
+1. Click **"View Details"** on the parent category
+2. Click **"Delete"** on the subcategory
+3. Review warning showing affected competencies
+4. Confirm deletion
+
+**Impact:**
+- Subcategory is removed from all competencies
+- Competencies remain in their parent category
+- Cannot be undone (unless you restore from backup)
+
+#### Category Relationships
+
+**Hierarchy:**
+```
+Category (e.g., "Programming Languages")
+  └── Subcategory (e.g., "Backend Development")
+      └── Competency (e.g., "Python Programming")
+```
+
+**Rules:**
+- Each competency must belong to one category
+- Subcategories are optional and provide additional classification
+- One subcategory can only belong to one parent category
+- Categories can have multiple subcategories
+- Categories can exist without any competencies
+- Subcategories must have a parent category
+
+#### Best Practices for Category Management
+
+**Creating Categories:**
+- Create categories before adding many competencies for better organization
+- Use broad, logical groupings (e.g., "Programming", "Cloud", "Security", "Data", "Soft Skills")
+- Keep category names consistent with industry standards
+- Avoid creating too many categories (5-10 is ideal for most teams)
+
+**Creating Subcategories:**
+- Use subcategories for finer classification within a category
+- Subcategories should be more specific than their parent (e.g., "Container Orchestration" under "Cloud Platforms")
+- Consider team needs - only create subcategories if you need that level of detail
+- Keep the hierarchy simple (Category → Subcategory → Competency)
+
+**Maintaining Categories:**
+- Regularly review category usage in the management interface
+- Consolidate similar categories if you find duplication
+- Rename categories for clarity as your library grows
+- Delete unused categories to keep the library clean
+
 ---
 
 ## 4. Course Catalog Tab

@@ -1517,10 +1517,19 @@ function escapeHtml(text) {
 }
 
 // === MODAL FUNCTIONS ===
-function openModal(title, bodyHtml, footerHtml = '') {
+function openModal(title, bodyHtml, footerHtml = '', modalClass = '') {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').innerHTML = bodyHtml;
     document.getElementById('modalFooter').innerHTML = footerHtml || '<button class="btn btn-ghost" onclick="closeModal()">Close</button>';
+
+    const modalInner = document.getElementById('generalModalInner');
+    // Remove any previous size classes
+    modalInner.classList.remove('modal-large', 'modal-small');
+    // Add the specified class if provided
+    if (modalClass) {
+        modalInner.classList.add(modalClass);
+    }
+
     document.getElementById('generalModal').classList.add('active');
 }
 
@@ -2215,7 +2224,10 @@ function renderCompetencies() {
     const html = `
         <div class="card-header mb-2">
             <h2 class="card-title">Competency Library</h2>
-            <button class="btn btn-primary" onclick="showAddCompetencyForm()">+ Add Competency</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-ghost" onclick="showManageCategories()">Manage Categories</button>
+                <button class="btn btn-primary" onclick="showAddCompetencyForm()">+ Add Competency</button>
+            </div>
         </div>
 
         <div class="search-filter-bar">
@@ -2513,6 +2525,433 @@ function deleteCompetency(competencyId) {
     closeModal();
     triggerSave();
     renderCompetencies();
+}
+
+// === CATEGORY MANAGEMENT ===
+function showManageCategories() {
+    const categories = getUniqueCategories();
+    const categoriesWithSubcats = {};
+
+    // Build category hierarchy
+    categories.forEach(cat => {
+        categoriesWithSubcats[cat] = {
+            subcategories: getSubcategoriesForCategory(cat),
+            competencyCount: competencyLibrary.filter(c => c.category === cat).length
+        };
+    });
+
+    let html = `
+        <div style="margin-bottom: 20px;">
+            <h3>Category Management</h3>
+            <p style="color: #666; margin-bottom: 20px;">Manage categories and subcategories for your competency library. Categories help organize competencies, and subcategories provide additional classification.</p>
+
+            <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                <button class="btn btn-primary" onclick="showAddCategoryForm()">+ Add Category</button>
+                <button class="btn btn-primary" onclick="showAddSubcategoryForm()">+ Add Subcategory</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Subcategories</th>
+                        <th>Competencies</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (categories.length === 0) {
+        html += `
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 40px; color: #666;">
+                    <div>No categories yet. Categories are automatically created when you add competencies,</div>
+                    <div>or you can create them manually using the buttons above.</div>
+                </td>
+            </tr>`;
+    } else {
+        categories.forEach(cat => {
+            const data = categoriesWithSubcats[cat];
+            const subcatsList = data.subcategories.length > 0
+                ? data.subcategories.map(s => `<span class="badge badge-secondary">${escapeHtml(s)}</span>`).join(' ')
+                : '<span style="color: #999;">None</span>';
+
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(cat)}</strong></td>
+                    <td>${subcatsList}</td>
+                    <td>${data.competencyCount} competenc${data.competencyCount === 1 ? 'y' : 'ies'}</td>
+                    <td class="table-actions">
+                        <button class="btn btn-sm btn-ghost" onclick="viewCategoryDetails('${escapeHtml(cat).replace(/'/g, "\\'")}')">View Details</button>
+                        <button class="btn btn-sm btn-ghost" onclick="editCategory('${escapeHtml(cat).replace(/'/g, "\\'")}')">Edit</button>
+                        <button class="btn btn-sm btn-ghost" onclick="deleteCategory('${escapeHtml(cat).replace(/'/g, "\\'")}')">Delete</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 24px; padding: 16px; background: #f5f5f5; border-radius: 6px;">
+            <h4 style="margin-top: 0;">Category Relationships</h4>
+            <ul style="margin: 8px 0; padding-left: 20px; color: #666;">
+                <li>Each competency must belong to one category</li>
+                <li>Subcategories are optional and provide additional classification within a category</li>
+                <li>One subcategory can only belong to one category</li>
+                <li>Deleting a category will remove it from all associated competencies</li>
+                <li>Deleting a subcategory will remove it from all associated competencies</li>
+            </ul>
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    `;
+
+    openModal('Manage Categories & Subcategories', html, footer, 'modal-large');
+}
+
+function showAddCategoryForm() {
+    const html = `
+        <div class="form-group">
+            <label class="form-label form-label-required">Category Name</label>
+            <input type="text" class="form-input" id="newCategoryName" placeholder="e.g., Programming Languages, Cloud Platforms, Security">
+            <div class="form-help">Choose a clear, descriptive name for this category</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Description (Optional)</label>
+            <textarea class="form-textarea" id="newCategoryDescription" placeholder="What types of competencies belong in this category?"></textarea>
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewCategory()">Add Category</button>
+    `;
+
+    openModal('Add New Category', html, footer);
+}
+
+function saveNewCategory() {
+    const name = document.getElementById('newCategoryName').value.trim();
+
+    if (!name) {
+        alert('Please enter a category name');
+        return;
+    }
+
+    // Check if category already exists
+    const existingCategories = getUniqueCategories();
+    if (existingCategories.includes(name)) {
+        alert('This category already exists');
+        return;
+    }
+
+    // Category will be available immediately for use
+    // It doesn't need to be stored separately - it exists through competencies
+    // But we can show a success message
+    closeModal();
+    alert(`Category "${name}" created. It's now available when adding competencies.`);
+    showManageCategories();
+}
+
+function showAddSubcategoryForm() {
+    const categories = getUniqueCategories();
+
+    if (categories.length === 0) {
+        alert('Please create at least one category first');
+        return;
+    }
+
+    let categoryOptions = '<option value="">Select parent category...</option>';
+    categories.forEach(cat => {
+        categoryOptions += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+    });
+
+    const html = `
+        <div class="form-group">
+            <label class="form-label form-label-required">Parent Category</label>
+            <select class="form-input" id="newSubcategoryParent">
+                ${categoryOptions}
+            </select>
+            <div class="form-help">Select the category this subcategory belongs to</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label form-label-required">Subcategory Name</label>
+            <input type="text" class="form-input" id="newSubcategoryName" placeholder="e.g., Backend Development, Container Orchestration">
+            <div class="form-help">Choose a clear, descriptive name for this subcategory</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Description (Optional)</label>
+            <textarea class="form-textarea" id="newSubcategoryDescription" placeholder="What types of competencies belong in this subcategory?"></textarea>
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewSubcategory()">Add Subcategory</button>
+    `;
+
+    openModal('Add New Subcategory', html, footer);
+}
+
+function saveNewSubcategory() {
+    const parentCategory = document.getElementById('newSubcategoryParent').value.trim();
+    const name = document.getElementById('newSubcategoryName').value.trim();
+
+    if (!parentCategory) {
+        alert('Please select a parent category');
+        return;
+    }
+
+    if (!name) {
+        alert('Please enter a subcategory name');
+        return;
+    }
+
+    // Check if subcategory already exists in this category
+    const existingSubcats = getSubcategoriesForCategory(parentCategory);
+    if (existingSubcats.includes(name)) {
+        alert(`Subcategory "${name}" already exists in category "${parentCategory}"`);
+        return;
+    }
+
+    closeModal();
+    alert(`Subcategory "${name}" created under "${parentCategory}". It's now available when adding competencies.`);
+    showManageCategories();
+}
+
+function editCategory(oldCategoryName) {
+    const competenciesInCategory = competencyLibrary.filter(c => c.category === oldCategoryName);
+
+    const html = `
+        <div class="form-group">
+            <label class="form-label form-label-required">Category Name</label>
+            <input type="text" class="form-input" id="editCategoryName" value="${escapeHtml(oldCategoryName)}">
+        </div>
+
+        <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; margin-top: 16px;">
+            <strong>Note:</strong> Renaming this category will update ${competenciesInCategory.length} competenc${competenciesInCategory.length === 1 ? 'y' : 'ies'}.
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCategoryEdit('${escapeHtml(oldCategoryName).replace(/'/g, "\\'")}')">Save Changes</button>
+    `;
+
+    openModal('Edit Category', html, footer);
+}
+
+function saveCategoryEdit(oldCategoryName) {
+    const newCategoryName = document.getElementById('editCategoryName').value.trim();
+
+    if (!newCategoryName) {
+        alert('Please enter a category name');
+        return;
+    }
+
+    if (newCategoryName === oldCategoryName) {
+        closeModal();
+        return;
+    }
+
+    // Check if new name already exists
+    const existingCategories = getUniqueCategories();
+    if (existingCategories.includes(newCategoryName)) {
+        alert('A category with this name already exists');
+        return;
+    }
+
+    // Update all competencies with this category
+    competencyLibrary.forEach(comp => {
+        if (comp.category === oldCategoryName) {
+            comp.category = newCategoryName;
+            comp.lastModified = new Date().toISOString();
+        }
+    });
+
+    closeModal();
+    triggerSave();
+    renderCompetencies();
+    showManageCategories();
+}
+
+function deleteCategory(categoryName) {
+    const competenciesInCategory = competencyLibrary.filter(c => c.category === categoryName);
+
+    if (competenciesInCategory.length > 0 && settings.confirmBeforeDelete) {
+        if (!confirm(`This category is used by ${competenciesInCategory.length} competenc${competenciesInCategory.length === 1 ? 'y' : 'ies'}. Deleting it will set those competencies to "Uncategorized". Continue?`)) {
+            return;
+        }
+    }
+
+    // Set all competencies in this category to "Uncategorized"
+    competencyLibrary.forEach(comp => {
+        if (comp.category === categoryName) {
+            comp.category = 'Uncategorized';
+            comp.lastModified = new Date().toISOString();
+        }
+    });
+
+    closeModal();
+    triggerSave();
+    renderCompetencies();
+    showManageCategories();
+}
+
+function editSubcategory(categoryName, oldSubcategoryName) {
+    const competenciesWithSubcat = competencyLibrary.filter(c => c.category === categoryName && c.subcategory === oldSubcategoryName);
+
+    const html = `
+        <div class="form-group">
+            <label class="form-label">Parent Category</label>
+            <input type="text" class="form-input" value="${escapeHtml(categoryName)}" disabled>
+            <div class="form-help">The parent category cannot be changed. To move subcategories, delete and recreate.</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label form-label-required">Subcategory Name</label>
+            <input type="text" class="form-input" id="editSubcategoryName" value="${escapeHtml(oldSubcategoryName)}">
+        </div>
+
+        <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; margin-top: 16px;">
+            <strong>Note:</strong> Renaming this subcategory will update ${competenciesWithSubcat.length} competenc${competenciesWithSubcat.length === 1 ? 'y' : 'ies'}.
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSubcategoryEdit('${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(oldSubcategoryName).replace(/'/g, "\\'")}')">Save Changes</button>
+    `;
+
+    openModal('Edit Subcategory', html, footer);
+}
+
+function saveSubcategoryEdit(categoryName, oldSubcategoryName) {
+    const newSubcategoryName = document.getElementById('editSubcategoryName').value.trim();
+
+    if (!newSubcategoryName) {
+        alert('Please enter a subcategory name');
+        return;
+    }
+
+    if (newSubcategoryName === oldSubcategoryName) {
+        closeModal();
+        return;
+    }
+
+    // Check if new name already exists in this category
+    const existingSubcats = getSubcategoriesForCategory(categoryName);
+    if (existingSubcats.includes(newSubcategoryName)) {
+        alert('A subcategory with this name already exists in this category');
+        return;
+    }
+
+    // Update all competencies with this subcategory
+    competencyLibrary.forEach(comp => {
+        if (comp.category === categoryName && comp.subcategory === oldSubcategoryName) {
+            comp.subcategory = newSubcategoryName;
+            comp.lastModified = new Date().toISOString();
+        }
+    });
+
+    closeModal();
+    triggerSave();
+    renderCompetencies();
+    showManageCategories();
+}
+
+function deleteSubcategory(categoryName, subcategoryName) {
+    const competenciesWithSubcat = competencyLibrary.filter(c => c.category === categoryName && c.subcategory === subcategoryName);
+
+    if (competenciesWithSubcat.length > 0 && settings.confirmBeforeDelete) {
+        if (!confirm(`This subcategory is used by ${competenciesWithSubcat.length} competenc${competenciesWithSubcat.length === 1 ? 'y' : 'ies'}. Deleting it will remove the subcategory from those competencies. Continue?`)) {
+            return;
+        }
+    }
+
+    // Remove subcategory from all competencies
+    competencyLibrary.forEach(comp => {
+        if (comp.category === categoryName && comp.subcategory === subcategoryName) {
+            comp.subcategory = '';
+            comp.lastModified = new Date().toISOString();
+        }
+    });
+
+    closeModal();
+    triggerSave();
+    renderCompetencies();
+    showManageCategories();
+}
+
+function viewCategoryDetails(categoryName) {
+    const subcategories = getSubcategoriesForCategory(categoryName);
+    const competenciesInCategory = competencyLibrary.filter(c => c.category === categoryName);
+
+    let html = `
+        <div style="margin-bottom: 24px;">
+            <h3>${escapeHtml(categoryName)}</h3>
+            <p style="color: #666;">${competenciesInCategory.length} competenc${competenciesInCategory.length === 1 ? 'y' : 'ies'} in this category</p>
+        </div>
+
+        <h4 style="margin-top: 24px; margin-bottom: 12px;">Subcategories (${subcategories.length})</h4>`;
+
+    if (subcategories.length === 0) {
+        html += `<p style="color: #999; padding: 20px; text-align: center; background: #f5f5f5; border-radius: 4px;">No subcategories yet</p>`;
+    } else {
+        html += '<div class="table-container"><table><thead><tr><th>Subcategory</th><th>Competencies</th><th>Actions</th></tr></thead><tbody>';
+
+        subcategories.forEach(subcat => {
+            const count = competencyLibrary.filter(c => c.category === categoryName && c.subcategory === subcat).length;
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(subcat)}</strong></td>
+                    <td>${count} competenc${count === 1 ? 'y' : 'ies'}</td>
+                    <td class="table-actions">
+                        <button class="btn btn-sm btn-ghost" onclick="editSubcategory('${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(subcat).replace(/'/g, "\\'")}')">Edit</button>
+                        <button class="btn btn-sm btn-ghost" onclick="deleteSubcategory('${escapeHtml(categoryName).replace(/'/g, "\\'")}', '${escapeHtml(subcat).replace(/'/g, "\\'")}')">Delete</button>
+                    </td>
+                </tr>`;
+        });
+
+        html += '</tbody></table></div>';
+    }
+
+    html += `
+        <h4 style="margin-top: 24px; margin-bottom: 12px;">Competencies in "${escapeHtml(categoryName)}"</h4>
+        <div class="table-container"><table><thead><tr><th>Competency</th><th>Subcategory</th><th>Used By</th></tr></thead><tbody>`;
+
+    if (competenciesInCategory.length === 0) {
+        html += '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">No competencies in this category yet</td></tr>';
+    } else {
+        competenciesInCategory.forEach(comp => {
+            const useCount = getCompetencyUsage(comp.id);
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(comp.name)}</strong></td>
+                    <td>${escapeHtml(comp.subcategory || '-')}</td>
+                    <td>${useCount} resources</td>
+                </tr>`;
+        });
+    }
+
+    html += '</tbody></table></div>';
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="showManageCategories()">Back to Categories</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    `;
+
+    openModal(`Category: ${categoryName}`, html, footer, 'modal-large');
 }
 
 // === COURSE CATALOG (TAB 4) ===

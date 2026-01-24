@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3] - 2024-01-24
+
+### Added
+- **Category and Subcategory Management System** - Comprehensive management interface within Competencies tab
+  - "Manage Categories" button in Competencies tab for centralized category management
+  - Add, edit, and delete categories independently without creating competencies
+  - Add, edit, and delete subcategories with parent category relationships
+  - Hierarchical category view showing all subcategories under each category
+  - "View Details" function to drill down into individual categories
+  - Visual display of competency count per category and subcategory
+  - Data integrity checks when deleting categories or subcategories
+  - Clear relationship documentation showing category-subcategory-competency hierarchy
+
+### Changed
+- **Enhanced openModal() function** - Now accepts optional `modalClass` parameter for sizing (e.g., 'modal-large')
+- **Competencies tab header** - Added "Manage Categories" button alongside "Add Competency"
+- **Category operations** - Editing or deleting categories now properly updates all associated competencies
+- **Subcategory operations** - Full CRUD operations with parent category relationship preservation
+
+### Fixed
+- **Category creation workflow** - Categories and subcategories can now be created independently before adding competencies
+- **Relationship management** - Clear establishment and maintenance of category-to-subcategory relationships
+- **Data consistency** - All category/subcategory changes automatically update associated competencies
+
+---
+
 ## [1.0.2] - 2024-01-24
 
 ### Fixed
@@ -257,6 +283,7 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 
 | Version | Date | Type | Description |
 |---------|------|------|-------------|
+| 1.0.3 | 2024-01-24 | Feature | Category/subcategory management system |
 | 1.0.2 | 2024-01-24 | Enhancement | Competency category modularity with dropdowns |
 | 1.0.1 | 2024-01-24 | Bug Fix | Fixed resource editing functionality |
 | 1.0.0 | 2024-01-24 | Initial Release | Full-featured training plan manager |
@@ -264,6 +291,25 @@ See README.md for planned features in v1.1, v1.2, and v2.0.
 ---
 
 ## Upgrade Guide
+
+### From v1.0.2 → v1.0.3
+
+**What's New:**
+- "Manage Categories" button in Competencies tab
+- Full category and subcategory management system
+- View, add, edit, and delete categories independently
+- View, add, edit, and delete subcategories with parent relationships
+- Hierarchical view showing category-subcategory relationships
+- Competency count display for each category and subcategory
+
+**How to Upgrade:**
+1. Replace `training-plan-manager.html` with the new version
+2. Open in browser - your data is preserved in localStorage
+3. Navigate to Competencies tab
+4. Click "Manage Categories" to see the new management interface
+5. Existing categories and subcategories remain unchanged
+
+**No data migration required** - All existing competency, category, and subcategory data remains fully compatible.
 
 ### From v1.0.1 → v1.0.2
 
