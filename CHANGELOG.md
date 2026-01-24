@@ -7,6 +7,150 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.24] - 2026-01-24
+
+### Fixed - Multi-Provider AI API Support & CORS Proxy Configuration
+
+**Critical Issue Fixed:**
+Online course search was failing with "Failed to fetch" error even with valid API keys configured. The application only supported Anthropic Claude API calls, despite offering OpenAI and Google Gemini provider options in settings.
+
+**Root Causes:**
+1. **Single-Provider Implementation**: The `callClaudeAPI()` function was hardcoded to only call Anthropic's API endpoint, regardless of which provider was selected in settings
+2. **Missing Provider Routing**: No logic to route API calls to OpenAI or Google endpoints based on `settings.aiProvider`
+3. **CORS Restrictions**: Browser-based JavaScript cannot make direct calls to AI provider APIs due to CORS security policies
+4. **No CORS Proxy Support**: No mechanism to use a CORS proxy for browser-based API calls
+
+**Changes Implemented:**
+
+#### 1. Multi-Provider API Support
+Updated `callClaudeAPI()` to support all three AI providers:
+
+**Anthropic Claude:**
+- Endpoint: `https://api.anthropic.com/v1/messages`
+- Headers: `x-api-key`, `anthropic-version`, `content-type`
+- Request format: `{ model, max_tokens, temperature, system, messages }`
+- Response extraction: `data.content[0].text`
+
+**OpenAI GPT:**
+- Endpoint: `https://api.openai.com/v1/chat/completions`
+- Headers: `Authorization: Bearer`, `content-type`
+- Request format: `{ model, max_tokens, temperature, messages: [{ role: 'system' }, { role: 'user' }] }`
+- Response extraction: `data.choices[0].message.content`
+
+**Google Gemini:**
+- Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}`
+- Headers: `content-type`
+- Request format: `{ contents: [{ parts: [{ text }] }], generationConfig }`
+- Response extraction: `data.candidates[0].content.parts[0].text`
+
+#### 2. CORS Proxy Configuration
+Added optional CORS proxy support to bypass browser security restrictions:
+
+**New Setting:**
+- **Field**: `corsProxy` in settings object
+- **UI Location**: Settings → Advanced → CORS Proxy
+- **Format**: URL string (e.g., `https://cors-anywhere.herokuapp.com/`)
+- **Behavior**: If configured, the proxy URL is prepended to the API endpoint
+- **Default**: Empty (blank) - requires user configuration
+
+**Implementation:**
+```javascript
+// Apply CORS proxy if configured
+if (corsProxy && corsProxy.trim()) {
+    apiUrl = corsProxy + apiUrl;
+}
+```
+
+#### 3. Enhanced Error Handling
+Improved error messages to guide users when API calls fail:
+
+**Network/CORS Errors:**
+```
+Cannot connect to {PROVIDER} API.
+
+Solution: Configure a CORS proxy in Settings (Advanced).
+Example: https://cors-anywhere.herokuapp.com/
+
+Possible causes:
+• CORS restrictions (browser blocks direct API calls)
+• Network/firewall blocking the request
+• Invalid API key or endpoint
+• CORS proxy not configured
+
+For details, see the API Integration guide.
+```
+
+**API Response Errors:**
+- Properly extracts error messages from each provider's error format
+- Shows HTTP status codes
+- Displays provider-specific error details
+
+#### 4. Settings UI Updates
+Added new "Advanced" section in settings with CORS proxy configuration:
+
+**UI Components:**
+- Section header: "⚙️ Advanced"
+- Field label: "CORS Proxy" with "Optional" badge
+- Input field: Text input with placeholder `https://cors-anywhere.herokuapp.com/`
+- Help text: Explains CORS requirement, provides example URL, links to API Integration guide
+- Save handling: Stores value in `settings.corsProxy`
+
+#### 5. Data Model Update
+Updated settings object to include CORS proxy:
+
+```javascript
+let settings = {
+    aiProvider: 'anthropic',
+    aiModel: 'claude-3-5-sonnet-20241022',
+    apiKey: '',
+    aiTemperature: 0.7,
+    corsProxy: '', // NEW: Optional CORS proxy URL
+    // ... other settings
+};
+```
+
+**Impact & Benefits:**
+- ✅ **OpenAI users can now use course search** - GPT models properly supported
+- ✅ **Google Gemini users can now use course search** - Gemini models properly supported
+- ✅ **CORS workaround available** - Users can configure proxy to bypass browser restrictions
+- ✅ **Clear error guidance** - Users understand why calls fail and how to fix
+- ✅ **Backward compatible** - Existing Anthropic users unaffected (CORS proxy optional)
+- ✅ **Future-proof** - Easy to add more providers with same pattern
+
+**User Action Required:**
+For browser-based usage, users must configure a CORS proxy in Settings → Advanced. Options:
+1. Public proxy: `https://cors-anywhere.herokuapp.com/` (may have rate limits)
+2. Self-hosted proxy: Run your own CORS Anywhere instance
+3. Local server: Serve the HTML file via http-server or similar (avoids CORS)
+
+**Testing Completed:**
+- Verified Anthropic Claude API call format
+- Verified OpenAI GPT API call format
+- Verified Google Gemini API call format
+- Tested CORS proxy prepending logic
+- Tested error message display for network failures
+- Verified settings UI shows CORS proxy field
+- Verified CORS proxy value persists in localStorage
+
+**Files Modified:**
+- `training-plan-manager.html`:
+  - Line 1245: Added `corsProxy` to settings object
+  - Line 2347: Added CORS proxy field to settings UI (Advanced section)
+  - Line 2417: Added CORS proxy to saveSettings() function
+  - Lines 7751-7867: Completely rewrote `callClaudeAPI()` with multi-provider support
+
+**Migration Notes:**
+- Existing users: No migration needed, CORS proxy defaults to empty string
+- OpenAI/Gemini users: Must configure CORS proxy or run via local server
+- Anthropic users: May need CORS proxy depending on deployment method
+
+**Documentation Updates Required:**
+- API_INTEGRATION.md: Add CORS proxy setup instructions for each provider
+- README.md: Add note about CORS proxy requirement for browser usage
+- START_HERE.md: Update AI setup section with CORS proxy guidance
+
+---
+
 ## [1.0.23] - 2026-01-24
 
 ### Fixed - Critical JavaScript Syntax Errors in Calendar Editing

@@ -1247,6 +1247,7 @@ let settings = {
     aiModel: 'claude-3-5-sonnet-20241022',
     apiKey: '',
     aiTemperature: 0.7,
+    corsProxy: '', // Optional CORS proxy URL (e.g., 'https://cors-anywhere.herokuapp.com/')
     theme: 'light',
     dateFormat: 'MM/DD/YYYY',
     currency: 'USD',
@@ -1765,7 +1766,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.23',
+        version: '1.0.24',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2351,6 +2352,16 @@ function openSettings() {
         </div>
 
         <div style="padding: 24px 0 8px 0;">
+            <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">⚙️ Advanced</h3>
+
+            <div class="form-group">
+                <label class="form-label">CORS Proxy <span class="badge badge-info" style="font-size: 10px; margin-left: 8px;">Optional</span></label>
+                <input type="text" class="form-input" id="settingCorsProxy" value="${escapeHtml(settings.corsProxy || '')}" placeholder="https://cors-anywhere.herokuapp.com/">
+                <div class="form-help"><strong>Required for browser-based API calls.</strong> AI providers block direct browser requests due to CORS security. Enter a CORS proxy URL (e.g., https://cors-anywhere.herokuapp.com/) or leave blank if running via local server. See API Integration guide for setup instructions.</div>
+            </div>
+        </div>
+
+        <div style="padding: 24px 0 8px 0;">
             <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">Application Settings</h3>
 
             <div class="form-group">
@@ -2412,6 +2423,7 @@ async function saveSettings() {
     settings.aiProvider = document.getElementById('settingAiProvider').value;
     settings.aiModel = document.getElementById('settingAiModel').value;
     const newApiKey = document.getElementById('settingApiKey').value;
+    settings.corsProxy = document.getElementById('settingCorsProxy').value.trim();
     settings.currency = document.getElementById('settingCurrency').value;
     settings.dateFormat = document.getElementById('settingDateFormat').value;
     settings.defaultWeeklyHours = parseInt(document.getElementById('settingDefaultWeeklyHours').value);
@@ -7554,7 +7566,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.23',
+        version: '1.0.24',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -7754,29 +7766,117 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
         throw new Error('API key not configured. Please add your API key in Settings.');
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
+    const provider = settings.aiProvider || 'anthropic';
+    const model = settings.aiModel || 'claude-3-5-sonnet-20241022';
+    const temperature = settings.aiTemperature || 0.7;
+    const corsProxy = settings.corsProxy || '';
+
+    let apiUrl, headers, body;
+
+    // Configure API call based on provider
+    if (provider === 'anthropic') {
+        apiUrl = 'https://api.anthropic.com/v1/messages';
+        headers = {
             'x-api-key': apiKey,
             'anthropic-version': '2023-06-01',
             'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: settings.aiModel || 'claude-3-5-sonnet-20241022',
+        };
+        body = {
+            model: model,
             max_tokens: 4096,
-            temperature: settings.aiTemperature || 0.7,
+            temperature: temperature,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }]
-        })
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'AI API request failed');
+        };
+    } else if (provider === 'openai') {
+        apiUrl = 'https://api.openai.com/v1/chat/completions';
+        headers = {
+            'Authorization': `Bearer ${apiKey}`,
+            'content-type': 'application/json'
+        };
+        body = {
+            model: model,
+            max_tokens: 4096,
+            temperature: temperature,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ]
+        };
+    } else if (provider === 'google') {
+        // Google Gemini API uses a different URL pattern
+        apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        headers = {
+            'content-type': 'application/json'
+        };
+        body = {
+            contents: [{
+                parts: [{
+                    text: `${systemPrompt}\n\n${userPrompt}`
+                }]
+            }],
+            generationConfig: {
+                temperature: temperature,
+                maxOutputTokens: 4096
+            }
+        };
+    } else {
+        throw new Error(`Unsupported AI provider: ${provider}`);
     }
 
-    const data = await response.json();
-    return data.content[0].text;
+    // Apply CORS proxy if configured
+    if (corsProxy && corsProxy.trim()) {
+        apiUrl = corsProxy + apiUrl;
+    }
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            let errorMessage = `AI API request failed (${response.status})`;
+            try {
+                const error = await response.json();
+                if (provider === 'anthropic') {
+                    errorMessage = error.error?.message || errorMessage;
+                } else if (provider === 'openai') {
+                    errorMessage = error.error?.message || errorMessage;
+                } else if (provider === 'google') {
+                    errorMessage = error.error?.message || errorMessage;
+                }
+            } catch (e) {
+                // If we can't parse error JSON, use the status text
+                errorMessage = response.statusText || errorMessage;
+            }
+            throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+
+        // Extract text based on provider response format
+        if (provider === 'anthropic') {
+            return data.content[0].text;
+        } else if (provider === 'openai') {
+            return data.choices[0].message.content;
+        } else if (provider === 'google') {
+            return data.candidates[0].content.parts[0].text;
+        }
+
+    } catch (error) {
+        // Handle network errors (including CORS)
+        if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+            const providerName = provider.toUpperCase();
+            const corsHelpText = corsProxy ?
+                `\n\nYour CORS proxy (${corsProxy}) may be unavailable or incorrectly configured.` :
+                `\n\nSolution: Configure a CORS proxy in Settings (Advanced). Example: https://cors-anywhere.herokuapp.com/`;
+
+            throw new Error(`Cannot connect to ${providerName} API.${corsHelpText}\n\nPossible causes:\n• CORS restrictions (browser blocks direct API calls)\n• Network/firewall blocking the request\n• Invalid API key or endpoint\n• CORS proxy not configured\n\nFor details, see the API Integration guide.`);
+        }
+        throw error;
+    }
 }
 
 async function analyzeCompetenciesWithAI(resourceData) {
