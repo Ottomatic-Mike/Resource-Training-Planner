@@ -7,6 +7,182 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.13] - 2026-01-24
+
+### Added - In-Person Training & Dual Budget Tracking
+
+This release adds comprehensive support for in-person training courses and separate travel & expense budget tracking, enabling managers to plan and budget for both online and in-person training events.
+
+#### Resource Management Enhancements
+- **In-Person Training Capability** - Track which resources can attend in-person classes
+  - New field: "Can Attend In-Person Classes" checkbox in resource forms
+  - Defaults to checked (yes) for new resources
+  - Automatically set based on location for sample data (Remote = No, others = Yes)
+  - Visible in resource detail view with clear Yes/No indicator
+  - Warning displayed in wizard if resource cannot attend but in-person course selected
+
+- **Dual Budget Tracking** - Separate budgets for training and travel expenses
+  - **Training Budget** - For online courses, certifications, and course fees
+    - Existing "Annual Training Budget" field (no breaking changes)
+    - Tracks course costs separately from travel costs
+  - **Travel & Expense Budget** - For in-person training travel costs
+    - New "Annual Travel & Expense Budget" field in resource forms
+    - Tracks flights, hotels, meals, and other travel expenses
+    - Defaults to $0 for new resources
+    - Sample data: $3,000 for non-remote resources, $0 for remote
+  - **Independent Budget Spent Tracking**
+    - Training Budget Spent (existing field)
+    - Travel & Expense Budget Spent (new field)
+  - Both budgets editable in resource add/edit forms
+
+#### Course Catalog Enhancements
+- **Travel Requirement Tracking** - Courses can now indicate if travel is required
+  - New checkbox: "Requires Travel (for In-Person or Hybrid courses)"
+  - Automatically shows/hides travel cost field based on checkbox
+  - Help text explains when to check this option
+
+- **Estimated Travel Cost** - Track expected travel expenses per course
+  - New field: "Estimated Travel Cost" (hidden unless travel required)
+  - Captures estimated cost for travel, accommodation, and meals
+  - Displayed as separate line item in training plans
+  - Used for travel budget calculations
+
+- **Enhanced Course Formats** - Existing format field now supports:
+  - Online Self-Paced (existing)
+  - Online Live (existing)
+  - In-Person (updated - now triggers travel options)
+  - Hybrid (updated - now triggers travel options)
+
+#### Sample Data Updates
+- **Sample Resources** - Updated with new fields
+  - All non-remote resources: canAttendInPerson = true, travelBudget = $3,000
+  - Bob Wilson (Remote): canAttendInPerson = false, travelBudget = $0
+
+- **Sample Courses** - Updated with travel information
+  - OWASP Top 10 Security (SANS Institute): In-Person, requires travel, $2,500 estimated travel cost
+  - Leadership for Tech Managers (Coursera): Hybrid, requires travel, $1,800 estimated travel cost
+  - All other courses: No travel required
+
+#### Dashboard Enhancements
+- **Dual Budget Metric Cards** - Separate tracking for each budget type
+  - **Training Budget Card** - Shows team-wide training budget utilization
+    - Total training budget across all resources
+    - Spent + committed amounts
+    - Percentage utilized with color coding (green/yellow/red)
+  - **Travel & Expense Budget Card** - Shows team-wide travel budget utilization
+    - Total travel budget across all resources
+    - Spent + committed amounts
+    - Percentage utilized with color coding
+  - Both cards displayed side-by-side with Training Plans card
+
+- **Resource Table** - Updated to use new field names (internal consistency)
+  - Displays training budget status (primary budget)
+  - Detailed dual budget view available in resource detail modal
+
+#### Resource Detail View Enhancements
+- **In-Person Capability Display** - Shows at a glance if resource can attend in-person
+  - Green checkmark: "✓ Yes" if canAttendInPerson = true
+  - Gray X: "✗ No (Remote Only)" if canAttendInPerson = false
+
+- **Dual Budget Status Displays** - Separate progress bars for each budget
+  - **Training Budget Status**
+    - Badge with status: Within Budget / Near Limit / Over Budget
+    - Spent | Committed | Remaining amounts
+    - Progress bar with percentage utilization
+    - Color-coded: Green (< 80%), Orange (80-99%), Red (≥ 100%)
+  - **Travel & Expense Budget Status**
+    - Identical layout and logic as training budget
+    - Separate tracking and warnings
+  - Both sections clearly labeled and visually separated
+
+#### Training Plan Wizard Enhancements
+- **Step 6 (Review) - Enhanced Budget Display**
+  - **Primary Section** - Training budget overview (4 columns)
+    - Resource info with remote-only warning if applicable
+    - Training Budget total
+    - Available Training Budget (color-coded)
+    - Plan Training Cost (color-coded)
+  - **Secondary Section** - Travel budget (appears only if travel costs exist)
+    - Travel & Expense Budget total
+    - Available Travel Budget (color-coded)
+    - Plan Travel Cost (separate from training)
+    - "For in-person courses" helper text
+  - Clean visual separation with border between sections
+
+- **Budget Overrun Warnings** - Separate warnings for each budget type
+  - **Training Budget Overrun Warning**
+    - Shows if plan exceeds available training budget
+    - Displays: plan cost, available amount, spent, committed, overrun amount
+    - Orange warning badge with clear messaging
+  - **Travel Budget Overrun Warning**
+    - Shows if plan exceeds available travel budget
+    - Same detailed breakdown as training warning
+    - Independent from training budget warning
+  - **In-Person Course Warning**
+    - Shows if resource marked as remote-only but plan includes in-person/hybrid courses
+    - Prompts manager to verify availability or select online alternatives
+    - Prevents accidental assignment of in-person courses to remote resources
+
+#### Training Plan Data Model Enhancements
+- **Travel Cost Tracking** - Plans now track travel costs separately
+  - New field: `totalCost` - Sum of all course costs (training fees)
+  - New field: `totalTravelCost` - Sum of all travel costs for courses requiring travel
+  - Scheduled courses include: `requiresTravel` and `estimatedTravelCost` fields
+  - Budget calculations separate training and travel costs
+
+- **Plan Budget Validation** - Enhanced to check both budgets
+  - Checks training budget availability independently
+  - Checks travel budget availability independently
+  - Shows specific warning badges per budget type in resource detail view
+  - Three possible states: "Over Training Budget", "Over Travel Budget", "Over Training & Travel Budget"
+
+### Changed
+
+- **Budget Calculations** - Now separated into training and travel components
+  - Dashboard metrics split into two separate calculations
+  - Resource detail calculations split into two budget streams
+  - Training plans track and validate both budgets independently
+
+- **Resource Forms** - Reorganized for clarity
+  - In-person capability field added near calendar selection (logical grouping)
+  - Budget fields grouped together with clear labels and help text
+  - Training budget labeled: "Budget for online courses, certifications, and self-paced training"
+  - Travel budget labeled: "Separate budget for travel, accommodation, and meals for in-person training"
+
+- **Course Forms** - Enhanced for travel tracking
+  - Travel required checkbox with dynamic cost field visibility
+  - Clear help text explaining when travel is required
+  - Estimated travel cost field only shown when needed
+
+### Technical Details
+- Version bumped to 1.0.13 in both saveToLocalStorage() and exportToJSON()
+- **New Resource Fields**:
+  - `canAttendInPerson` (boolean, default: true)
+  - `annualTravelBudget` (number, default: 0)
+  - `travelBudgetSpent` (number, default: 0)
+- **New Course Fields**:
+  - `requiresTravel` (boolean, default: false)
+  - `estimatedTravelCost` (number, default: 0)
+- **New Training Plan Fields**:
+  - `totalCost` (number) - Sum of course costs
+  - `totalTravelCost` (number) - Sum of travel costs
+- **Backward Compatibility**:
+  - Existing data without new fields will default appropriately
+  - canAttendInPerson defaults to true (existing behavior)
+  - Travel budgets default to 0 (no impact on existing workflows)
+  - Course travel fields default to false/0 (existing courses remain unchanged)
+
+### User Benefits
+- **Accurate Budget Planning** - Training and travel budgets tracked independently
+- **In-Person Training Support** - Full lifecycle management of in-person courses
+- **Resource Capability Tracking** - Know which team members can attend in-person events
+- **Detailed Cost Breakdown** - See exactly where training dollars are allocated
+- **Proactive Warnings** - Prevents over-budget plans and misassigned courses
+- **Clean, Simple UI** - Dual budget tracking without cluttering the interface
+- **Flexible Workflows** - Support both online-only and hybrid training strategies
+
+---
+
 ## [1.0.12] - 2026-01-24
 
 ### Changed - Improved Provider Labeling

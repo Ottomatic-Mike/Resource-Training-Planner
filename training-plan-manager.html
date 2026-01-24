@@ -1744,7 +1744,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.12',
+        version: '1.0.13',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -2680,9 +2680,15 @@ function renderDashboard() {
             </div>
 
             <div class="card metric-card">
-                <div class="metric-label">Budget Status</div>
-                <div class="metric-value" style="color: ${metrics.budgetUtilization >= 100 ? '#ef4444' : metrics.budgetUtilization >= 80 ? '#f59e0b' : '#22c55e'};">${formatCurrency(metrics.totalBudgetUsed)} / ${formatCurrency(metrics.totalBudget)}</div>
-                <div class="metric-change">${metrics.budgetUtilization}% utilized (${formatCurrency(metrics.totalBudgetSpent)} spent + ${formatCurrency(metrics.totalBudgetCommitted)} committed)</div>
+                <div class="metric-label">Training Budget</div>
+                <div class="metric-value" style="color: ${metrics.trainingBudgetUtilization >= 100 ? '#ef4444' : metrics.trainingBudgetUtilization >= 80 ? '#f59e0b' : '#22c55e'};">${formatCurrency(metrics.totalTrainingBudgetUsed)} / ${formatCurrency(metrics.totalTrainingBudget)}</div>
+                <div class="metric-change">${metrics.trainingBudgetUtilization}% utilized (${formatCurrency(metrics.totalTrainingBudgetSpent)} spent + ${formatCurrency(metrics.totalTrainingBudgetCommitted)} committed)</div>
+            </div>
+
+            <div class="card metric-card">
+                <div class="metric-label">Travel & Expense Budget</div>
+                <div class="metric-value" style="color: ${metrics.travelBudgetUtilization >= 100 ? '#ef4444' : metrics.travelBudgetUtilization >= 80 ? '#f59e0b' : '#22c55e'};">${formatCurrency(metrics.totalTravelBudgetUsed)} / ${formatCurrency(metrics.totalTravelBudget)}</div>
+                <div class="metric-change">${metrics.travelBudgetUtilization}% utilized (${formatCurrency(metrics.totalTravelBudgetSpent)} spent + ${formatCurrency(metrics.totalTravelBudgetCommitted)} committed)</div>
             </div>
 
             <div class="card metric-card">
@@ -2736,11 +2742,19 @@ function calculateDashboardMetrics() {
     const totalResources = resources.length;
     const locations = new Set(resources.map(r => r.location)).size;
 
-    const totalBudget = resources.reduce((sum, r) => sum + (r.annualTrainingBudget || 0), 0);
-    const totalBudgetSpent = resources.reduce((sum, r) => sum + (r.budgetSpent || 0), 0);
-    const totalBudgetCommitted = trainingPlans.reduce((sum, p) => sum + (p.totalCost || 0), 0);
-    const totalBudgetUsed = totalBudgetSpent + totalBudgetCommitted;
-    const budgetUtilization = totalBudget > 0 ? Math.round((totalBudgetUsed / totalBudget) * 100) : 0;
+    // Training budget metrics
+    const totalTrainingBudget = resources.reduce((sum, r) => sum + (r.annualTrainingBudget || 0), 0);
+    const totalTrainingBudgetSpent = resources.reduce((sum, r) => sum + (r.budgetSpent || 0), 0);
+    const totalTrainingBudgetCommitted = trainingPlans.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+    const totalTrainingBudgetUsed = totalTrainingBudgetSpent + totalTrainingBudgetCommitted;
+    const trainingBudgetUtilization = totalTrainingBudget > 0 ? Math.round((totalTrainingBudgetUsed / totalTrainingBudget) * 100) : 0;
+
+    // Travel & Expense budget metrics
+    const totalTravelBudget = resources.reduce((sum, r) => sum + (r.annualTravelBudget || 0), 0);
+    const totalTravelBudgetSpent = resources.reduce((sum, r) => sum + (r.travelBudgetSpent || 0), 0);
+    const totalTravelBudgetCommitted = trainingPlans.reduce((sum, p) => sum + (p.totalTravelCost || 0), 0);
+    const totalTravelBudgetUsed = totalTravelBudgetSpent + totalTravelBudgetCommitted;
+    const travelBudgetUtilization = totalTravelBudget > 0 ? Math.round((totalTravelBudgetUsed / totalTravelBudget) * 100) : 0;
 
     const activePlans = trainingPlans.filter(p => p.status === 'Active').length;
 
@@ -2757,11 +2771,16 @@ function calculateDashboardMetrics() {
     return {
         totalResources,
         locations,
-        totalBudget,
-        totalBudgetSpent,
-        totalBudgetCommitted,
-        totalBudgetUsed,
-        budgetUtilization,
+        totalTrainingBudget,
+        totalTrainingBudgetSpent,
+        totalTrainingBudgetCommitted,
+        totalTrainingBudgetUsed,
+        trainingBudgetUtilization,
+        totalTravelBudget,
+        totalTravelBudgetSpent,
+        totalTravelBudgetCommitted,
+        totalTravelBudgetUsed,
+        travelBudgetUtilization,
         activePlans,
         completionRate
     };
@@ -2793,12 +2812,13 @@ function renderResourcesTable() {
     `;
 
     resources.slice(0, 10).forEach(resource => {
-        const budgetSpent = resource.budgetSpent || 0;
-        const budgetTotal = resource.annualTrainingBudget || 0;
+        // Calculate training budget (for table display)
+        const trainingBudgetSpent = resource.budgetSpent || 0;
+        const trainingBudgetTotal = resource.annualTrainingBudget || 0;
         const resourcePlans = trainingPlans.filter(p => p.resourceId === resource.id);
         const committedBudget = resourcePlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
-        const totalUsed = budgetSpent + committedBudget;
-        const budgetPercent = budgetTotal > 0 ? Math.round((totalUsed / budgetTotal) * 100) : 0;
+        const totalUsed = trainingBudgetSpent + committedBudget;
+        const budgetPercent = trainingBudgetTotal > 0 ? Math.round((totalUsed / trainingBudgetTotal) * 100) : 0;
 
         let budgetStatusBadge = '';
         let budgetColor = '#22c55e';
@@ -3075,8 +3095,24 @@ function showAddResourceForm() {
         </div>
 
         <div class="form-group">
+            <label class="form-label">Can Attend In-Person Classes</label>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                <input type="checkbox" id="newResourceCanAttendInPerson" checked style="width: 20px; height: 20px; cursor: pointer;">
+                <label for="newResourceCanAttendInPerson" style="cursor: pointer; margin: 0;">This resource can attend in-person training events</label>
+            </div>
+            <div class="form-help">Uncheck if this resource is remote-only or unable to travel for training</div>
+        </div>
+
+        <div class="form-group">
             <label class="form-label">Annual Training Budget</label>
             <input type="number" class="form-input" id="newResourceBudget" value="${settings.defaultBudget}" min="0">
+            <div class="form-help">Budget for online courses, certifications, and self-paced training</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Annual Travel & Expense Budget</label>
+            <input type="number" class="form-input" id="newResourceTravelBudget" value="0" min="0">
+            <div class="form-help">Separate budget for travel, accommodation, and meals for in-person training</div>
         </div>
 
         <div class="form-group">
@@ -3109,8 +3145,11 @@ function saveNewResource() {
         department: document.getElementById('newResourceDepartment').value.trim(),
         location: document.getElementById('newResourceLocation').value.trim(),
         hireDate: new Date().toISOString().split('T')[0],
+        canAttendInPerson: document.getElementById('newResourceCanAttendInPerson').checked,
         annualTrainingBudget: parseFloat(document.getElementById('newResourceBudget').value) || 0,
         budgetSpent: 0,
+        annualTravelBudget: parseFloat(document.getElementById('newResourceTravelBudget').value) || 0,
+        travelBudgetSpent: 0,
         budgetYear: new Date().getFullYear(),
         currentCompetencies: [],
         desiredCompetencies: [],
@@ -3154,26 +3193,48 @@ function viewResourceDetail(resourceId) {
     // Get resource's training plans
     const resourcePlans = trainingPlans.filter(p => p.resourceId === resourceId);
 
-    // Calculate budget status
-    const totalBudget = resource.annualTrainingBudget || 0;
-    const spentBudget = resource.budgetSpent || 0;
-    const committedBudget = resourcePlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
-    const totalUsed = spentBudget + committedBudget;
-    const remainingBudget = totalBudget - totalUsed;
-    const budgetUtilization = totalBudget > 0 ? (totalUsed / totalBudget) * 100 : 0;
+    // Calculate training budget status
+    const totalTrainingBudget = resource.annualTrainingBudget || 0;
+    const spentTrainingBudget = resource.budgetSpent || 0;
+    const committedTrainingBudget = resourcePlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
+    const totalTrainingUsed = spentTrainingBudget + committedTrainingBudget;
+    const remainingTrainingBudget = totalTrainingBudget - totalTrainingUsed;
+    const trainingBudgetUtilization = totalTrainingBudget > 0 ? (totalTrainingUsed / totalTrainingBudget) * 100 : 0;
 
-    let budgetStatusColor = '#22c55e'; // Green
-    let budgetStatusText = 'Within Budget';
-    let budgetStatusIcon = '✓';
+    let trainingBudgetStatusColor = '#22c55e'; // Green
+    let trainingBudgetStatusText = 'Within Budget';
+    let trainingBudgetStatusIcon = '✓';
 
-    if (budgetUtilization >= 100) {
-        budgetStatusColor = '#ef4444'; // Red
-        budgetStatusText = 'Over Budget';
-        budgetStatusIcon = '⚠️';
-    } else if (budgetUtilization >= 80) {
-        budgetStatusColor = '#f59e0b'; // Orange
-        budgetStatusText = 'Near Limit';
-        budgetStatusIcon = '⚠️';
+    if (trainingBudgetUtilization >= 100) {
+        trainingBudgetStatusColor = '#ef4444'; // Red
+        trainingBudgetStatusText = 'Over Budget';
+        trainingBudgetStatusIcon = '⚠️';
+    } else if (trainingBudgetUtilization >= 80) {
+        trainingBudgetStatusColor = '#f59e0b'; // Orange
+        trainingBudgetStatusText = 'Near Limit';
+        trainingBudgetStatusIcon = '⚠️';
+    }
+
+    // Calculate travel budget status
+    const totalTravelBudget = resource.annualTravelBudget || 0;
+    const spentTravelBudget = resource.travelBudgetSpent || 0;
+    const committedTravelBudget = resourcePlans.reduce((sum, plan) => sum + (plan.totalTravelCost || 0), 0);
+    const totalTravelUsed = spentTravelBudget + committedTravelBudget;
+    const remainingTravelBudget = totalTravelBudget - totalTravelUsed;
+    const travelBudgetUtilization = totalTravelBudget > 0 ? (totalTravelUsed / totalTravelBudget) * 100 : 0;
+
+    let travelBudgetStatusColor = '#22c55e'; // Green
+    let travelBudgetStatusText = 'Within Budget';
+    let travelBudgetStatusIcon = '✓';
+
+    if (travelBudgetUtilization >= 100) {
+        travelBudgetStatusColor = '#ef4444'; // Red
+        travelBudgetStatusText = 'Over Budget';
+        travelBudgetStatusIcon = '⚠️';
+    } else if (travelBudgetUtilization >= 80) {
+        travelBudgetStatusColor = '#f59e0b'; // Orange
+        travelBudgetStatusText = 'Near Limit';
+        travelBudgetStatusIcon = '⚠️';
     }
 
     // Build current competencies display
@@ -3247,12 +3308,22 @@ function viewResourceDetail(resourceId) {
             const statusColor = plan.status === 'Approved' ? '#10b981' : plan.status === 'Draft' ? '#f59e0b' : '#6b7280';
             const aiAssisted = plan.aiRecommendations && Object.keys(plan.aiRecommendations).length > 0;
 
-            // Determine if this plan fits within remaining budget
+            // Determine if this plan fits within remaining budgets
             const planCost = plan.totalCost || 0;
-            const planBudgetStatus = planCost > remainingBudget ? 'over' : 'ok';
-            const planBudgetBadge = planBudgetStatus === 'over'
-                ? '<span class="badge" style="background: #ef4444; color: white; font-size: 11px;">⚠️ Over Budget</span>'
-                : '';
+            const planTravelCost = plan.totalTravelCost || 0;
+            const trainingBudgetStatus = planCost > remainingTrainingBudget ? 'over' : 'ok';
+            const travelBudgetStatus = planTravelCost > remainingTravelBudget ? 'over' : 'ok';
+
+            let planBudgetBadge = '';
+            if (trainingBudgetStatus === 'over' || travelBudgetStatus === 'over') {
+                if (trainingBudgetStatus === 'over' && travelBudgetStatus === 'over') {
+                    planBudgetBadge = '<span class="badge" style="background: #ef4444; color: white; font-size: 11px;">⚠️ Over Training & Travel Budget</span>';
+                } else if (trainingBudgetStatus === 'over') {
+                    planBudgetBadge = '<span class="badge" style="background: #ef4444; color: white; font-size: 11px;">⚠️ Over Training Budget</span>';
+                } else {
+                    planBudgetBadge = '<span class="badge" style="background: #ef4444; color: white; font-size: 11px;">⚠️ Over Travel Budget</span>';
+                }
+            }
 
             trainingPlansHtml += `
                 <div class="card" style="cursor: pointer; margin: 0;" onclick="closeModal(); switchTab(5); setTimeout(() => viewPlanDetails(${plan.id}), 100);">
@@ -3292,23 +3363,46 @@ function viewResourceDetail(resourceId) {
                     <div><strong>Location:</strong> ${resource.location || 'N/A'}</div>
                     <div><strong>Email:</strong> ${resource.email || 'N/A'}</div>
                     <div style="grid-column: 1 / -1;"><strong>Regional Calendar:</strong> ${calendarInfo}</div>
+                    <div style="grid-column: 1 / -1;"><strong>Can Attend In-Person Classes:</strong> ${resource.canAttendInPerson !== false ? '<span style="color: #22c55e;">✓ Yes</span>' : '<span style="color: #94a3b8;">✗ No (Remote Only)</span>'}</div>
+
+                    <!-- Training Budget -->
                     <div style="grid-column: 1 / -1;">
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                            <strong>Budget Status:</strong>
-                            <span class="badge" style="background: ${budgetStatusColor}; color: white; font-size: 12px; padding: 4px 10px;">
-                                ${budgetStatusIcon} ${budgetStatusText}
+                            <strong>Training Budget Status:</strong>
+                            <span class="badge" style="background: ${trainingBudgetStatusColor}; color: white; font-size: 12px; padding: 4px 10px;">
+                                ${trainingBudgetStatusIcon} ${trainingBudgetStatusText}
                             </span>
                         </div>
                         <div style="font-size: 13px; color: var(--neutral-700);">
-                            <div style="margin-bottom: 4px;">Spent: ${formatCurrency(spentBudget)} | Committed: ${formatCurrency(committedBudget)} | Remaining: <span style="color: ${remainingBudget < 0 ? '#ef4444' : '#22c55e'}; font-weight: 600;">${formatCurrency(remainingBudget)}</span></div>
+                            <div style="margin-bottom: 4px;">Spent: ${formatCurrency(spentTrainingBudget)} | Committed: ${formatCurrency(committedTrainingBudget)} | Remaining: <span style="color: ${remainingTrainingBudget < 0 ? '#ef4444' : '#22c55e'}; font-weight: 600;">${formatCurrency(remainingTrainingBudget)}</span></div>
                             <div style="background: var(--neutral-200); height: 8px; border-radius: 4px; overflow: hidden;">
-                                <div style="background: ${budgetStatusColor}; height: 100%; width: ${Math.min(budgetUtilization, 100)}%; transition: width 0.3s ease;"></div>
+                                <div style="background: ${trainingBudgetStatusColor}; height: 100%; width: ${Math.min(trainingBudgetUtilization, 100)}%; transition: width 0.3s ease;"></div>
                             </div>
                             <div style="margin-top: 4px; font-size: 12px; color: var(--neutral-600);">
-                                Total Budget: ${formatCurrency(totalBudget)} (${budgetUtilization.toFixed(1)}% utilized)
+                                Total Training Budget: ${formatCurrency(totalTrainingBudget)} (${trainingBudgetUtilization.toFixed(1)}% utilized)
                             </div>
                         </div>
                     </div>
+
+                    <!-- Travel & Expense Budget -->
+                    <div style="grid-column: 1 / -1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <strong>Travel & Expense Budget Status:</strong>
+                            <span class="badge" style="background: ${travelBudgetStatusColor}; color: white; font-size: 12px; padding: 4px 10px;">
+                                ${travelBudgetStatusIcon} ${travelBudgetStatusText}
+                            </span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--neutral-700);">
+                            <div style="margin-bottom: 4px;">Spent: ${formatCurrency(spentTravelBudget)} | Committed: ${formatCurrency(committedTravelBudget)} | Remaining: <span style="color: ${remainingTravelBudget < 0 ? '#ef4444' : '#22c55e'}; font-weight: 600;">${formatCurrency(remainingTravelBudget)}</span></div>
+                            <div style="background: var(--neutral-200); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: ${travelBudgetStatusColor}; height: 100%; width: ${Math.min(travelBudgetUtilization, 100)}%; transition: width 0.3s ease;"></div>
+                            </div>
+                            <div style="margin-top: 4px; font-size: 12px; color: var(--neutral-600);">
+                                Total Travel & Expense Budget: ${formatCurrency(totalTravelBudget)} (${travelBudgetUtilization.toFixed(1)}% utilized)
+                            </div>
+                        </div>
+                    </div>
+
                     <div><strong>Weekly Training Hours:</strong> ${resource.weeklyTrainingHours || 0}</div>
                 </div>
             </div>
@@ -3606,14 +3700,36 @@ function editResource(resourceId) {
         </div>
 
         <div class="form-group">
-            <label class="form-label">Annual Training Budget</label>
-            <input type="number" class="form-input" id="editResourceBudget" value="${resource.annualTrainingBudget || 0}" min="0">
+            <label class="form-label">Can Attend In-Person Classes</label>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                <input type="checkbox" id="editResourceCanAttendInPerson" ${resource.canAttendInPerson !== false ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;">
+                <label for="editResourceCanAttendInPerson" style="cursor: pointer; margin: 0;">This resource can attend in-person training events</label>
+            </div>
+            <div class="form-help">Uncheck if this resource is remote-only or unable to travel for training</div>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Budget Spent</label>
+            <label class="form-label">Annual Training Budget</label>
+            <input type="number" class="form-input" id="editResourceBudget" value="${resource.annualTrainingBudget || 0}" min="0">
+            <div class="form-help">Budget for online courses, certifications, and self-paced training</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Training Budget Spent</label>
             <input type="number" class="form-input" id="editResourceBudgetSpent" value="${resource.budgetSpent || 0}" min="0">
             <div class="form-help">Track actual spending on training for this resource</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Annual Travel & Expense Budget</label>
+            <input type="number" class="form-input" id="editResourceTravelBudget" value="${resource.annualTravelBudget || 0}" min="0">
+            <div class="form-help">Separate budget for travel, accommodation, and meals for in-person training</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Travel & Expense Budget Spent</label>
+            <input type="number" class="form-input" id="editResourceTravelBudgetSpent" value="${resource.travelBudgetSpent || 0}" min="0">
+            <div class="form-help">Track actual spending on travel and expenses for in-person training</div>
         </div>
 
         <div class="form-group">
@@ -3649,8 +3765,11 @@ function saveResourceEdits(resourceId) {
     resource.department = document.getElementById('editResourceDepartment').value.trim();
     resource.location = document.getElementById('editResourceLocation').value.trim();
     resource.regionalCalendarId = calendarId ? parseInt(calendarId) : null;
+    resource.canAttendInPerson = document.getElementById('editResourceCanAttendInPerson').checked;
     resource.annualTrainingBudget = parseFloat(document.getElementById('editResourceBudget').value) || 0;
     resource.budgetSpent = parseFloat(document.getElementById('editResourceBudgetSpent').value) || 0;
+    resource.annualTravelBudget = parseFloat(document.getElementById('editResourceTravelBudget').value) || 0;
+    resource.travelBudgetSpent = parseFloat(document.getElementById('editResourceTravelBudgetSpent').value) || 0;
     resource.weeklyTrainingHours = parseInt(document.getElementById('editResourceHours').value) || 5;
     resource.lastModified = new Date().toISOString();
 
@@ -4562,6 +4681,20 @@ function showAddCourseForm() {
                 <span>Includes Certification</span>
             </label>
         </div>
+
+        <div class="form-group">
+            <label class="form-checkbox">
+                <input type="checkbox" id="newCourseTravelRequired" onchange="document.getElementById('newCourseTravelCostGroup').style.display = this.checked ? 'block' : 'none'">
+                <span>Requires Travel (for In-Person or Hybrid courses)</span>
+            </label>
+            <div class="form-help">Check if attending this course requires travel expenses (flights, hotels, meals)</div>
+        </div>
+
+        <div class="form-group" id="newCourseTravelCostGroup" style="display: none;">
+            <label class="form-label">Estimated Travel Cost</label>
+            <input type="number" class="form-input" id="newCourseTravelCost" placeholder="2000" min="0">
+            <div class="form-help">Estimated cost for travel, accommodation, and meals per attendee</div>
+        </div>
     `;
 
     const footer = `
@@ -4609,6 +4742,8 @@ function saveNewCourse() {
         certificationName: '',
         certificationBody: '',
         certificationValidityYears: 0,
+        requiresTravel: document.getElementById('newCourseTravelRequired').checked,
+        estimatedTravelCost: parseFloat(document.getElementById('newCourseTravelCost').value) || 0,
         relevantCompetencies: [],
         discoveredBy: 'Manual Entry',
         discoveryDate: new Date().toISOString(),
@@ -5620,20 +5755,37 @@ function renderWizardStep6() {
     const hasGoals = wizardState.data.aiOutputs.trainingGoals;
     const hasCourses = wizardState.data.aiOutputs.courseRecommendations;
 
-    // Calculate estimated budget from courses
-    let estimatedBudget = 0;
+    // Calculate estimated budgets from courses
+    let estimatedTrainingBudget = 0;
+    let estimatedTravelBudget = 0;
     if (Array.isArray(hasCourses)) {
-        estimatedBudget = hasCourses.reduce((sum, course) => sum + (course.cost || 0), 0);
+        estimatedTrainingBudget = hasCourses.reduce((sum, course) => sum + (course.cost || 0), 0);
+        estimatedTravelBudget = hasCourses.reduce((sum, course) => {
+            const requiresTravel = course.requiresTravel || false;
+            const travelCost = requiresTravel ? (course.estimatedTravelCost || 0) : 0;
+            return sum + travelCost;
+        }, 0);
     }
 
-    // Calculate budget availability
-    const totalBudget = resource.annualTrainingBudget || 0;
-    const spentBudget = resource.budgetSpent || 0;
+    // Calculate training budget availability
+    const totalTrainingBudget = resource.annualTrainingBudget || 0;
+    const spentTrainingBudget = resource.budgetSpent || 0;
     const existingPlans = trainingPlans.filter(p => p.resourceId === resource.id);
-    const committedBudget = existingPlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
-    const availableBudget = totalBudget - spentBudget - committedBudget;
-    const budgetAfterPlan = availableBudget - estimatedBudget;
-    const budgetOverrun = budgetAfterPlan < 0;
+    const committedTrainingBudget = existingPlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
+    const availableTrainingBudget = totalTrainingBudget - spentTrainingBudget - committedTrainingBudget;
+    const trainingBudgetAfterPlan = availableTrainingBudget - estimatedTrainingBudget;
+    const trainingBudgetOverrun = trainingBudgetAfterPlan < 0;
+
+    // Calculate travel budget availability
+    const totalTravelBudget = resource.annualTravelBudget || 0;
+    const spentTravelBudget = resource.travelBudgetSpent || 0;
+    const committedTravelBudget = existingPlans.reduce((sum, plan) => sum + (plan.totalTravelCost || 0), 0);
+    const availableTravelBudget = totalTravelBudget - spentTravelBudget - committedTravelBudget;
+    const travelBudgetAfterPlan = availableTravelBudget - estimatedTravelBudget;
+    const travelBudgetOverrun = travelBudgetAfterPlan < 0;
+
+    // Overall budget status
+    const budgetOverrun = trainingBudgetOverrun || travelBudgetOverrun;
 
     // Calculate estimated time from courses
     let estimatedHours = 0;
@@ -5662,23 +5814,45 @@ function renderWizardStep6() {
                     <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Resource</div>
                     <div style="font-weight: 600;">${escapeHtml(resource.name)}</div>
                     <div style="font-size: 13px; color: var(--neutral-600);">${escapeHtml(resource.jobTitle || 'No title')}</div>
+                    ${resource.canAttendInPerson === false ? '<div style="font-size: 12px; color: #f59e0b; margin-top: 4px;">⚠️ Remote Only</div>' : ''}
                 </div>
                 <div>
-                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Total Budget</div>
-                    <div style="font-weight: 600; font-size: 18px; color: var(--primary-color);">${formatCurrency(totalBudget)}</div>
-                    <div style="font-size: 12px; color: var(--neutral-600);">Spent: ${formatCurrency(spentBudget)} | Committed: ${formatCurrency(committedBudget)}</div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Training Budget</div>
+                    <div style="font-weight: 600; font-size: 18px; color: var(--primary-color);">${formatCurrency(totalTrainingBudget)}</div>
+                    <div style="font-size: 12px; color: var(--neutral-600);">Spent: ${formatCurrency(spentTrainingBudget)} | Committed: ${formatCurrency(committedTrainingBudget)}</div>
                 </div>
                 <div>
-                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Available Budget</div>
-                    <div style="font-weight: 600; font-size: 18px; color: ${budgetOverrun ? '#ef4444' : '#22c55e'};">${formatCurrency(availableBudget)}</div>
-                    <div style="font-size: 12px; color: var(--neutral-600);">After plan: ${formatCurrency(budgetAfterPlan)}</div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Available Training Budget</div>
+                    <div style="font-weight: 600; font-size: 18px; color: ${trainingBudgetOverrun ? '#ef4444' : '#22c55e'};">${formatCurrency(availableTrainingBudget)}</div>
+                    <div style="font-size: 12px; color: var(--neutral-600);">After plan: ${formatCurrency(trainingBudgetAfterPlan)}</div>
                 </div>
                 <div>
-                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Plan Cost</div>
-                    <div style="font-weight: 600; font-size: 18px; ${budgetOverrun ? 'color: #ef4444;' : 'color: #22c55e;'}">${formatCurrency(estimatedBudget)}</div>
+                    <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Plan Training Cost</div>
+                    <div style="font-weight: 600; font-size: 18px; ${trainingBudgetOverrun ? 'color: #ef4444;' : 'color: #22c55e;'}">${formatCurrency(estimatedTrainingBudget)}</div>
                     <div style="font-size: 12px; color: var(--neutral-600);">${hasCourses && Array.isArray(hasCourses) ? hasCourses.length : 0} courses</div>
                 </div>
             </div>
+            ${estimatedTravelBudget > 0 ? `
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--neutral-200);">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div>
+                            <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Travel & Expense Budget</div>
+                            <div style="font-weight: 600; font-size: 18px; color: var(--primary-color);">${formatCurrency(totalTravelBudget)}</div>
+                            <div style="font-size: 12px; color: var(--neutral-600);">Spent: ${formatCurrency(spentTravelBudget)} | Committed: ${formatCurrency(committedTravelBudget)}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Available Travel Budget</div>
+                            <div style="font-weight: 600; font-size: 18px; color: ${travelBudgetOverrun ? '#ef4444' : '#22c55e'};">${formatCurrency(availableTravelBudget)}</div>
+                            <div style="font-size: 12px; color: var(--neutral-600);">After plan: ${formatCurrency(travelBudgetAfterPlan)}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 13px; color: var(--neutral-600); margin-bottom: 4px;">Plan Travel Cost</div>
+                            <div style="font-weight: 600; font-size: 18px; ${travelBudgetOverrun ? 'color: #ef4444;' : 'color: #22c55e;'}">${formatCurrency(estimatedTravelBudget)}</div>
+                            <div style="font-size: 12px; color: var(--neutral-600);">For in-person courses</div>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
             ${estimatedHours > 0 ? `
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--neutral-200);">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
@@ -5716,9 +5890,21 @@ function renderWizardStep6() {
             `}
         </div>
 
-        ${budgetOverrun ? `
+        ${trainingBudgetOverrun ? `
             <div class="alert alert-warning" style="margin-bottom: 20px;">
-                <strong>⚠️ Budget Overrun:</strong> This plan costs ${formatCurrency(estimatedBudget)}, but only ${formatCurrency(availableBudget)} is available (${formatCurrency(spentBudget)} already spent, ${formatCurrency(committedBudget)} committed to other plans). You will exceed the annual budget by ${formatCurrency(Math.abs(budgetAfterPlan))}.
+                <strong>⚠️ Training Budget Overrun:</strong> This plan costs ${formatCurrency(estimatedTrainingBudget)} for training, but only ${formatCurrency(availableTrainingBudget)} is available (${formatCurrency(spentTrainingBudget)} already spent, ${formatCurrency(committedTrainingBudget)} committed to other plans). You will exceed the annual training budget by ${formatCurrency(Math.abs(trainingBudgetAfterPlan))}.
+            </div>
+        ` : ''}
+
+        ${travelBudgetOverrun ? `
+            <div class="alert alert-warning" style="margin-bottom: 20px;">
+                <strong>⚠️ Travel Budget Overrun:</strong> This plan costs ${formatCurrency(estimatedTravelBudget)} for travel & expenses, but only ${formatCurrency(availableTravelBudget)} is available (${formatCurrency(spentTravelBudget)} already spent, ${formatCurrency(committedTravelBudget)} committed to other plans). You will exceed the annual travel budget by ${formatCurrency(Math.abs(travelBudgetAfterPlan))}.
+            </div>
+        ` : ''}
+
+        ${resource.canAttendInPerson === false && hasCourses && Array.isArray(hasCourses) && hasCourses.some(c => c.format === 'In-Person' || c.format === 'Hybrid') ? `
+            <div class="alert alert-warning" style="margin-bottom: 20px;">
+                <strong>⚠️ In-Person Course Warning:</strong> ${escapeHtml(resource.name)} is marked as unable to attend in-person classes, but this plan includes in-person or hybrid courses. Please verify the resource's availability or select alternative online courses.
             </div>
         ` : ''}
 
@@ -5855,11 +6041,18 @@ function wizardFinish() {
     const resource = resources.find(r => r.id === wizardState.data.resourceId);
     if (!resource) return;
 
-    // Calculate estimated budget from courses
+    // Calculate estimated budgets from courses
     let estimatedBudget = 0;
+    let estimatedTravelBudget = 0;
     const courses = wizardState.data.aiOutputs.courseRecommendations || [];
     if (Array.isArray(courses)) {
         estimatedBudget = courses.reduce((sum, course) => sum + (course.cost || 0), 0);
+        estimatedTravelBudget = courses.reduce((sum, course) => {
+            // Check if course requires travel
+            const requiresTravel = course.requiresTravel || false;
+            const travelCost = requiresTravel ? (course.estimatedTravelCost || 0) : 0;
+            return sum + travelCost;
+        }, 0);
     }
 
     // Build scheduled courses array with proper structure
@@ -5873,6 +6066,8 @@ function wizardFinish() {
                 duration: course.duration || 'Unknown',
                 format: course.format || 'Unknown',
                 url: course.url || '',
+                requiresTravel: course.requiresTravel || false,
+                estimatedTravelCost: course.estimatedTravelCost || 0,
                 startDate: new Date().toISOString().split('T')[0],
                 status: 'Planned',
                 relevanceScore: course.relevanceScore || 0,
@@ -5906,6 +6101,8 @@ function wizardFinish() {
         allocatedBudget: resource.annualTrainingBudget || 0,
         projectedSpend: estimatedBudget,
         contingencyBuffer: Math.max(0, (resource.annualTrainingBudget || 0) - estimatedBudget),
+        totalCost: estimatedBudget,
+        totalTravelCost: estimatedTravelBudget,
         scheduledCourses: scheduledCourses,
         gapAnalysis: {
             criticalGaps: Array.isArray(goals) ? goals.filter(g => g.priority === 'Critical').map(g => g.competencyName) : [],
@@ -6282,7 +6479,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.12',
+        version: '1.0.13',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -6653,18 +6850,18 @@ function loadSampleCompetencies() {
 
 function loadSampleCourses() {
     const sampleCourses = [
-        { title: 'Complete Python Bootcamp', provider: 'Udemy', cost: 89, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false },
-        { title: 'AWS Certified Solutions Architect', provider: 'A Cloud Guru', cost: 299, duration: 50, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true },
-        { title: 'Kubernetes for Developers', provider: 'Linux Foundation', cost: 299, duration: 40, format: 'Online Live', level: 'Intermediate', rating: 4.5, cert: true },
-        { title: 'Advanced JavaScript Concepts', provider: 'Frontend Masters', cost: 390, duration: 15, format: 'Online Self-Paced', level: 'Advanced', rating: 4.8, cert: false },
-        { title: 'Docker Mastery', provider: 'Udemy', cost: 89, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false },
-        { title: 'Terraform Associate Certification', provider: 'HashiCorp', cost: 495, duration: 45, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true },
-        { title: 'OWASP Top 10 Security', provider: 'SANS Institute', cost: 1500, duration: 40, format: 'Online Live', level: 'Advanced', rating: 4.9, cert: true },
-        { title: 'Data Engineering Nanodegree', provider: 'Udacity', cost: 1200, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true },
-        { title: 'React Complete Guide', provider: 'Udemy', cost: 89, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false },
-        { title: 'Go Programming Language', provider: 'Pluralsight', cost: 299, duration: 30, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false },
-        { title: 'Azure Fundamentals', provider: 'Microsoft Learn', cost: 0, duration: 25, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true },
-        { title: 'Leadership for Tech Managers', provider: 'Coursera', cost: 200, duration: 20, format: 'Online Self-Paced', level: 'All Levels', rating: 4.4, cert: true }
+        { title: 'Complete Python Bootcamp', provider: 'Udemy', cost: 89, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: 'AWS Certified Solutions Architect', provider: 'A Cloud Guru', cost: 299, duration: 50, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'Kubernetes for Developers', provider: 'Linux Foundation', cost: 299, duration: 40, format: 'Online Live', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'Advanced JavaScript Concepts', provider: 'Frontend Masters', cost: 390, duration: 15, format: 'Online Self-Paced', level: 'Advanced', rating: 4.8, cert: false, travel: false, travelCost: 0 },
+        { title: 'Docker Mastery', provider: 'Udemy', cost: 89, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
+        { title: 'Terraform Associate Certification', provider: 'HashiCorp', cost: 495, duration: 45, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
+        { title: 'OWASP Top 10 Security', provider: 'SANS Institute', cost: 1500, duration: 40, format: 'In-Person', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 2500 },
+        { title: 'Data Engineering Nanodegree', provider: 'Udacity', cost: 1200, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'React Complete Guide', provider: 'Udemy', cost: 89, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
+        { title: 'Go Programming Language', provider: 'Pluralsight', cost: 299, duration: 30, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: 'Azure Fundamentals', provider: 'Microsoft Learn', cost: 0, duration: 25, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'Leadership for Tech Managers', provider: 'Coursera', cost: 200, duration: 20, format: 'Hybrid', level: 'All Levels', rating: 4.4, cert: true, travel: true, travelCost: 1800 }
     ];
 
     sampleCourses.forEach(course => {
@@ -6694,6 +6891,8 @@ function loadSampleCourses() {
             certificationName: course.cert ? `${course.title} Certificate` : '',
             certificationBody: course.cert ? course.provider : '',
             certificationValidityYears: course.cert ? 3 : 0,
+            requiresTravel: course.travel,
+            estimatedTravelCost: course.travelCost,
             relevantCompetencies: [],
             discoveredBy: 'Sample Data',
             discoveryDate: new Date().toISOString(),
@@ -6779,8 +6978,11 @@ function loadSampleResources() {
             department: data.dept,
             location: data.location,
             hireDate: new Date(2020 + index, index % 12, 1).toISOString().split('T')[0],
+            canAttendInPerson: data.location !== 'Remote',
             annualTrainingBudget: data.budget,
             budgetSpent: data.spent,
+            annualTravelBudget: data.location !== 'Remote' ? 3000 : 0,
+            travelBudgetSpent: 0,
             budgetYear: new Date().getFullYear(),
             currentCompetencies: [],
             desiredCompetencies: [],
