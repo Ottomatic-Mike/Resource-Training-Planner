@@ -1,6 +1,6 @@
 /**
  * Training Plan Manager - Express Server with Embedded CORS Proxy
- * Version: 2.0.3
+ * Version: 2.0.4
  *
  * This server provides:
  * 1. Static file serving for the Training Plan Manager HTML application
@@ -25,13 +25,13 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
         service: 'training-plan-manager',
-        version: '2.0.3',
+        version: '2.0.4',
         timestamp: new Date().toISOString()
     });
 });
 
 // CORS Proxy Endpoint
-// Proxies requests to external AI APIs to bypass browser CORS restrictions
+// Proxies requests to external AI APIs with proper CORS handling from server side
 app.post('/api/proxy', async (req, res) => {
     const { url, method, headers, body } = req.body;
 

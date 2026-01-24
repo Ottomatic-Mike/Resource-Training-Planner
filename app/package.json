@@ -1,6 +1,6 @@
 {
   "name": "training-plan-manager",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "AI-Assisted Training Planning for Engineering Teams - Web Service",
   "main": "server.js",
   "scripts": {

@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.4] - 2025-01-24
+
+### Fixed - Corrected CORS Proxy Documentation
+
+**Issue Resolved:** Documentation incorrectly stated that the CORS proxy "bypasses" or "eliminates" browser security restrictions
+
+#### Problem
+
+Multiple documentation files contained technically inaccurate descriptions of the CORS proxy functionality:
+
+**Misleading Statements:**
+- README.md: "Secure AI API calls without browser restrictions"
+- README.md: "eliminates all browser security restrictions"
+- app/server.js: "bypass browser CORS restrictions"
+- CHANGELOG.md: Multiple instances of "bypass," "eliminate," and "zero restrictions" language
+
+**Why This Was Wrong:**
+
+The CORS proxy does **not** bypass or eliminate browser security. Browsers still enforce CORS policies as designed. The proxy works **with** browser security, not against it:
+
+1. **Browser CORS policies remain active** - The browser correctly blocks direct cross-origin requests from the client
+2. **Server-side proxy respects security** - The Node.js server makes requests on behalf of the client, which is a legitimate architectural pattern
+3. **Security is maintained** - API keys are handled server-side (never exposed to browser), and the browser's same-origin policy continues to protect users
+
+#### Solution
+
+**Updated All Documentation to Accurately Describe CORS Handling:**
+
+**README.md Changes:**
+- Before: "Secure AI API calls without browser restrictions"
+- After: "Server-side proxy for secure AI API calls with proper CORS handling"
+
+- Before: "eliminates all browser security restrictions"
+- After: "enables secure AI API integration while respecting browser security policies"
+
+**app/server.js Changes:**
+- Before: "Proxies requests to external AI APIs to bypass browser CORS restrictions"
+- After: "Proxies requests to external AI APIs with proper CORS handling from server side"
+
+**CHANGELOG.md Changes:**
+- "eliminates browser CORS restrictions" → "proper server-side CORS handling"
+- "Zero browser CORS restrictions" → "Proper server-side CORS handling"
+- "API keys never exposed to browser CORS restrictions" → "API keys handled securely on server side (never exposed to browser)"
+- "bypass browser security restrictions" → "handle browser CORS policies properly"
+- "bypass browser restrictions" → "properly handle browser CORS policies"
+
+#### Technical Accuracy
+
+**What the CORS Proxy Actually Does:**
+
+1. **Client makes request to own server** - Same-origin request (localhost:3000 → localhost:3000)
+2. **Server makes external request** - Server-to-server communication (not subject to browser CORS)
+3. **Server returns data to client** - Same-origin response (allowed by browser)
+4. **Browser security maintained** - CORS policies enforced correctly throughout
+
+**Why This Architecture Exists:**
+
+- AI API providers (Anthropic, OpenAI, Google) don't support CORS from arbitrary origins
+- Direct browser-to-API calls would be blocked (correctly) by CORS policies
+- Server-side proxy is a standard, secure architectural pattern
+- Separates concerns: browser handles UI, server handles external API communication
+
+#### Impact
+
+- ✅ **Technically accurate documentation** - Correctly describes how CORS proxy works
+- ✅ **No misleading security claims** - Doesn't imply bypassing browser protections
+- ✅ **Educational value** - Users understand proper CORS handling
+- ✅ **Professional credibility** - Documentation reflects sound engineering practices
+
+#### Files Modified
+
+- `README.md`: 2 corrections (feature list + "New in v2.0.2" description)
+- `app/server.js`: 1 correction (comment describing proxy endpoint)
+- `CHANGELOG.md`: 5 corrections (various historical entries)
+- All version files: 2.0.3 → 2.0.4
+
+#### Note
+
+This is a **documentation-only fix**. No code functionality changed. The CORS proxy has always worked correctly by respecting browser security - the documentation just described it inaccurately.
+
+---
+
 ## [2.0.3] - 2025-01-24
 
 ### Enhanced - Inline Competency Creation for Courses
@@ -393,7 +475,7 @@ Transformed the Training Plan Manager from a standalone HTML file into a profess
 - **Backend:** Node.js + Express server with embedded CORS proxy
 - **Frontend:** Modified HTML to use `/api/proxy` endpoint
 - **Deployment:** Docker + Docker Compose for one-command deployment
-- **AI Integration:** All AI API calls now routed through backend proxy (eliminates browser CORS restrictions)
+- **AI Integration:** All AI API calls now routed through backend proxy (proper server-side CORS handling)
 
 #### New Files Created
 
@@ -481,7 +563,7 @@ cd app && npm install && npm start
 
 ✅ **Embedded CORS Proxy:**
 - All AI API calls routed through backend
-- Zero browser CORS restrictions
+- Proper server-side CORS handling
 - No external CORS proxy needed
 - Works from `file://` protocol (though not recommended)
 
@@ -505,7 +587,7 @@ cd app && npm install && npm start
 #### Improvements
 
 **Security:**
-- API keys never exposed to browser CORS restrictions
+- API keys handled securely on server side (never exposed to browser)
 - Non-root user in Docker container
 - Regular security updates (Alpine base)
 
@@ -1002,7 +1084,7 @@ Updated `callClaudeAPI()` to support all three AI providers:
 - Response extraction: `data.candidates[0].content.parts[0].text`
 
 #### 2. CORS Proxy Configuration
-Added optional CORS proxy support to bypass browser security restrictions:
+Added optional CORS proxy support to handle browser CORS policies properly:
 
 **New Setting:**
 - **Field**: `corsProxy` in settings object
@@ -1070,7 +1152,7 @@ let settings = {
 **Impact & Benefits:**
 - ✅ **OpenAI users can now use course search** - GPT models properly supported
 - ✅ **Google Gemini users can now use course search** - Gemini models properly supported
-- ✅ **CORS workaround available** - Users can configure proxy to bypass browser restrictions
+- ✅ **CORS workaround available** - Users can configure proxy to properly handle browser CORS policies
 - ✅ **Clear error guidance** - Users understand why calls fail and how to fix
 - ✅ **Backward compatible** - Existing Anthropic users unaffected (CORS proxy optional)
 - ✅ **Future-proof** - Easy to add more providers with same pattern
