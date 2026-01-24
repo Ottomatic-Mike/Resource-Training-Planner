@@ -7,6 +7,185 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.3] - 2025-01-24
+
+### Enhanced - Inline Competency Creation for Courses
+
+**Issue Resolved:** Users could not create new competencies or categories when adding courses
+
+#### Problem
+
+In v2.0.2, users could select existing competencies when adding courses from online search or manual entry. However, if they discovered a course that taught a competency not yet in their library, they had to:
+1. Cancel the course addition workflow
+2. Navigate to the Competency Library tab
+3. Create the new competency
+4. Return to the Course Catalog
+5. Re-add the course and select the new competency
+
+This created a disruptive workflow that broke the natural flow of course discovery and addition.
+
+Similarly, if a user wanted to add a new category or subcategory, they had to first create a competency with that category, which was an indirect workaround.
+
+#### Solution
+
+**1. Inline Competency Creation in Online Course Search**
+
+When adding a course from AI search results, users now have an "+ Add New Competency" button that:
+- Expands an inline form within the competency selection modal
+- Allows creating competencies with full category/subcategory support
+- Enables adding new categories by selecting "+ Add New Category"
+- Enables adding new subcategories by selecting "+ Add New Subcategory"
+- Automatically selects the newly created competency
+- Highlights the new competency with a "NEW" badge
+- Saves the competency to the library for future use
+
+**New Functions:**
+- `toggleAddCompetencyFormInCourse()` - Shows/hides inline form
+- `cancelAddCompetencyInline()` - Closes inline form
+- `handleInlineCategoryChange()` - Manages category dropdown
+- `handleInlineSubcategoryChange()` - Manages subcategory dropdown
+- `saveNewCompetencyInline()` - Creates competency and refreshes list
+- `refreshCompetencySelectionList()` - Updates UI with new competency
+
+**2. Inline Competency Creation in Manual Course Form**
+
+The same functionality is now available when manually adding courses:
+- "+ Add New" button in the competency selection section
+- Compact inline form design for smaller modal
+- Same category/subcategory creation capabilities
+- Auto-select and "NEW" badge for created competencies
+
+**New Functions:**
+- `toggleAddCompetencyFormInManualCourse()` - Shows/hides form
+- `cancelAddCompetencyInlineManual()` - Closes form
+- `handleInlineManualCategoryChange()` - Manages category dropdown
+- `handleInlineManualSubcategoryChange()` - Manages subcategory dropdown
+- `saveNewCompetencyInlineManual()` - Creates and selects competency
+- `refreshManualCourseCompetencyList()` - Updates UI with new competency
+- Updated `buildCompetencyCheckboxList()` - Accepts optional newCompId parameter
+
+**3. Dynamic Category and Subcategory Management**
+
+Both inline forms support:
+- **Existing Categories:** Dropdown populated from current competency library
+- **New Categories:** Select "+ Add New Category" → text input appears
+- **Subcategories:** Dropdown updates based on selected category
+- **New Subcategories:** Select "+ Add New Subcategory" → text input appears
+- **Real-time UI updates:** Category selection updates available subcategories
+
+#### User Experience
+
+**Before (v2.0.2):**
+```
+Search for course → Add to catalog → Select competencies
+If competency doesn't exist:
+  Cancel → Go to Competencies tab → Add competency → Return → Re-add course
+```
+
+**After (v2.0.3):**
+```
+Search for course → Add to catalog → Select competencies
+If competency doesn't exist:
+  Click "+ Add New Competency" → Fill form → Create & Select → Continue
+```
+
+**Example Workflow:**
+1. User searches for "Docker Containerization Masterclass"
+2. Clicks "+ Add to Catalog"
+3. Realizes "Container Orchestration" competency doesn't exist
+4. Clicks "+ Add New Competency" button
+5. Enters:
+   - Name: "Container Orchestration"
+   - Category: Selects "+ Add New Category" → Enters "DevOps & Infrastructure"
+   - Subcategory: "Containerization"
+   - Description: "Docker, Kubernetes, and container management"
+6. Clicks "Create & Select"
+7. Competency is created, added to library, and automatically selected
+8. "Container Orchestration (NEW)" appears checked in the list
+9. Continues adding course normally
+
+**Success Messages:**
+- `✓ Competency "Container Orchestration" created and selected!`
+- Toast notification confirms creation
+
+#### UI/UX Improvements
+
+**Inline Form Design:**
+- Compact, visually distinct with teal border
+- Toggles visibility with "Add New Competency" / "Hide Form" button
+- Clears all fields when opened
+- Smooth scroll to newly created competency
+- Auto-checked with visual "NEW" badge
+- Non-disruptive - doesn't navigate away from current modal
+
+**Smart Dropdowns:**
+- Category dropdown shows existing + "+ Add New Category"
+- Selecting a category populates related subcategories
+- Subcategory dropdown shows existing for that category + "+ Add New Subcategory"
+- Custom inputs appear inline when "+ Add New" options selected
+
+#### Files Modified
+
+- `app/public/training-plan-manager.html`: ~450 lines added/modified
+  - Enhanced `showCompetencySelectionForCourse()` with inline form UI
+  - Enhanced `showAddCourseForm()` with inline form UI
+  - 12 new functions for inline competency creation (6 for search, 6 for manual)
+  - Updated `buildCompetencyCheckboxList()` to support newCompId highlighting
+- `app/server.js`: Version 2.0.2 → 2.0.3
+- `app/package.json`: Version 2.0.2 → 2.0.3
+- `docker-compose.yml`: Version tags updated
+- `README.md`: Version badge updated
+
+#### Technical Implementation
+
+**Category Management:**
+- Uses existing `getUniqueCategories()` helper
+- Uses existing `getSubcategoriesForCategory()` helper
+- Populates dropdowns dynamically from competency library
+- Supports creating categories on-the-fly
+
+**Data Structure:**
+```javascript
+const newComp = {
+    id: nextCompetencyId++,
+    name: 'Container Orchestration',
+    category: 'DevOps & Infrastructure',  // Can be new
+    subcategory: 'Containerization',       // Can be new
+    description: '...',
+    levels: { level1: '...', ... }
+};
+```
+
+**Auto-Selection:**
+- New competency ID passed to refresh functions
+- Checkbox automatically checked: `checked` attribute
+- Visual "NEW" badge: `<span style="color: var(--success-color)">NEW</span>`
+- Smooth scroll to newly created item
+
+#### Impact
+
+**Workflow Efficiency:**
+- Eliminates 5-step workaround for creating competencies during course addition
+- Reduces user frustration and context switching
+- Maintains flow state during course discovery
+
+**Competency Library Growth:**
+- Encourages organic growth of competency library
+- Captures competencies at point of need (when discovering courses)
+- Reduces abandoned course additions
+
+**Category Management:**
+- Users can create custom categories without pre-planning
+- Subcategories emerge naturally during course addition
+- Flexible taxonomy grows with organizational needs
+
+**Data Quality:**
+- Courses more likely to have competencies assigned
+- Competency descriptions written in context of course content
+- Better categorization from the start
+
+---
+
 ## [2.0.2] - 2025-01-24
 
 ### Enhanced - Course Categorization via Competency Selection

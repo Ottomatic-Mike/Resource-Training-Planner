@@ -4,7 +4,7 @@
 
 A powerful web service that enables engineering managers to create comprehensive, AI-assisted training plans for their technical team members. Built with Node.js + Express and Docker for easy deployment.
 
-![Version](https://img.shields.io/badge/version-2.0.2-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.3-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-blue.svg)
 
@@ -75,4 +75,4 @@ MIT License - Copyright (c) 2025 Training Plan Manager
 
 ---
 
-*Version 2.0.2 - Web Service Architecture*
+*Version 2.0.3 - Web Service Architecture*

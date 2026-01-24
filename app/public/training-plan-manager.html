@@ -5134,8 +5134,46 @@ function showAddCourseForm() {
             <label class="form-label">Relevant Competencies <span style="font-weight: normal; color: var(--text-muted);">(Optional)</span></label>
             <div class="form-help" style="margin-bottom: 12px;">Select competencies taught in this course. This helps categorize the course and match it with training plans.</div>
 
-            <div style="margin-bottom: 12px;">
-                <input type="text" class="form-input" id="searchManualCourseCompetencies" placeholder="Type to filter competencies..." oninput="filterManualCourseCompetencies()">
+            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                <input type="text" class="form-input" id="searchManualCourseCompetencies" placeholder="Type to filter competencies..." oninput="filterManualCourseCompetencies()" style="flex: 1;">
+                <button class="btn btn-secondary btn-sm" onclick="toggleAddCompetencyFormInManualCourse()" id="toggleAddCompBtnManual" type="button">
+                    <span id="addCompBtnTextManual">+ Add New</span>
+                </button>
+            </div>
+
+            <div id="addCompetencyInlineFormManual" style="display: none; margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border: 2px solid var(--primary-color); border-radius: 6px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 600;">Create New Competency</h4>
+
+                <div class="form-group">
+                    <label class="form-label form-label-required" style="font-size: 12px;">Name</label>
+                    <input type="text" class="form-input form-input-sm" id="newCompNameInlineManual" placeholder="e.g., Python Programming">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-size: 12px;">Category</label>
+                    <select class="form-input form-input-sm" id="newCompCategoryInlineManual" onchange="handleInlineManualCategoryChange()">
+                        <option value="">Select category...</option>
+                    </select>
+                    <input type="text" class="form-input form-input-sm" id="customCategoryInputInlineManual" placeholder="Enter new category..." style="display: none; margin-top: 4px;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-size: 12px;">Subcategory</label>
+                    <select class="form-input form-input-sm" id="newCompSubcategoryInlineManual" onchange="handleInlineManualSubcategoryChange()" disabled>
+                        <option value="">Select category first...</option>
+                    </select>
+                    <input type="text" class="form-input form-input-sm" id="customSubcategoryInputInlineManual" placeholder="Enter new subcategory..." style="display: none; margin-top: 4px;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-size: 12px;">Description</label>
+                    <textarea class="form-textarea" id="newCompDescriptionInlineManual" placeholder="What this competency encompasses..." rows="2" style="font-size: 12px;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button class="btn btn-ghost btn-sm" onclick="cancelAddCompetencyInlineManual()" type="button">Cancel</button>
+                    <button class="btn btn-primary btn-sm" onclick="saveNewCompetencyInlineManual()" type="button">Create & Select</button>
+                </div>
             </div>
 
             <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; background: var(--bg-secondary);">
@@ -5154,7 +5192,7 @@ function showAddCourseForm() {
     openModal('Add New Course', html, footer, 'modal-large');
 }
 
-function buildCompetencyCheckboxList(idPrefix) {
+function buildCompetencyCheckboxList(idPrefix, newCompId = null) {
     const categories = {};
     competencyLibrary.forEach(comp => {
         if (!categories[comp.category]) {
@@ -5178,13 +5216,15 @@ function buildCompetencyCheckboxList(idPrefix) {
 
         comps.forEach(comp => {
             const compId = `${idPrefix}${comp.id}`;
+            const isNew = comp.id === newCompId;
             html += `
                 <div class="form-group" style="margin: 8px 0;">
                     <label class="form-checkbox competency-item-manual" data-category="${escapeHtml(category).toLowerCase()}" data-subcategory="${escapeHtml(comp.subcategory || '').toLowerCase()}" data-name="${escapeHtml(comp.name).toLowerCase()}">
-                        <input type="checkbox" id="${compId}" value="${comp.id}">
+                        <input type="checkbox" id="${compId}" value="${comp.id}" ${isNew ? 'checked' : ''}>
                         <span>
                             ${escapeHtml(comp.name)}
                             ${comp.subcategory ? `<span style="color: var(--text-muted); font-size: 12px;"> (${escapeHtml(comp.subcategory)})</span>` : ''}
+                            ${isNew ? '<span style="color: var(--success-color); font-size: 11px; font-weight: 600; margin-left: 8px;">NEW</span>' : ''}
                         </span>
                     </label>
                 </div>
@@ -5220,6 +5260,165 @@ function filterManualCourseCompetencies() {
         const visibleItems = Array.from(group.querySelectorAll('.competency-item-manual')).filter(item => item.style.display !== 'none');
         group.style.display = visibleItems.length > 0 ? '' : 'none';
     });
+}
+
+function toggleAddCompetencyFormInManualCourse() {
+    const form = document.getElementById('addCompetencyInlineFormManual');
+    const btn = document.getElementById('addCompBtnTextManual');
+    const isVisible = form.style.display !== 'none';
+
+    if (isVisible) {
+        form.style.display = 'none';
+        btn.textContent = '+ Add New';
+    } else {
+        form.style.display = 'block';
+        btn.textContent = 'Hide';
+
+        // Populate category dropdown
+        const categorySelect = document.getElementById('newCompCategoryInlineManual');
+        const categories = getUniqueCategories();
+
+        let options = '<option value="">Select category...</option>';
+        categories.forEach(cat => {
+            options += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+        });
+        options += '<option value="__custom__">+ Add New Category</option>';
+        categorySelect.innerHTML = options;
+
+        // Clear form
+        document.getElementById('newCompNameInlineManual').value = '';
+        document.getElementById('newCompDescriptionInlineManual').value = '';
+        document.getElementById('customCategoryInputInlineManual').style.display = 'none';
+        document.getElementById('customSubcategoryInputInlineManual').style.display = 'none';
+        document.getElementById('newCompSubcategoryInlineManual').disabled = true;
+        document.getElementById('newCompSubcategoryInlineManual').innerHTML = '<option value="">Select category first...</option>';
+    }
+}
+
+function cancelAddCompetencyInlineManual() {
+    document.getElementById('addCompetencyInlineFormManual').style.display = 'none';
+    document.getElementById('addCompBtnTextManual').textContent = '+ Add New';
+}
+
+function handleInlineManualCategoryChange() {
+    const categorySelect = document.getElementById('newCompCategoryInlineManual');
+    const subcategorySelect = document.getElementById('newCompSubcategoryInlineManual');
+    const customCategoryInput = document.getElementById('customCategoryInputInlineManual');
+    const customSubcategoryInput = document.getElementById('customSubcategoryInputInlineManual');
+
+    const selectedCategory = categorySelect.value;
+
+    // Show/hide custom category input
+    if (selectedCategory === '__custom__') {
+        customCategoryInput.style.display = 'block';
+        subcategorySelect.innerHTML = '<option value="">Select subcategory...</option><option value="__custom__">+ Add New Subcategory</option>';
+        subcategorySelect.disabled = false;
+    } else if (selectedCategory) {
+        customCategoryInput.style.display = 'none';
+
+        // Populate subcategories for selected category
+        const subcategories = getSubcategoriesForCategory(selectedCategory);
+        subcategorySelect.innerHTML = '<option value="">Select subcategory...</option>';
+        subcategories.forEach(subcat => {
+            subcategorySelect.innerHTML += `<option value="${escapeHtml(subcat)}">${escapeHtml(subcat)}</option>`;
+        });
+        subcategorySelect.innerHTML += '<option value="__custom__">+ Add New Subcategory</option>';
+        subcategorySelect.disabled = false;
+    } else {
+        customCategoryInput.style.display = 'none';
+        subcategorySelect.innerHTML = '<option value="">Select category first...</option>';
+        subcategorySelect.disabled = true;
+    }
+
+    // Reset custom subcategory input
+    customSubcategoryInput.style.display = 'none';
+}
+
+function handleInlineManualSubcategoryChange() {
+    const subcategorySelect = document.getElementById('newCompSubcategoryInlineManual');
+    const customSubcategoryInput = document.getElementById('customSubcategoryInputInlineManual');
+
+    if (subcategorySelect.value === '__custom__') {
+        customSubcategoryInput.style.display = 'block';
+    } else {
+        customSubcategoryInput.style.display = 'none';
+    }
+}
+
+function saveNewCompetencyInlineManual() {
+    const name = document.getElementById('newCompNameInlineManual').value.trim();
+    if (!name) {
+        alert('Please enter a competency name');
+        return;
+    }
+
+    // Determine category value (dropdown or custom input)
+    let category = document.getElementById('newCompCategoryInlineManual').value.trim();
+    if (category === '__custom__') {
+        category = document.getElementById('customCategoryInputInlineManual').value.trim();
+        if (!category) {
+            alert('Please enter a category name or select an existing one');
+            return;
+        }
+    } else if (!category) {
+        category = 'Uncategorized';
+    }
+
+    // Determine subcategory value (dropdown or custom input)
+    let subcategory = document.getElementById('newCompSubcategoryInlineManual').value.trim();
+    if (subcategory === '__custom__') {
+        subcategory = document.getElementById('customSubcategoryInputInlineManual').value.trim();
+        if (!subcategory) {
+            alert('Please enter a subcategory name');
+            return;
+        }
+    }
+
+    const description = document.getElementById('newCompDescriptionInlineManual').value.trim();
+
+    // Create new competency
+    const newComp = {
+        id: nextCompetencyId++,
+        name: name,
+        category: category,
+        subcategory: subcategory,
+        description: description,
+        levels: {
+            level1: 'Basic understanding',
+            level2: 'Practical application',
+            level3: 'Proficient',
+            level4: 'Expert',
+            level5: 'Master / Teacher'
+        }
+    };
+
+    // Add to library
+    competencyLibrary.push(newComp);
+    triggerSave();
+
+    // Refresh the competency selection list and auto-select the new competency
+    refreshManualCourseCompetencyList(newComp.id);
+
+    // Hide the form
+    cancelAddCompetencyInlineManual();
+
+    // Show success message
+    showToast(`Competency "${name}" created and selected!`, 'success');
+}
+
+function refreshManualCourseCompetencyList(newCompId) {
+    // Rebuild the competency list
+    document.getElementById('manualCourseCompetencyList').innerHTML = buildCompetencyCheckboxList('manual_comp_', newCompId);
+
+    // Scroll to the new competency
+    if (newCompId) {
+        setTimeout(() => {
+            const newCheckbox = document.getElementById(`manual_comp_${newCompId}`);
+            if (newCheckbox) {
+                newCheckbox.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    }
 }
 
 function saveNewCourse() {
@@ -5579,6 +5778,10 @@ function showCompetencySelectionForCourse(course) {
         categories[comp.category].push(comp);
     });
 
+    // Build category options for inline form
+    const uniqueCategories = getUniqueCategories();
+    window.courseInlineFormCategories = uniqueCategories;
+
     let html = `
         <div class="alert alert-info" style="margin-bottom: 16px;">
             <strong>Select Relevant Competencies</strong>
@@ -5593,9 +5796,51 @@ function showCompetencySelectionForCourse(course) {
             </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label">Search Competencies</label>
-            <input type="text" class="form-input" id="searchCourseCompetencies" placeholder="Type to filter competencies..." oninput="filterCourseCompetencies()">
+        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+            <div class="form-group" style="flex: 1; margin: 0;">
+                <label class="form-label">Search Competencies</label>
+                <input type="text" class="form-input" id="searchCourseCompetencies" placeholder="Type to filter competencies..." oninput="filterCourseCompetencies()">
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button class="btn btn-secondary" onclick="toggleAddCompetencyFormInCourse()" id="toggleAddCompBtn">
+                    <span id="addCompBtnText">+ Add New Competency</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="addCompetencyInlineForm" style="display: none; margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border: 2px solid var(--primary-color); border-radius: 6px;">
+            <h4 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 600;">Create New Competency</h4>
+
+            <div class="form-group">
+                <label class="form-label form-label-required">Name</label>
+                <input type="text" class="form-input" id="newCompNameInline" placeholder="e.g., Python Programming">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" id="newCompCategoryInline" onchange="handleInlineCategoryChange()">
+                    <option value="">Select category...</option>
+                </select>
+                <input type="text" class="form-input" id="customCategoryInputInline" placeholder="Enter new category..." style="display: none; margin-top: 8px;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Subcategory</label>
+                <select class="form-input" id="newCompSubcategoryInline" onchange="handleInlineSubcategoryChange()" disabled>
+                    <option value="">Select category first...</option>
+                </select>
+                <input type="text" class="form-input" id="customSubcategoryInputInline" placeholder="Enter new subcategory..." style="display: none; margin-top: 8px;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea" id="newCompDescriptionInline" placeholder="What this competency encompasses..." rows="2"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-ghost btn-sm" onclick="cancelAddCompetencyInline()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="saveNewCompetencyInline()">Create & Select</button>
+            </div>
         </div>
 
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px;">
@@ -5672,6 +5917,205 @@ function filterCourseCompetencies() {
         const visibleItems = Array.from(group.querySelectorAll('.competency-item')).filter(item => item.style.display !== 'none');
         group.style.display = visibleItems.length > 0 ? '' : 'none';
     });
+}
+
+function toggleAddCompetencyFormInCourse() {
+    const form = document.getElementById('addCompetencyInlineForm');
+    const btn = document.getElementById('addCompBtnText');
+    const isVisible = form.style.display !== 'none';
+
+    if (isVisible) {
+        form.style.display = 'none';
+        btn.textContent = '+ Add New Competency';
+    } else {
+        form.style.display = 'block';
+        btn.textContent = 'Hide Form';
+
+        // Populate category dropdown
+        const categorySelect = document.getElementById('newCompCategoryInline');
+        const categories = window.courseInlineFormCategories || getUniqueCategories();
+
+        let options = '<option value="">Select category...</option>';
+        categories.forEach(cat => {
+            options += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+        });
+        options += '<option value="__custom__">+ Add New Category</option>';
+        categorySelect.innerHTML = options;
+
+        // Clear form
+        document.getElementById('newCompNameInline').value = '';
+        document.getElementById('newCompDescriptionInline').value = '';
+        document.getElementById('customCategoryInputInline').style.display = 'none';
+        document.getElementById('customSubcategoryInputInline').style.display = 'none';
+        document.getElementById('newCompSubcategoryInline').disabled = true;
+        document.getElementById('newCompSubcategoryInline').innerHTML = '<option value="">Select category first...</option>';
+    }
+}
+
+function cancelAddCompetencyInline() {
+    document.getElementById('addCompetencyInlineForm').style.display = 'none';
+    document.getElementById('addCompBtnText').textContent = '+ Add New Competency';
+}
+
+function handleInlineCategoryChange() {
+    const categorySelect = document.getElementById('newCompCategoryInline');
+    const subcategorySelect = document.getElementById('newCompSubcategoryInline');
+    const customCategoryInput = document.getElementById('customCategoryInputInline');
+    const customSubcategoryInput = document.getElementById('customSubcategoryInputInline');
+
+    const selectedCategory = categorySelect.value;
+
+    // Show/hide custom category input
+    if (selectedCategory === '__custom__') {
+        customCategoryInput.style.display = 'block';
+        subcategorySelect.innerHTML = '<option value="">Select subcategory...</option><option value="__custom__">+ Add New Subcategory</option>';
+        subcategorySelect.disabled = false;
+    } else if (selectedCategory) {
+        customCategoryInput.style.display = 'none';
+
+        // Populate subcategories for selected category
+        const subcategories = getSubcategoriesForCategory(selectedCategory);
+        subcategorySelect.innerHTML = '<option value="">Select subcategory...</option>';
+        subcategories.forEach(subcat => {
+            subcategorySelect.innerHTML += `<option value="${escapeHtml(subcat)}">${escapeHtml(subcat)}</option>`;
+        });
+        subcategorySelect.innerHTML += '<option value="__custom__">+ Add New Subcategory</option>';
+        subcategorySelect.disabled = false;
+    } else {
+        customCategoryInput.style.display = 'none';
+        subcategorySelect.innerHTML = '<option value="">Select category first...</option>';
+        subcategorySelect.disabled = true;
+    }
+
+    // Reset custom subcategory input
+    customSubcategoryInput.style.display = 'none';
+}
+
+function handleInlineSubcategoryChange() {
+    const subcategorySelect = document.getElementById('newCompSubcategoryInline');
+    const customSubcategoryInput = document.getElementById('customSubcategoryInputInline');
+
+    if (subcategorySelect.value === '__custom__') {
+        customSubcategoryInput.style.display = 'block';
+    } else {
+        customSubcategoryInput.style.display = 'none';
+    }
+}
+
+function saveNewCompetencyInline() {
+    const name = document.getElementById('newCompNameInline').value.trim();
+    if (!name) {
+        alert('Please enter a competency name');
+        return;
+    }
+
+    // Determine category value (dropdown or custom input)
+    let category = document.getElementById('newCompCategoryInline').value.trim();
+    if (category === '__custom__') {
+        category = document.getElementById('customCategoryInputInline').value.trim();
+        if (!category) {
+            alert('Please enter a category name or select an existing one');
+            return;
+        }
+    } else if (!category) {
+        category = 'Uncategorized';
+    }
+
+    // Determine subcategory value (dropdown or custom input)
+    let subcategory = document.getElementById('newCompSubcategoryInline').value.trim();
+    if (subcategory === '__custom__') {
+        subcategory = document.getElementById('customSubcategoryInputInline').value.trim();
+        if (!subcategory) {
+            alert('Please enter a subcategory name');
+            return;
+        }
+    }
+
+    const description = document.getElementById('newCompDescriptionInline').value.trim();
+
+    // Create new competency
+    const newComp = {
+        id: nextCompetencyId++,
+        name: name,
+        category: category,
+        subcategory: subcategory,
+        description: description,
+        levels: {
+            level1: 'Basic understanding',
+            level2: 'Practical application',
+            level3: 'Proficient',
+            level4: 'Expert',
+            level5: 'Master / Teacher'
+        }
+    };
+
+    // Add to library
+    competencyLibrary.push(newComp);
+    triggerSave();
+
+    // Refresh the competency selection list and auto-select the new competency
+    refreshCompetencySelectionList(newComp.id);
+
+    // Hide the form
+    cancelAddCompetencyInline();
+
+    // Show success message
+    showToast(`Competency "${name}" created and selected!`, 'success');
+}
+
+function refreshCompetencySelectionList(newCompId) {
+    // Rebuild the competency list with the new competency
+    const categories = {};
+    competencyLibrary.forEach(comp => {
+        if (!categories[comp.category]) {
+            categories[comp.category] = [];
+        }
+        categories[comp.category].push(comp);
+    });
+
+    let html = '';
+    const sortedCategories = Object.keys(categories).sort();
+    sortedCategories.forEach(category => {
+        const comps = categories[category].sort((a, b) => a.name.localeCompare(b.name));
+
+        html += `
+            <div class="competency-category-group" style="margin-bottom: 20px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: var(--primary-color);">
+                    ${escapeHtml(category)}
+                </h4>
+        `;
+
+        comps.forEach(comp => {
+            const compId = `comp_select_${comp.id}`;
+            const isNew = comp.id === newCompId;
+            html += `
+                <div class="form-group" style="margin: 8px 0;">
+                    <label class="form-checkbox competency-item" data-category="${escapeHtml(category).toLowerCase()}" data-subcategory="${escapeHtml(comp.subcategory || '').toLowerCase()}" data-name="${escapeHtml(comp.name).toLowerCase()}">
+                        <input type="checkbox" id="${compId}" value="${comp.id}" ${isNew ? 'checked' : ''}>
+                        <span>
+                            ${escapeHtml(comp.name)}
+                            ${comp.subcategory ? `<span style="color: var(--text-muted); font-size: 12px;"> (${escapeHtml(comp.subcategory)})</span>` : ''}
+                            ${isNew ? '<span style="color: var(--success-color); font-size: 11px; font-weight: 600; margin-left: 8px;">NEW</span>' : ''}
+                        </span>
+                    </label>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+    });
+
+    document.getElementById('competencySelectionList').innerHTML = html;
+
+    // Scroll to the new competency
+    if (newCompId) {
+        setTimeout(() => {
+            const newCheckbox = document.getElementById(`comp_select_${newCompId}`);
+            if (newCheckbox) {
+                newCheckbox.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    }
 }
 
 function saveCourseWithSelectedCompetencies() {

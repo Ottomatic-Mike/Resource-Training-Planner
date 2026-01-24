@@ -1,6 +1,6 @@
 /**
  * Training Plan Manager - Express Server with Embedded CORS Proxy
- * Version: 2.0.2
+ * Version: 2.0.3
  *
  * This server provides:
  * 1. Static file serving for the Training Plan Manager HTML application
@@ -25,7 +25,7 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
         service: 'training-plan-manager',
-        version: '2.0.2',
+        version: '2.0.3',
         timestamp: new Date().toISOString()
     });
 });
