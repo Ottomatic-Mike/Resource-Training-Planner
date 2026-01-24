@@ -1783,7 +1783,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '2.0.1',
+        version: '2.0.2',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -5127,6 +5127,23 @@ function showAddCourseForm() {
             <input type="number" class="form-input" id="newCourseTravelCost" placeholder="2000" min="0">
             <div class="form-help">Estimated cost for travel, accommodation, and meals per attendee</div>
         </div>
+
+        <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border-color);">
+
+        <div class="form-group">
+            <label class="form-label">Relevant Competencies <span style="font-weight: normal; color: var(--text-muted);">(Optional)</span></label>
+            <div class="form-help" style="margin-bottom: 12px;">Select competencies taught in this course. This helps categorize the course and match it with training plans.</div>
+
+            <div style="margin-bottom: 12px;">
+                <input type="text" class="form-input" id="searchManualCourseCompetencies" placeholder="Type to filter competencies..." oninput="filterManualCourseCompetencies()">
+            </div>
+
+            <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; background: var(--bg-secondary);">
+                <div id="manualCourseCompetencyList">
+                    ${buildCompetencyCheckboxList('manual_comp_')}
+                </div>
+            </div>
+        </div>
     `;
 
     const footer = `
@@ -5134,7 +5151,75 @@ function showAddCourseForm() {
         <button class="btn btn-primary" onclick="saveNewCourse()">Add Course</button>
     `;
 
-    openModal('Add New Course', html, footer);
+    openModal('Add New Course', html, footer, 'modal-large');
+}
+
+function buildCompetencyCheckboxList(idPrefix) {
+    const categories = {};
+    competencyLibrary.forEach(comp => {
+        if (!categories[comp.category]) {
+            categories[comp.category] = [];
+        }
+        categories[comp.category].push(comp);
+    });
+
+    let html = '';
+    const sortedCategories = Object.keys(categories).sort();
+
+    sortedCategories.forEach(category => {
+        const comps = categories[category].sort((a, b) => a.name.localeCompare(b.name));
+
+        html += `
+            <div class="competency-category-group-manual" style="margin-bottom: 20px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: var(--primary-color);">
+                    ${escapeHtml(category)}
+                </h4>
+        `;
+
+        comps.forEach(comp => {
+            const compId = `${idPrefix}${comp.id}`;
+            html += `
+                <div class="form-group" style="margin: 8px 0;">
+                    <label class="form-checkbox competency-item-manual" data-category="${escapeHtml(category).toLowerCase()}" data-subcategory="${escapeHtml(comp.subcategory || '').toLowerCase()}" data-name="${escapeHtml(comp.name).toLowerCase()}">
+                        <input type="checkbox" id="${compId}" value="${comp.id}">
+                        <span>
+                            ${escapeHtml(comp.name)}
+                            ${comp.subcategory ? `<span style="color: var(--text-muted); font-size: 12px;"> (${escapeHtml(comp.subcategory)})</span>` : ''}
+                        </span>
+                    </label>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+    });
+
+    return html;
+}
+
+function filterManualCourseCompetencies() {
+    const searchTerm = document.getElementById('searchManualCourseCompetencies').value.toLowerCase();
+    const items = document.querySelectorAll('.competency-item-manual');
+    const categoryGroups = document.querySelectorAll('.competency-category-group-manual');
+
+    items.forEach(item => {
+        const name = item.getAttribute('data-name');
+        const category = item.getAttribute('data-category');
+        const subcategory = item.getAttribute('data-subcategory');
+
+        const matches = !searchTerm ||
+                       name.includes(searchTerm) ||
+                       category.includes(searchTerm) ||
+                       subcategory.includes(searchTerm);
+
+        item.style.display = matches ? '' : 'none';
+    });
+
+    // Hide empty category groups
+    categoryGroups.forEach(group => {
+        const visibleItems = Array.from(group.querySelectorAll('.competency-item-manual')).filter(item => item.style.display !== 'none');
+        group.style.display = visibleItems.length > 0 ? '' : 'none';
+    });
 }
 
 function saveNewCourse() {
@@ -5143,6 +5228,13 @@ function saveNewCourse() {
         alert('Please enter a course title');
         return;
     }
+
+    // Collect selected competencies
+    const selectedCompetencies = [];
+    const checkboxes = document.querySelectorAll('#manualCourseCompetencyList input[type="checkbox"]:checked');
+    checkboxes.forEach(cb => {
+        selectedCompetencies.push(parseInt(cb.value));
+    });
 
     const newCourse = {
         id: nextCourseId++,
@@ -5176,7 +5268,7 @@ function saveNewCourse() {
         certificationValidityYears: 0,
         requiresTravel: document.getElementById('newCourseTravelRequired').checked,
         estimatedTravelCost: parseFloat(document.getElementById('newCourseTravelCost').value) || 0,
-        relevantCompetencies: [],
+        relevantCompetencies: selectedCompetencies,
         discoveredBy: 'Manual Entry',
         discoveryDate: new Date().toISOString(),
         discoveryContext: '',
@@ -5470,25 +5562,180 @@ function addSearchResultToCatalog(index) {
         return;
     }
 
-    // Add to catalog
+    // Store the course and index for later use
+    window.pendingSearchCourse = { course, index };
+
+    // Show competency selection modal
+    showCompetencySelectionForCourse(course);
+}
+
+function showCompetencySelectionForCourse(course) {
+    // Build competency selection UI
+    const categories = {};
+    competencyLibrary.forEach(comp => {
+        if (!categories[comp.category]) {
+            categories[comp.category] = [];
+        }
+        categories[comp.category].push(comp);
+    });
+
+    let html = `
+        <div class="alert alert-info" style="margin-bottom: 16px;">
+            <strong>Select Relevant Competencies</strong>
+            <p style="margin: 8px 0 0 0; font-size: 13px;">Choose which competencies are taught in this course. This helps categorize the course and match it with training plans.</p>
+        </div>
+
+        <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">
+            <h4 style="margin: 0 0 8px 0; font-size: 14px;">${escapeHtml(course.title)}</h4>
+            <div style="font-size: 12px; color: var(--text-muted);">
+                <div>${escapeHtml(course.provider)} • ${course.skillLevel || 'All Levels'} • ${course.duration?.totalHours || 0} hours</div>
+                ${course.description ? `<div style="margin-top: 8px;">${escapeHtml(course.description)}</div>` : ''}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Search Competencies</label>
+            <input type="text" class="form-input" id="searchCourseCompetencies" placeholder="Type to filter competencies..." oninput="filterCourseCompetencies()">
+        </div>
+
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px;">
+            <div id="competencySelectionList">
+    `;
+
+    const sortedCategories = Object.keys(categories).sort();
+    sortedCategories.forEach(category => {
+        const comps = categories[category].sort((a, b) => a.name.localeCompare(b.name));
+
+        html += `
+            <div class="competency-category-group" style="margin-bottom: 20px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: var(--primary-color);">
+                    ${escapeHtml(category)}
+                </h4>
+        `;
+
+        comps.forEach(comp => {
+            const compId = `comp_select_${comp.id}`;
+            html += `
+                <div class="form-group" style="margin: 8px 0;">
+                    <label class="form-checkbox competency-item" data-category="${escapeHtml(category).toLowerCase()}" data-subcategory="${escapeHtml(comp.subcategory || '').toLowerCase()}" data-name="${escapeHtml(comp.name).toLowerCase()}">
+                        <input type="checkbox" id="${compId}" value="${comp.id}">
+                        <span>
+                            ${escapeHtml(comp.name)}
+                            ${comp.subcategory ? `<span style="color: var(--text-muted); font-size: 12px;"> (${escapeHtml(comp.subcategory)})</span>` : ''}
+                        </span>
+                    </label>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+    });
+
+    html += `
+            </div>
+        </div>
+
+        <div style="margin-top: 16px; padding: 12px; background: var(--bg-hover); border-radius: 6px; font-size: 13px;">
+            <strong>Tip:</strong> You can also add competencies later by editing the course from the catalog.
+        </div>
+    `;
+
+    const footer = `
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-secondary" onclick="saveCourseFromSearch([])">Skip - Add Without Competencies</button>
+        <button class="btn btn-primary" onclick="saveCourseWithSelectedCompetencies()">Add Course</button>
+    `;
+
+    openModal('Add Course to Catalog', html, footer, 'modal-large');
+}
+
+function filterCourseCompetencies() {
+    const searchTerm = document.getElementById('searchCourseCompetencies').value.toLowerCase();
+    const items = document.querySelectorAll('.competency-item');
+    const categoryGroups = document.querySelectorAll('.competency-category-group');
+
+    items.forEach(item => {
+        const name = item.getAttribute('data-name');
+        const category = item.getAttribute('data-category');
+        const subcategory = item.getAttribute('data-subcategory');
+
+        const matches = !searchTerm ||
+                       name.includes(searchTerm) ||
+                       category.includes(searchTerm) ||
+                       subcategory.includes(searchTerm);
+
+        item.style.display = matches ? '' : 'none';
+    });
+
+    // Hide empty category groups
+    categoryGroups.forEach(group => {
+        const visibleItems = Array.from(group.querySelectorAll('.competency-item')).filter(item => item.style.display !== 'none');
+        group.style.display = visibleItems.length > 0 ? '' : 'none';
+    });
+}
+
+function saveCourseWithSelectedCompetencies() {
+    const selectedCompetencies = [];
+    const checkboxes = document.querySelectorAll('#competencySelectionList input[type="checkbox"]:checked');
+
+    checkboxes.forEach(cb => {
+        selectedCompetencies.push(parseInt(cb.value));
+    });
+
+    saveCourseFromSearch(selectedCompetencies);
+}
+
+function saveCourseFromSearch(selectedCompetencies) {
+    if (!window.pendingSearchCourse) {
+        alert('Course data not found');
+        return;
+    }
+
+    const { course, index } = window.pendingSearchCourse;
+
+    // Add to catalog with complete structure
     const newCourse = {
         id: nextCourseId++,
         title: course.title,
         provider: course.provider,
-        cost: course.cost || 0,
-        duration: course.duration || { totalHours: 0 },
+        providerType: 'MOOC',
         url: course.url || '',
+        description: course.description || '',
         format: course.format || 'Online Self-Paced',
-        skillLevel: course.skillLevel || 'All Levels',
+        duration: course.duration || { totalHours: 0, weeksToComplete: 0, hoursPerWeek: 0 },
+        location: '',
+        language: 'English',
+        cost: course.cost || 0,
+        costCurrency: settings.currency,
+        costNotes: '',
         rating: course.rating || 0,
         ratingCount: course.ratingCount || 0,
+        sentiment: 'Good',
+        sentimentSummary: '',
+        skillLevel: course.skillLevel || 'All Levels',
+        keyTopics: [],
+        learningObjectives: [],
+        prerequisites: [],
         hasCertification: course.hasCertification || false,
-        description: course.description || '',
+        certificationName: '',
+        certificationBody: '',
+        certificationValidityYears: 0,
         requiresTravel: course.requiresTravel || false,
         estimatedTravelCost: course.estimatedTravelCost || 0,
-        addedDate: new Date().toISOString().split('T')[0],
+        relevantCompetencies: selectedCompetencies,
+        discoveredBy: 'AI Search',
+        discoveryDate: new Date().toISOString(),
+        discoveryContext: 'Online course search',
         timesAssigned: 0,
-        completionRate: 0
+        completionRate: 0,
+        averageRating: 0,
+        isActive: true,
+        isRecommended: false,
+        isDeprecated: false,
+        deprecationNote: '',
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString(),
+        lastVerified: new Date().toISOString()
     };
 
     courseCatalog.push(newCourse);
@@ -5503,18 +5750,30 @@ function addSearchResultToCatalog(index) {
         btn.classList.add('btn-success');
     }
 
+    closeModal();
+
     // Show success message
     const resultsContainer = document.getElementById('searchResults');
     const successMsg = document.createElement('div');
     successMsg.className = 'alert alert-success';
     successMsg.style.marginTop = '12px';
-    successMsg.textContent = `✓ "${course.title}" has been added to your course catalog`;
+    successMsg.textContent = selectedCompetencies.length > 0
+        ? `✓ "${course.title}" has been added to your course catalog with ${selectedCompetencies.length} competenc${selectedCompetencies.length === 1 ? 'y' : 'ies'}`
+        : `✓ "${course.title}" has been added to your course catalog`;
     resultsContainer.insertBefore(successMsg, resultsContainer.firstChild);
 
-    // Auto-remove success message after 3 seconds
+    // Auto-remove success message after 4 seconds
     setTimeout(() => {
         successMsg.remove();
-    }, 3000);
+    }, 4000);
+
+    // Clear pending course
+    delete window.pendingSearchCourse;
+
+    // Refresh course catalog if on that tab
+    if (currentView === 'courses') {
+        renderCourses();
+    }
 }
 
 // === TRAINING PLANS (TAB 5) ===
@@ -7579,7 +7838,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '2.0.1',
+        version: '2.0.2',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

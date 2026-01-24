@@ -1,5 +1,5 @@
 # Training Plan Manager - Docker Compose Configuration
-# Version: 2.0.1
+# Version: 2.0.2
 #
 # Quick Start:
 #   docker-compose up -d        # Start in background
@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: training-plan-manager
-    image: training-plan-manager:2.0.1
+    image: training-plan-manager:2.0.2
     ports:
       - "3000:3000"
     environment:
@@ -29,7 +29,7 @@ services:
       start_period: 5s
     labels:
       - "com.training-manager.description=Training Plan Manager Web Service"
-      - "com.training-manager.version=2.0.1"
+      - "com.training-manager.version=2.0.2"
     networks:
       - training-manager-network
 

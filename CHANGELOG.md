@@ -7,6 +7,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.2] - 2025-01-24
+
+### Enhanced - Course Categorization via Competency Selection
+
+**Issue Resolved:** Courses added from online search could not be affiliated with categories or subcategories
+
+#### Problem
+
+When users searched for courses online using AI and added them to the catalog, the courses had no way to be categorized or linked to competencies. This made it difficult to:
+- Filter courses by category
+- Match courses with training plans
+- Understand what competencies a course teaches
+- Organize the course catalog effectively
+
+The same limitation existed for manually added courses.
+
+#### Solution
+
+**1. Enhanced Online Course Search Flow**
+
+When adding a course from search results, users now see a competency selection modal:
+- Select which competencies are taught in the course
+- Search/filter competencies by name, category, or subcategory
+- View competencies organized by category
+- Skip competency selection if desired (optional)
+- See how many competencies were added
+
+**New Functions:**
+- `showCompetencySelectionForCourse()` - Displays organized competency checkboxes
+- `filterCourseCompetencies()` - Real-time search/filter
+- `saveCourseWithSelectedCompetencies()` - Collects selections
+- `saveCourseFromSearch()` - Saves course with full data structure
+
+**2. Enhanced Manual Course Addition**
+
+Added competency selection to the "Add Course" form:
+- New "Relevant Competencies" section
+- Same organized, searchable competency list
+- Integrated into modal (expanded to modal-large)
+- Optional - can add courses without selecting competencies
+
+**New Functions:**
+- `buildCompetencyCheckboxList()` - Reusable competency UI builder
+- `filterManualCourseCompetencies()` - Search/filter for manual form
+- Updated `saveNewCourse()` - Collects selected competencies
+
+#### User Experience
+
+**Before:**
+Search → Add → Course has no categories → Can't filter or organize
+
+**After:**
+Search → Add → Select competencies → Course properly categorized → Can filter by category/competency
+
+**Example Success Messages:**
+- `✓ "AWS Certified Solutions Architect" has been added with 5 competencies`
+- `✓ "Python for Data Science" has been added to your course catalog`
+
+#### Files Modified
+
+- app/public/training-plan-manager.html: ~300 lines added/modified
+  - Rewritten `addSearchResultToCatalog()`
+  - 6 new functions for competency selection
+  - Updated manual course form
+- app/server.js: Version 2.0.1 → 2.0.2
+- app/package.json: Version 2.0.1 → 2.0.2
+- docker-compose.yml: Version tags updated
+- README.md: Version badge updated
+
+#### Impact
+
+- Courses properly categorized from the start
+- Better training plan matching
+- Improved course organization
+- Competency-based filtering works
+- No need to edit courses later to add categories
+
+---
+
 ## [2.0.1] - 2025-01-24
 
 ### Fixed - Improved AI API Error Handling
