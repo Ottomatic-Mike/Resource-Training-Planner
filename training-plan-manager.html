@@ -1293,6 +1293,14 @@ let wizardState = {
 let dashboardSortColumn = null;
 let dashboardSortDirection = 'asc';
 
+// Competencies table sort state
+let competenciesSortColumn = null;
+let competenciesSortDirection = 'asc';
+
+// Courses table sort state
+let coursesSortColumn = null;
+let coursesSortDirection = 'asc';
+
 // === SECURITY & ENCRYPTION ===
 // Web Crypto API functions for secure API key storage
 
@@ -1757,7 +1765,7 @@ function autoSave() {
 
 function saveToLocalStorage() {
     const saveData = {
-        version: '1.0.19',
+        version: '1.0.20',
         savedDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,
@@ -4052,13 +4060,61 @@ function renderCompetenciesList(filteredCompetencies = null) {
         </div>`;
     }
 
+    // Helper function to get sort indicator
+    const getSortIndicator = (column) => {
+        if (competenciesSortColumn === column) {
+            return competenciesSortDirection === 'asc' ? ' ▲' : ' ▼';
+        }
+        return '';
+    };
+
+    // Prepare competency data with computed values for sorting
+    const competencyData = competenciesToRender.map(comp => ({
+        comp,
+        useCount: getCompetencyUsage(comp.id)
+    }));
+
+    // Sort competencies based on current sort state
+    if (competenciesSortColumn) {
+        competencyData.sort((a, b) => {
+            let aVal, bVal;
+
+            switch (competenciesSortColumn) {
+                case 'name':
+                    aVal = a.comp.name.toLowerCase();
+                    bVal = b.comp.name.toLowerCase();
+                    break;
+                case 'category':
+                    aVal = (a.comp.category || 'Uncategorized').toLowerCase();
+                    bVal = (b.comp.category || 'Uncategorized').toLowerCase();
+                    break;
+                case 'subcategory':
+                    aVal = (a.comp.subcategory || '').toLowerCase();
+                    bVal = (b.comp.subcategory || '').toLowerCase();
+                    break;
+                case 'usage':
+                    aVal = a.useCount;
+                    bVal = b.useCount;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aVal < bVal) return competenciesSortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return competenciesSortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
     let html = '<div class="table-container"><table><thead><tr>';
-    html += '<th>Competency</th><th>Category</th><th>Subcategory</th><th>Used By</th><th>Actions</th>';
+    html += `<th onclick="sortCompetenciesTable('name')" style="cursor: pointer; user-select: none;">Competency${getSortIndicator('name')}</th>`;
+    html += `<th onclick="sortCompetenciesTable('category')" style="cursor: pointer; user-select: none;">Category${getSortIndicator('category')}</th>`;
+    html += `<th onclick="sortCompetenciesTable('subcategory')" style="cursor: pointer; user-select: none;">Subcategory${getSortIndicator('subcategory')}</th>`;
+    html += `<th onclick="sortCompetenciesTable('usage')" style="cursor: pointer; user-select: none;">Used By${getSortIndicator('usage')}</th>`;
+    html += '<th>Actions</th>';
     html += '</tr></thead><tbody>';
 
-    competenciesToRender.forEach(comp => {
-        const useCount = getCompetencyUsage(comp.id);
-
+    competencyData.forEach(({ comp, useCount }) => {
         html += `
             <tr>
                 <td><strong>${escapeHtml(comp.name)}</strong></td>
@@ -4075,6 +4131,19 @@ function renderCompetenciesList(filteredCompetencies = null) {
 
     html += '</tbody></table></div>';
     return html;
+}
+
+function sortCompetenciesTable(column) {
+    // If clicking the same column, toggle direction; otherwise, set to ascending
+    if (competenciesSortColumn === column) {
+        competenciesSortDirection = competenciesSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        competenciesSortColumn = column;
+        competenciesSortDirection = 'asc';
+    }
+
+    // Re-render the competencies to reflect the new sort
+    renderCompetencies();
 }
 
 function getCompetencyUsage(competencyId) {
@@ -4829,56 +4898,127 @@ function renderCoursesList(filteredCourses = null) {
         </div>`;
     }
 
-    let html = '<div class="grid-auto">';
+    // Helper function to get sort indicator
+    const getSortIndicator = (column) => {
+        if (coursesSortColumn === column) {
+            return coursesSortDirection === 'asc' ? ' ▲' : ' ▼';
+        }
+        return '';
+    };
 
-    coursesToRender.forEach(course => {
-        const ratingStars = '⭐'.repeat(Math.round(course.rating || 0));
+    // Prepare course data with computed values for sorting
+    const courseData = coursesToRender.map(course => ({
+        course,
+        totalCost: (course.cost || 0) + (course.requiresTravel ? (course.estimatedTravelCost || 0) : 0)
+    }));
+
+    // Sort courses based on current sort state
+    if (coursesSortColumn) {
+        courseData.sort((a, b) => {
+            let aVal, bVal;
+
+            switch (coursesSortColumn) {
+                case 'title':
+                    aVal = a.course.title.toLowerCase();
+                    bVal = b.course.title.toLowerCase();
+                    break;
+                case 'provider':
+                    aVal = a.course.provider.toLowerCase();
+                    bVal = b.course.provider.toLowerCase();
+                    break;
+                case 'cost':
+                    aVal = a.totalCost;
+                    bVal = b.totalCost;
+                    break;
+                case 'duration':
+                    aVal = a.course.duration?.totalHours || 0;
+                    bVal = b.course.duration?.totalHours || 0;
+                    break;
+                case 'format':
+                    aVal = a.course.format.toLowerCase();
+                    bVal = b.course.format.toLowerCase();
+                    break;
+                case 'level':
+                    // Sort by skill level hierarchy: Beginner < Intermediate < Advanced < Expert
+                    const levelOrder = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3, 'Expert': 4, 'All': 0 };
+                    aVal = levelOrder[a.course.skillLevel] || 0;
+                    bVal = levelOrder[b.course.skillLevel] || 0;
+                    break;
+                case 'rating':
+                    aVal = a.course.rating || 0;
+                    bVal = b.course.rating || 0;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aVal < bVal) return coursesSortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return coursesSortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
+    let html = '<div class="table-container"><table><thead><tr>';
+    html += `<th onclick="sortCoursesTable('title')" style="cursor: pointer; user-select: none;">Course Title${getSortIndicator('title')}</th>`;
+    html += `<th onclick="sortCoursesTable('provider')" style="cursor: pointer; user-select: none;">Provider${getSortIndicator('provider')}</th>`;
+    html += `<th onclick="sortCoursesTable('format')" style="cursor: pointer; user-select: none;">Format${getSortIndicator('format')}</th>`;
+    html += `<th onclick="sortCoursesTable('level')" style="cursor: pointer; user-select: none;">Level${getSortIndicator('level')}</th>`;
+    html += `<th onclick="sortCoursesTable('duration')" style="cursor: pointer; user-select: none;">Duration${getSortIndicator('duration')}</th>`;
+    html += `<th onclick="sortCoursesTable('cost')" style="cursor: pointer; user-select: none;">Total Cost${getSortIndicator('cost')}</th>`;
+    html += `<th onclick="sortCoursesTable('rating')" style="cursor: pointer; user-select: none;">Rating${getSortIndicator('rating')}</th>`;
+    html += '<th>Actions</th>';
+    html += '</tr></thead><tbody>';
+
+    courseData.forEach(({ course, totalCost }) => {
+        const ratingDisplay = course.rating
+            ? `⭐ ${course.rating.toFixed(1)}${course.ratingCount ? ` (${course.ratingCount})` : ''}`
+            : '—';
+
+        const certBadge = course.hasCertification
+            ? '<span class="badge badge-success" style="font-size: 10px; margin-left: 4px;">Cert</span>'
+            : '';
+
+        const travelIndicator = course.requiresTravel
+            ? '<span class="badge badge-warning" style="font-size: 10px; margin-left: 4px;">Travel</span>'
+            : '';
 
         html += `
-            <div class="card">
-                <div class="card-header">
-                    <div style="flex: 1;">
-                        <h3 class="card-title">${escapeHtml(course.title)}</h3>
-                        <div class="card-subtitle">${escapeHtml(course.provider)}</div>
-                    </div>
-                    ${course.hasCertification ? '<span class="badge badge-success">Certification</span>' : ''}
-                </div>
-                <div class="card-body">
-                    <div style="margin-bottom: 12px;">
-                        <div>${ratingStars} ${course.rating ? course.rating.toFixed(1) : 'No rating'}</div>
-                        ${course.ratingCount ? `<div style="font-size: 12px; color: var(--text-muted);">${course.ratingCount} reviews</div>` : ''}
-                    </div>
-
-                    <div style="display: flex; gap: 20px; margin-bottom: 12px; font-size: 13px;">
-                        <div>
-                            <div style="color: var(--text-muted);">Cost</div>
-                            <div><strong>${formatCurrency(course.cost || 0)}</strong></div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-muted);">Duration</div>
-                            <div><strong>${course.duration?.totalHours || 0}h</strong></div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-muted);">Level</div>
-                            <div><strong>${course.skillLevel || 'All'}</strong></div>
-                        </div>
-                    </div>
-
-                    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
-                        ${course.format}
-                    </div>
-
-                    <div class="card-actions" style="border-top: 1px solid var(--border-light); margin-top: 12px;">
-                        <button class="btn btn-sm btn-ghost" onclick="viewCourseDetail(${course.id})">View Details</button>
-                        <button class="btn btn-sm btn-ghost" onclick="deleteCourse(${course.id})">Delete</button>
-                    </div>
-                </div>
-            </div>
+            <tr onclick="viewCourseDetail(${course.id})" style="cursor: pointer;">
+                <td>
+                    <div><strong>${escapeHtml(course.title)}</strong>${certBadge}${travelIndicator}</div>
+                </td>
+                <td>${escapeHtml(course.provider)}</td>
+                <td>${escapeHtml(course.format)}</td>
+                <td>${escapeHtml(course.skillLevel || 'All')}</td>
+                <td>${course.duration?.totalHours || 0}h</td>
+                <td>
+                    <div>${formatCurrency(course.cost || 0)}</div>
+                    ${course.requiresTravel && course.estimatedTravelCost ? `<div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">+${formatCurrency(course.estimatedTravelCost)} travel</div>` : ''}
+                </td>
+                <td>${ratingDisplay}</td>
+                <td class="table-actions">
+                    <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); viewCourseDetail(${course.id})">View</button>
+                    <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); deleteCourse(${course.id})">Delete</button>
+                </td>
+            </tr>
         `;
     });
 
-    html += '</div>';
+    html += '</tbody></table></div>';
     return html;
+}
+
+function sortCoursesTable(column) {
+    // If clicking the same column, toggle direction; otherwise, set to ascending
+    if (coursesSortColumn === column) {
+        coursesSortDirection = coursesSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        coursesSortColumn = column;
+        coursesSortDirection = 'asc';
+    }
+
+    // Re-render the courses to reflect the new sort
+    renderCourses();
 }
 
 function showAddCourseForm() {
@@ -7043,7 +7183,7 @@ function renderCourseEffectiveness() {
 // === IMPORT/EXPORT FUNCTIONS ===
 function exportToJSON() {
     const exportData = {
-        version: '1.0.19',
+        version: '1.0.20',
         exportDate: new Date().toISOString(),
         resources: resources,
         competencyLibrary: competencyLibrary,

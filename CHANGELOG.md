@@ -7,6 +7,178 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.20] - 2026-01-24
+
+### Changed - Sortable Table Views for Courses and Competencies
+
+This release transforms the Course Catalog from tile format to a clean, sortable table layout and adds full sorting functionality to the Competencies tab for improved navigation and data management.
+
+#### Course Catalog - Table View with Sortable Columns
+
+**Previous Design:**
+- Courses displayed as cards/tiles in grid layout
+- No sorting capability
+- Inefficient use of screen space
+- Difficult to compare courses side-by-side
+- Information spread across card elements
+
+**New Table-Based Design:**
+- **Professional Table Layout** with clear columns:
+  - **Course Title** - Full course name with certification and travel badges
+  - **Provider** - Training provider/platform
+  - **Format** - Online Self-Paced, Online Live, In-Person, Hybrid
+  - **Level** - Beginner, Intermediate, Advanced, Expert, All
+  - **Duration** - Total hours for the course
+  - **Total Cost** - Course cost + travel cost (if applicable)
+  - **Rating** - Star rating with review count
+  - **Actions** - View and Delete buttons
+
+- **All Columns Sortable** with smart field-specific logic:
+  - **Title** - Alphabetical (A-Z / Z-A)
+  - **Provider** - Alphabetical (A-Z / Z-A)
+  - **Format** - Alphabetical sorting
+  - **Level** - Hierarchical (Beginner → Intermediate → Advanced → Expert)
+  - **Duration** - Numeric (hours, low to high / high to low)
+  - **Total Cost** - Numeric (includes course + travel costs)
+  - **Rating** - Numeric (0.0 to 5.0)
+
+- **Visual Indicators:**
+  - Certification badge for courses with certifications
+  - Travel badge for courses requiring travel
+  - Travel cost shown as sub-line under main cost
+  - Sort direction arrows (▲ ascending, ▼ descending)
+  - Hover effects on column headers
+  - Click anywhere on row to view details
+
+- **Sorting Behavior:**
+  - First click: Sort ascending
+  - Second click: Toggle to descending
+  - Click different column: Reset to ascending
+  - Visual feedback with arrow indicators
+  - Instant sorting with no page reload
+
+#### Competencies - Sortable Table Columns
+
+**Enhancement:**
+- Competencies already had table layout, now fully sortable
+- All 4 columns now clickable for sorting
+
+**Sortable Columns:**
+- **Competency** - Alphabetical sorting (A-Z / Z-A)
+- **Category** - Alphabetical sorting (handles "Uncategorized")
+- **Subcategory** - Alphabetical sorting (handles empty values)
+- **Used By** - Numeric sorting by usage count (resources using competency)
+
+**Visual Enhancements:**
+- Sort direction arrows on active column
+- Hover effects on column headers
+- Consistent with Resources and Course tables
+- Professional, clean appearance
+
+#### Smart Sorting Logic by Field Type
+
+**Alphabetical Sorting:**
+- Course Title, Provider, Format (courses)
+- Competency Name, Category, Subcategory (competencies)
+- Case-insensitive for natural ordering
+- Handles null/empty values gracefully
+
+**Numeric Sorting:**
+- Duration (hours)
+- Total Cost (course + travel)
+- Rating (0.0 to 5.0)
+- Usage Count (resources using competency)
+- Proper numeric comparison (not string)
+
+**Hierarchical Sorting:**
+- Skill Level: Beginner → Intermediate → Advanced → Expert
+- "All" levels sorted to beginning
+- Maintains logical progression
+- Intuitive ordering for users
+
+#### User Experience Benefits
+
+**For Course Management:**
+- Quick comparison of course costs across providers
+- Easy identification of highly-rated courses
+- Sort by duration to find courses fitting time constraints
+- Filter by level to match resource skill needs
+- Professional appearance suitable for management review
+
+**For Competency Management:**
+- Find competencies by alphabetical name
+- Group by category or subcategory
+- Identify most/least used competencies
+- Better understanding of skill library
+- Easier competency planning
+
+**For Navigation:**
+- Predictable sorting behavior across all tabs
+- Consistent user experience (Resources, Competencies, Courses)
+- Faster data exploration
+- Less scrolling required
+- Better for large catalogs
+
+#### Technical Implementation
+
+**State Management:**
+- Added `competenciesSortColumn` and `competenciesSortDirection` state variables
+- Added `coursesSortColumn` and `coursesSortDirection` state variables
+- State persists during session (resets on tab switch)
+- Consistent pattern with dashboard sorting
+
+**Courses Table Redesign:**
+- Complete rewrite of `renderCoursesList()` function
+- Changed from grid-auto card layout to table-container table
+- Pre-computes total cost (course + travel) for accurate sorting
+- Maintains all existing functionality (search, filters, detail views)
+- Event.stopPropagation() prevents row click when clicking action buttons
+
+**Sorting Functions:**
+- `sortCoursesTable(column)` - Handles course sorting with toggle logic
+- `sortCompetenciesTable(column)` - Handles competency sorting with toggle logic
+- Both follow same pattern as `sortDashboardTable()`
+- Efficient in-memory sorting
+- Type-specific comparison logic
+
+**Visual Consistency:**
+- Uses existing CSS (th[onclick] hover effects)
+- Consistent table styling across all tabs
+- Same sort indicator symbols (▲ ▼)
+- Professional appearance maintained
+- Responsive design preserved
+
+#### Information Density Improvements
+
+**Courses Table:**
+- More courses visible per screen
+- All key information in row format
+- Side-by-side comparison easy
+- Badge indicators for important attributes
+- Sub-line details for additional costs
+
+**Both Tables:**
+- Efficient use of screen space
+- Better for printing/exporting
+- Easier to scan large datasets
+- Professional management tool appearance
+- Scales well with many entries
+
+#### Breaking Changes
+
+None - all changes are backward compatible. Existing data, search, filters, and detail views work exactly as before.
+
+#### Migration Notes
+
+- No data migration required
+- Sort state is session-only (not persisted)
+- Default view remains unsorted until user clicks a header
+- All existing features and workflows preserved
+- Course detail modal unchanged
+- Competency detail modal unchanged
+
+---
+
 ## [1.0.19] - 2026-01-24
 
 ### Added - Multiple Calendar Support for Resources
