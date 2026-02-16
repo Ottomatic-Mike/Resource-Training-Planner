@@ -67,7 +67,7 @@ Now that the application is running, let's explore!
 **You now have:**
 - 6 sample team members
 - 18 competencies across 5 categories
-- 509 training courses from 19 providers (including 88 from ServiceNow University)
+- 240 training courses organized by role competencies across 23 providers
 - 2 regional calendars
 
 ### Minute 3-4: Explore the Dashboard
@@ -96,7 +96,7 @@ Now that the application is running, let's explore!
 ### Minute 9-10: Check Out Courses
 
 - Click **Course Catalog** (Tab 4)
-- Browse 509 sample courses from 19 providers (including the full ServiceNow University catalog)
+- Browse 240 sample courses organized by role competencies across 23 providers
 - Notice: provider, cost, duration, rating, relevant competencies
 - Click "View Details" on any course
 - Try the search and filter features
@@ -122,28 +122,49 @@ Across 5 categories:
 - **Data**: SQL, NoSQL, Data Engineering
 - **Soft Skills**: Leadership, Communication
 
-### 509 Training Courses
-From 19 providers including:
-- **Udemy** (100 courses, $20 each) — Programming (Python, JavaScript, Java, C#, C++, Go, Rust, PHP, Ruby, Swift, Kotlin), web development (React, Angular, Vue, Next.js, Node.js, Svelte), mobile (React Native, Flutter), cloud (AWS, Azure, GCP), DevOps (Docker, Kubernetes, Terraform, Ansible, CI/CD), security, data science, ML/AI, testing, architecture, and tools
-- **Coursera** (46 courses, Free–$392) — Google, IBM, Meta, DeepLearning.AI, and university professional certificates and specializations in IT, cybersecurity, data science, AI/ML, cloud, and development
-- **Pluralsight** (40 courses, $299/year subscription) — Complete skill paths for cloud (AWS, Azure, GCP), DevOps, programming, security, data, and AI
-- **LinkedIn Learning** (35 courses, $240/year subscription) — Career learning paths and individual courses in development, cloud, security, data, leadership, project management, and soft skills
-- **AWS Training & Certification** (25 courses, Free–$2,100) — All certification levels (Cloud Practitioner through Specialty), classroom training, and AWS Skill Builder
-- **Microsoft Learn** (30 courses, Free–$165) — Complete Azure certification track (Fundamentals through Expert), Security, Microsoft 365, and Power Platform
-- **Google Cloud Training** (20 courses, Free–$1,600) — All professional certifications, classroom training, Skills Boost, and AI/ML specializations
-- **SANS Institute** (20 courses, $7,984–$9,504) — Premier cybersecurity training across security essentials, pen testing, cloud security, forensics, development, and management — all with GIAC exam fees included
-- **Linux Foundation** (20 courses, $200–$395) — Kubernetes (KCNA, CKA, CKAD, CKS), Linux administration (LFCA, LFCS), DevOps, and Node.js certifications
-- **CompTIA** (12 courses, $157–$492) — Complete certification track from ITF+ through CASP+, including A+, Network+, Security+, Cloud+, Data+, CySA+, and PenTest+
-- **ISC2** (8 courses, Free–$749) — CC, SSCP, CISSP, CCSP, CSSLP, CGRC, HCISPP, and CISSP-ISSAP certifications
-- **HashiCorp** (6 courses, Free–$71) — Terraform, Vault, and Consul certifications at Associate and Professional levels
-- **O'Reilly Learning** (15 paths, $499/year subscription) — Curated learning paths in Python, Java, Go, Rust, cloud, Kubernetes, SRE, security, data science, AI/ML, DevOps, microservices, and web development
-- **Scrum / Agile** (10 courses, $150–$1,095) — Scrum Alliance (CSM, CSPO, A-CSM, CSD), Scrum.org (PSM I/II, PSPO I), PMI (PMI-ACP, PMP), and SAFe Agilist
-- **Frontend Masters** (15 courses, $390/year subscription) — JavaScript deep dives, React, TypeScript, CSS, web performance, design systems, databases, testing, Rust, and Go
-- **Codecademy** (8 courses, $240/year Pro subscription) — Career paths in full-stack, front-end, back-end, data science, computer science, cybersecurity, DevOps, and AI/ML
-- **edX** (8 courses, Free–$1,350) — Harvard CS50, MIT MicroMasters, university-backed certificates in computer science, cybersecurity, and development
-- **DataCamp** (8 courses, $300/year subscription) — Data science, data analysis, data engineering, ML, SQL, Power BI, Tableau, and AI skill tracks
-- **Udacity** (1 course, $1,200) — Data Engineering Nanodegree
-- **ServiceNow University** (88 courses, Free–$17,000) — Complete Now Learning catalog covering all CIS certification paths, CSA/CAD prep, simulators, micro-certifications, AI/GenAI, and expert programs (ArchX, CTA, CMA)
+### 240 Training Courses — Organized by Role Competencies
+
+Courses are structured around competency areas for each of the 6 sample roles:
+
+**Cross-Role Foundations (30 courses)**
+- Professional Development & Methodology (Agile, PM, leadership)
+- Technical Foundations (Git, Linux, networking, CS fundamentals)
+- Platform Fundamentals (ServiceNow admin, CSA prep, AI essentials)
+
+**Senior Developer Track (38 courses)** — for John Smith
+- Programming Languages, Frameworks & Architecture, Database Engineering
+- Developer Certifications (JSNAD, GWEB)
+- Platform Development (ServiceNow scripting, Flow Designer, App Engine, CTA/CMA)
+
+**Security Engineer Track (40 courses)** — for Jane Doe
+- Security Fundamentals & Advanced Certifications (CompTIA, ISC2, SANS)
+- Offensive Security & Penetration Testing
+- Cloud & Application Security, Incident Response & Forensics
+- Platform Security & GRC (ServiceNow SecOps, IRM, SIR, VR, TPRM)
+
+**DevOps Engineer Track (61 courses)** — for Bob Wilson
+- Containers & Orchestration, Infrastructure as Code, CI/CD
+- Cloud Platforms (AWS, Azure, GCP certifications)
+- Monitoring & Reliability (Prometheus, Grafana, SRE)
+- Platform Operations (ServiceNow ITSM, Discovery, CMDB, Service Mapping, HAM/SAM, CSM, HRSD, FSM)
+
+**QA Lead Track (22 courses)** — for Sarah Lee
+- Test Automation Frameworks (Selenium, Cypress, Playwright, Jest, pytest)
+- Quality Process & Methodology
+- Platform Testing (ServiceNow ATF, Agile/Test Management)
+
+**Data Engineer Track (27 courses)** — for Mike Chen
+- Data Pipelines & Processing, Machine Learning & AI
+- Cloud Data Services (AWS, Azure, GCP data certs)
+- Platform Analytics (ServiceNow Performance Analytics, dashboards)
+
+**Frontend Developer Track (22 courses)** — for Emma Brown
+- JavaScript & TypeScript, Frontend Frameworks (React, Angular, Vue)
+- CSS, Design Systems & Performance
+- UX Design & Accessibility
+- Platform UI Development (ServiceNow UI Builder, Service Portal)
+
+**From 23 providers** including Udemy, Coursera, Pluralsight, LinkedIn Learning, ServiceNow University, SANS Institute, CompTIA, ISC2, AWS Training, Microsoft Learn, Google Cloud Training, Frontend Masters, O'Reilly, and more.
 
 ### 2 Regional Calendars
 - **US Federal Holidays 2026** (8 holidays)

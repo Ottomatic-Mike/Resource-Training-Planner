@@ -201,7 +201,7 @@ The app ships with pre-loaded sample data you can activate from **Settings > Loa
 
 - **6 Team Members** — Senior Developer, Security Engineer, DevOps Engineer, QA Lead, Data Engineer, Frontend Developer
 - **18 Competencies** — Across Programming, Cloud, DevOps, Security, Data, and Soft Skills categories
-- **509 Courses** — Comprehensive catalog across 19 providers: Udemy (100), Coursera (46), Pluralsight (40), LinkedIn Learning (35), AWS Training (25), Microsoft Learn (30), Google Cloud (20), SANS Institute (20), Linux Foundation (20), CompTIA (12), ISC2 (8), HashiCorp (6), O'Reilly (15), Scrum/Agile (10), Frontend Masters (15), Codecademy (8), edX (8), DataCamp (8), Udacity (1), and ServiceNow University (88 courses covering all CIS paths, expert programs, and micro-certifications). Prices range from free to $17,000. Certification exam fees included where applicable.
+- **240 Courses** — Organized by role competencies across 23 providers (Udemy, Coursera, Pluralsight, LinkedIn Learning, ServiceNow University, SANS Institute, CompTIA, ISC2, AWS Training, Microsoft Learn, Google Cloud Training, and more). Each of the 6 sample roles has a dedicated competency track with ServiceNow courses integrated alongside industry providers. Prices range from free to $17,000. Use AI-powered "Search Online" for live course discovery.
 - **2 Holiday Calendars** — US Federal Holidays 2026 and UK Bank Holidays 2026
 
 This lets you explore every feature immediately without entering any data first.
