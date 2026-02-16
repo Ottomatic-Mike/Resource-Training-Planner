@@ -185,9 +185,9 @@ AI features are entirely optional. The app works fully without them. To enable A
 
 | Provider | Models | Get an API Key |
 |----------|--------|----------------|
-| **Anthropic** | Claude 4.5 Sonnet, Claude 3.5 Sonnet | [console.anthropic.com](https://console.anthropic.com/) |
-| **OpenAI** | GPT-4o, GPT-4, GPT-3.5 Turbo | [platform.openai.com](https://platform.openai.com/) |
-| **Google** | Gemini 2.0 Flash, Gemini 1.5 Pro | [aistudio.google.com](https://aistudio.google.com/) |
+| **Anthropic** | Claude Opus 4.6, Claude Sonnet 4.5, Claude Haiku 4.5 | [console.anthropic.com](https://console.anthropic.com/) |
+| **OpenAI** | GPT-5.2, o4-mini, o3 | [platform.openai.com](https://platform.openai.com/) |
+| **Google** | Gemini 3 Pro, Gemini 3 Flash, Gemini 2.5 Pro | [aistudio.google.com](https://aistudio.google.com/) |
 
 Configure your key in the app under **Settings** > **AI Configuration**. Keys are encrypted locally and never leave your browser except when making API calls through the server's CORS proxy.
 

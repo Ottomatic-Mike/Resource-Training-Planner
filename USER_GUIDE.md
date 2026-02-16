@@ -1007,7 +1007,7 @@ Access via **⚙️ Settings** button in header.
 
 **Model:**
 - Specific model name
-- e.g., `claude-3-5-sonnet-20241022`
+- e.g., `claude-sonnet-4-5-20250929`
 
 **API Key:**
 - Stored locally in browser

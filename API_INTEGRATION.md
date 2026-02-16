@@ -125,7 +125,7 @@ AI simply accelerates and enhances these workflows.
 2. Click **Settings ⚙️**
 3. Select **AI Provider**: Anthropic
 4. Enter **API Key**: (paste your key)
-5. Select **Model**: `claude-3-5-sonnet-20241022`
+5. Select **Model**: `claude-sonnet-4-5-20250929` (recommended)
 6. Set **Temperature**: 0.7 (default)
 7. Click **"Save Settings"**
 
@@ -143,20 +143,20 @@ AI simply accelerates and enhances these workflows.
 
 ### Recommended Models
 
-**claude-3-5-sonnet-20241022** (Recommended)
-- Best balance of speed and quality
-- Cost: ~$0.003 per request
+**claude-opus-4-6** (Premium)
+- Latest flagship, highest intelligence
+- Cost: ~$0.09 per request
+- Use for: Complex enterprise training analysis
+
+**claude-sonnet-4-5-20250929** (Recommended)
+- Best balance of quality and cost
+- Cost: ~$0.054 per request
 - Use for: All features
 
-**claude-3-opus-20240229** (Premium)
-- Highest quality
-- Cost: ~$0.015 per request
-- Use for: Complex analysis only
-
-**claude-3-haiku-20240307** (Budget)
-- Fastest, cheapest
-- Cost: ~$0.00025 per request
-- Use for: Simple tasks
+**claude-haiku-4-5-20251001** (Budget)
+- Fast and cost-effective
+- Cost: ~$0.018 per request
+- Use for: Quick suggestions and simple tasks
 
 ### Cost Estimates
 
@@ -215,7 +215,7 @@ AI simply accelerates and enhances these workflows.
 2. Click **Settings ⚙️**
 3. Select **AI Provider**: OpenAI
 4. Enter **API Key**: (paste your key)
-5. Select **Model**: `gpt-4-turbo-preview`
+5. Select **Model**: `gpt-5.2` (recommended)
 6. Set **Temperature**: 0.7
 7. Click **"Save Settings"**
 
@@ -225,21 +225,20 @@ Same as Anthropic (see above).
 
 ### Recommended Models
 
-**gpt-4-turbo-preview** (Recommended)
-- Latest GPT-4 with 128k context
-- Cost: ~$0.01-0.03 per request
+**gpt-5.2** (Recommended)
+- Latest flagship with revolutionary reasoning
+- Cost: ~$0.047 per request
 - Use for: All features
 
-**gpt-4** (Standard)
-- Original GPT-4
-- Cost: ~$0.03-0.06 per request
-- Use for: If turbo unavailable
+**o4-mini** (Reasoning)
+- Fast reasoning model, great value
+- Cost: ~$0.017 per request
+- Use for: Complex analysis with structured output
 
-**gpt-3.5-turbo** (Budget)
-- Faster, cheaper
-- Cost: ~$0.0005-0.0015 per request
-- Use for: Simple tasks only
-- Quality trade-off
+**o3** (Premium Reasoning)
+- Most powerful reasoning model
+- Cost: ~$0.03 per request
+- Use for: Deep multi-step competency analysis
 
 ### Cost Estimates
 
@@ -285,7 +284,7 @@ Same as Anthropic (see above).
 2. Click **Settings ⚙️**
 3. Select **AI Provider**: Google
 4. Enter **API Key**: (paste your key)
-5. Select **Model**: `gemini-pro`
+5. Select **Model**: `gemini-3-flash-preview` (recommended)
 6. Set **Temperature**: 0.7
 7. Click **"Save Settings"**
 
@@ -295,14 +294,20 @@ Same as Anthropic (see above).
 
 ### Recommended Models
 
-**gemini-pro** (Standard)
-- Free tier available (60 requests/min)
-- Cost: Very low when paid
-- Use for: Most features
+**gemini-3-pro-preview** (Premium)
+- Latest flagship, advanced reasoning
+- Cost: ~$0.042 per request
+- Use for: Complex enterprise analysis
 
-**gemini-pro-vision** (Multimodal)
-- Not needed for this app
-- Use for: Image analysis (N/A)
+**gemini-3-flash-preview** (Recommended)
+- Frontier performance at excellent value
+- Cost: ~$0.011 per request
+- Use for: All features, best value
+
+**gemini-2.5-flash** (Budget)
+- Fast and very affordable
+- Cost: ~$0.003 per request
+- Use for: Budget-conscious usage
 
 ### Cost Estimates
 
@@ -348,33 +353,32 @@ Each model displays:
 - **Pricing** - Clear format showing input/output costs per 1M tokens
 - **Example Cost** - Typical actual cost for a 3K token analysis (NEW in v1.0.6)
 
-**Available Models:** *(Updated January 2026)*
+**Available Models:** *(Updated February 2026)*
 
 *Anthropic Claude:*
-- **Claude Opus 4.5** ⭐ RECOMMENDED - Flagship model, highest intelligence ($5/$25 per 1M tokens)
+- **Claude Opus 4.6** ⭐ RECOMMENDED - Latest flagship, highest intelligence ($5/$25 per 1M tokens)
 - **Claude Sonnet 4.5** ⭐ RECOMMENDED - Best balance of capability and cost ($3/$15 per 1M tokens)
-- Claude 3.5 Sonnet (Oct 2024) - Previous flagship, still capable ($3/$15 per 1M tokens)
-- Claude 3.5 Sonnet (Jun 2024) - Earlier version ($3/$15 per 1M tokens)
-- Claude 3 Opus (Legacy) - Consider upgrading to Opus 4.5 ($15/$75 per 1M tokens)
-- Claude 3.5 Haiku - Fast and cost-effective ($1/$5 per 1M tokens)
+- Claude Haiku 4.5 - Fast and cost-effective ($1/$5 per 1M tokens)
+- Claude Opus 4.5 - Previous flagship, still excellent ($5/$25 per 1M tokens)
+- Claude 3.5 Sonnet (Legacy) - Previous generation ($3/$15 per 1M tokens)
+- Claude 3.5 Haiku (Legacy) - Previous generation fast model ($0.80/$4 per 1M tokens)
 
 *OpenAI:*
-- **GPT-5.2** ⭐ RECOMMENDED - Latest flagship, revolutionary reasoning ($1.50/$6 per 1M tokens)
-- **GPT-5.2 Mini** ⭐ RECOMMENDED - Fast and highly capable ($0.30/$1.20 per 1M tokens)
+- **GPT-5.2** ⭐ RECOMMENDED - Latest flagship, revolutionary reasoning ($1.75/$14 per 1M tokens)
+- **o4-mini** ⭐ RECOMMENDED - Fast reasoning model, great value ($1.10/$4.40 per 1M tokens)
+- o3 - Most powerful reasoning model ($2/$8 per 1M tokens)
 - GPT-4.1 - Previous generation, still capable ($2/$8 per 1M tokens)
 - GPT-4.1 Mini - Previous generation, cost-effective ($0.40/$1.60 per 1M tokens)
 - GPT-4o (Legacy) - Multimodal capabilities ($2.50/$10 per 1M tokens)
 - GPT-4o Mini (Legacy) - Fast multimodal ($0.15/$0.60 per 1M tokens)
-- GPT-4 Turbo (Legacy) - Consider upgrading to GPT-5.2 ($10/$30 per 1M tokens)
-- GPT-3.5 Turbo (Legacy) - Limited for complex tasks ($0.50/$1.50 per 1M tokens)
 
 *Google Gemini:*
+- **Gemini 3 Pro** ⭐ RECOMMENDED - Latest flagship, advanced reasoning ($2/$12 per 1M tokens)
 - **Gemini 3 Flash** ⭐ RECOMMENDED - Frontier performance at excellent value ($0.50/$3 per 1M tokens)
-- **Gemini 2.5 Flash** ⭐ RECOMMENDED - Fast and capable ($0.15/$0.60 per 1M tokens)
+- Gemini 2.5 Pro - Previous gen pro model, large context ($1.25/$10 per 1M tokens)
+- Gemini 2.5 Flash - Fast and capable ($0.15/$0.60 per 1M tokens)
 - Gemini 2.5 Flash-Lite - Ultra cost-effective ($0.10/$0.40 per 1M tokens)
-- Gemini 2.0 Flash-Lite - DEPRECATED (retiring March 31, 2026) ($0.075/$0.30 per 1M tokens)
-- Gemini 1.5 Pro (Legacy) - Consider Gemini 3 Flash for better value ($3.50/$10.50 per 1M tokens)
-- Gemini 1.5 Flash (Legacy) - Consider upgrading to 2.5 or 3 Flash ($0.35/$1.05 per 1M tokens)
+- Gemini 1.5 Pro (Legacy) - Consider Gemini 3 Pro ($3.50/$10.50 per 1M tokens)
 
 **Pricing Note:** Costs shown are per 1 million tokens. Example: A typical 3,000 token request with Claude Sonnet 4.5 costs approximately $0.054 total (not $3!).
 

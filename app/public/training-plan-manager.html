@@ -1244,7 +1244,7 @@ let regionalCalendars = [];
 let trainingPlans = [];
 let settings = {
     aiProvider: 'anthropic',
-    aiModel: 'claude-3-5-sonnet-20241022',
+    aiModel: 'claude-sonnet-4-5-20250929',
     apiKey: '',
     aiTemperature: 0.7,
     theme: 'light',
@@ -1979,11 +1979,11 @@ function closeModal() {
 const aiModels = {
     anthropic: [
         {
-            id: 'claude-opus-4-5-20251101',
-            name: 'Claude Opus 4.5',
+            id: 'claude-opus-4-6',
+            name: 'Claude Opus 4.6',
             recommended: true,
-            description: 'Flagship model with highest intelligence. Best for complex training frameworks and detailed competency analysis.',
-            strengths: ['Highest intelligence', 'Complex reasoning', 'Expert analysis', 'Comprehensive planning'],
+            description: 'Latest flagship model. Highest intelligence for complex training frameworks and detailed competency analysis.',
+            strengths: ['Highest intelligence', 'Superior reasoning', 'Expert analysis', 'Comprehensive planning'],
             costPer1M: 'Input: $5/1M tokens | Output: $25/1M tokens',
             costLevel: 'high',
             useCase: 'Ideal for enterprise training programs requiring maximum accuracy and depth',
@@ -1993,7 +1993,7 @@ const aiModels = {
             id: 'claude-sonnet-4-5-20250929',
             name: 'Claude Sonnet 4.5',
             recommended: true,
-            description: 'Latest balanced model. Excellent for comprehensive training plan analysis and competency assessment.',
+            description: 'Best balance of quality and cost. Excellent for comprehensive training plan analysis and competency assessment.',
             strengths: ['Advanced reasoning', 'Technical analysis', 'Detailed planning', 'Code understanding'],
             costPer1M: 'Input: $3/1M tokens | Output: $15/1M tokens',
             costLevel: 'medium',
@@ -2001,72 +2001,83 @@ const aiModels = {
             exampleCost: 'Typical 3K token analysis: ~$0.054 total'
         },
         {
-            id: 'claude-3-5-sonnet-20241022',
-            name: 'Claude 3.5 Sonnet (Oct 2024)',
+            id: 'claude-haiku-4-5-20251001',
+            name: 'Claude Haiku 4.5',
             recommended: false,
-            description: 'Previous flagship. Still highly capable for training planning tasks.',
-            strengths: ['Strong reasoning', 'Technical analysis', 'Good planning'],
-            costPer1M: 'Input: $3/1M tokens | Output: $15/1M tokens',
-            costLevel: 'medium',
-            useCase: 'Reliable option for training plan creation',
-            exampleCost: 'Typical 3K token analysis: ~$0.054 total'
-        },
-        {
-            id: 'claude-3-5-sonnet-20240620',
-            name: 'Claude 3.5 Sonnet (Jun 2024)',
-            recommended: false,
-            description: 'Earlier version. Good for most training planning tasks.',
-            strengths: ['Complex reasoning', 'Technical analysis', 'Planning'],
-            costPer1M: 'Input: $3/1M tokens | Output: $15/1M tokens',
-            costLevel: 'medium',
-            useCase: 'Good for training plan creation',
-            exampleCost: 'Typical 3K token analysis: ~$0.054 total'
-        },
-        {
-            id: 'claude-3-opus-20240229',
-            name: 'Claude 3 Opus (Legacy)',
-            recommended: false,
-            description: 'Previous generation flagship. Very expensive, use newer Opus 4.5 instead.',
-            strengths: ['High intelligence', 'Complex analysis', 'Expert reasoning'],
-            costPer1M: 'Input: $15/1M tokens | Output: $75/1M tokens',
-            costLevel: 'very-high',
-            useCase: 'Legacy model - consider upgrading to Opus 4.5',
-            exampleCost: 'Typical 3K token analysis: ~$0.27 total'
-        },
-        {
-            id: 'claude-3-5-haiku-20241022',
-            name: 'Claude 3.5 Haiku',
-            recommended: false,
-            description: 'Fast and cost-effective. Good for simple competency suggestions.',
+            description: 'Fast and cost-effective. Great for quick competency suggestions and simple queries.',
             strengths: ['Very fast', 'Cost-effective', 'Quick responses', 'Efficient'],
             costPer1M: 'Input: $1/1M tokens | Output: $5/1M tokens',
             costLevel: 'low',
-            useCase: 'Best for quick suggestions and simple queries',
+            useCase: 'Best for quick suggestions, simple queries, and budget-conscious usage',
             exampleCost: 'Typical 3K token analysis: ~$0.018 total'
+        },
+        {
+            id: 'claude-opus-4-5-20251101',
+            name: 'Claude Opus 4.5',
+            recommended: false,
+            description: 'Previous flagship. Still excellent but Opus 4.6 is now the latest.',
+            strengths: ['High intelligence', 'Complex reasoning', 'Expert analysis', 'Comprehensive planning'],
+            costPer1M: 'Input: $5/1M tokens | Output: $25/1M tokens',
+            costLevel: 'high',
+            useCase: 'Very capable - consider upgrading to Opus 4.6 for latest improvements',
+            exampleCost: 'Typical 3K token analysis: ~$0.09 total'
+        },
+        {
+            id: 'claude-3-5-sonnet-20241022',
+            name: 'Claude 3.5 Sonnet (Legacy)',
+            recommended: false,
+            description: 'Previous generation. Still capable but newer models recommended.',
+            strengths: ['Strong reasoning', 'Technical analysis', 'Good planning'],
+            costPer1M: 'Input: $3/1M tokens | Output: $15/1M tokens',
+            costLevel: 'medium',
+            useCase: 'Legacy model - Sonnet 4.5 recommended',
+            exampleCost: 'Typical 3K token analysis: ~$0.054 total'
+        },
+        {
+            id: 'claude-3-5-haiku-20241022',
+            name: 'Claude 3.5 Haiku (Legacy)',
+            recommended: false,
+            description: 'Previous generation fast model. Haiku 4.5 is now available.',
+            strengths: ['Fast', 'Cost-effective', 'Quick responses'],
+            costPer1M: 'Input: $0.80/1M tokens | Output: $4/1M tokens',
+            costLevel: 'low',
+            useCase: 'Legacy model - Haiku 4.5 recommended',
+            exampleCost: 'Typical 3K token analysis: ~$0.015 total'
         }
     ],
     openai: [
         {
-            id: 'gpt-5.2-2026-01-15',
+            id: 'gpt-5.2',
             name: 'GPT-5.2',
             recommended: true,
             description: 'Latest flagship model. Revolutionary reasoning and analytical capabilities for comprehensive training planning.',
             strengths: ['Superior reasoning', 'Advanced analysis', 'Strategic planning', 'Expert instruction following'],
-            costPer1M: 'Input: $1.50/1M tokens | Output: $6/1M tokens',
+            costPer1M: 'Input: $1.75/1M tokens | Output: $14/1M tokens',
             costLevel: 'medium',
             useCase: 'Ideal for sophisticated training programs requiring highest quality analysis',
-            exampleCost: 'Typical 3K token analysis: ~$0.0225 total'
+            exampleCost: 'Typical 3K token analysis: ~$0.047 total'
         },
         {
-            id: 'gpt-5.2-mini-2026-01-15',
-            name: 'GPT-5.2 Mini',
+            id: 'o3',
+            name: 'o3 (Reasoning)',
+            recommended: false,
+            description: 'Most powerful reasoning model. Excels at complex multi-step analysis and structured planning.',
+            strengths: ['Deep reasoning', 'Multi-step analysis', 'Problem solving', 'Structured thinking'],
+            costPer1M: 'Input: $2/1M tokens | Output: $8/1M tokens',
+            costLevel: 'medium',
+            useCase: 'Best for complex competency gap analysis requiring deep reasoning chains',
+            exampleCost: 'Typical 3K token analysis: ~$0.03 total'
+        },
+        {
+            id: 'o4-mini',
+            name: 'o4-mini (Reasoning)',
             recommended: true,
-            description: 'Fast and highly capable. Excellent balance of performance and cost for training planning.',
-            strengths: ['Fast', 'Strong reasoning', 'Cost-effective', 'Efficient'],
-            costPer1M: 'Input: $0.30/1M tokens | Output: $1.20/1M tokens',
+            description: 'Fast reasoning model. Excellent balance of reasoning depth and cost for training planning.',
+            strengths: ['Strong reasoning', 'Fast', 'Cost-effective', 'Structured output'],
+            costPer1M: 'Input: $1.10/1M tokens | Output: $4.40/1M tokens',
             costLevel: 'low',
-            useCase: 'Best for high-quality training planning with excellent cost efficiency',
-            exampleCost: 'Typical 3K token analysis: ~$0.0045 total'
+            useCase: 'Great for training plan reasoning tasks with excellent cost efficiency',
+            exampleCost: 'Typical 3K token analysis: ~$0.017 total'
         },
         {
             id: 'gpt-4.1-2025-04-14',
@@ -2083,11 +2094,11 @@ const aiModels = {
             id: 'gpt-4.1-mini-2025-04-14',
             name: 'GPT-4.1 Mini',
             recommended: false,
-            description: 'Fast and cost-effective. Good balance but GPT-5.2 Mini recommended.',
+            description: 'Fast and cost-effective previous generation model.',
             strengths: ['Fast', 'Cost-effective', 'Good reasoning', 'Efficient'],
             costPer1M: 'Input: $0.40/1M tokens | Output: $1.60/1M tokens',
             costLevel: 'low',
-            useCase: 'Consider upgrading to GPT-5.2 Mini for better performance at lower cost',
+            useCase: 'Budget option - consider o4-mini for better reasoning at similar cost',
             exampleCost: 'Typical 3K token analysis: ~$0.006 total'
         },
         {
@@ -2105,57 +2116,57 @@ const aiModels = {
             id: 'gpt-4o-mini',
             name: 'GPT-4o Mini (Legacy)',
             recommended: false,
-            description: 'Fast multimodal model. GPT-5.2 Mini offers better capabilities.',
+            description: 'Fast legacy multimodal model. Newer models offer better capabilities.',
             strengths: ['Fast', 'Multimodal', 'Cost-effective', 'Quick responses'],
             costPer1M: 'Input: $0.15/1M tokens | Output: $0.60/1M tokens',
             costLevel: 'low',
-            useCase: 'Legacy model - GPT-5.2 Mini recommended',
+            useCase: 'Legacy model - o4-mini recommended for reasoning tasks',
             exampleCost: 'Typical 3K token analysis: ~$0.0027 total'
-        },
-        {
-            id: 'gpt-4-turbo-2024-04-09',
-            name: 'GPT-4 Turbo (Legacy)',
-            recommended: false,
-            description: 'Old generation. Strongly consider upgrading to GPT-5.2.',
-            strengths: ['Strong reasoning', 'Wide knowledge', 'Structured output'],
-            costPer1M: 'Input: $10/1M tokens | Output: $30/1M tokens',
-            costLevel: 'high',
-            useCase: 'Legacy model - GPT-5.2 strongly recommended',
-            exampleCost: 'Typical 3K token analysis: ~$0.12 total'
-        },
-        {
-            id: 'gpt-3.5-turbo',
-            name: 'GPT-3.5 Turbo (Legacy)',
-            recommended: false,
-            description: 'Older model. Limited capabilities for complex training planning.',
-            strengths: ['Fast', 'Very cost-effective', 'Simple tasks'],
-            costPer1M: 'Input: $0.50/1M tokens | Output: $1.50/1M tokens',
-            costLevel: 'low',
-            useCase: 'Only for very simple queries - consider GPT-5.2 Mini instead',
-            exampleCost: 'Typical 3K token analysis: ~$0.006 total'
         }
     ],
     google: [
         {
+            id: 'gemini-3-pro-preview',
+            name: 'Gemini 3 Pro',
+            recommended: true,
+            description: 'Latest flagship. Advanced reasoning, multimodal, and agentic capabilities for enterprise training planning.',
+            strengths: ['Highest intelligence', 'Advanced reasoning', 'Multimodal', 'Agentic capabilities'],
+            costPer1M: 'Input: $2/1M tokens | Output: $12/1M tokens',
+            costLevel: 'medium',
+            useCase: 'Ideal for complex enterprise training programs requiring maximum depth',
+            exampleCost: 'Typical 3K token analysis: ~$0.042 total'
+        },
+        {
             id: 'gemini-3-flash-preview',
             name: 'Gemini 3 Flash',
             recommended: true,
-            description: 'Latest flagship. Frontier-class performance for training planning at excellent value.',
+            description: 'Frontier-class performance at excellent value. 3x faster than previous generation.',
             strengths: ['Frontier intelligence', 'Very fast', 'Cost-effective', 'Strong reasoning'],
             costPer1M: 'Input: $0.50/1M tokens | Output: $3/1M tokens',
             costLevel: 'low',
-            useCase: 'Ideal for high-quality training plans with excellent cost efficiency',
+            useCase: 'Best value for high-quality training plans with fast response times',
             exampleCost: 'Typical 3K token analysis: ~$0.011 total'
+        },
+        {
+            id: 'gemini-2.5-pro',
+            name: 'Gemini 2.5 Pro',
+            recommended: false,
+            description: 'Previous generation pro model. Still very capable with 1M token context window.',
+            strengths: ['Large context window', 'Strong reasoning', 'Multimodal', 'Detailed analysis'],
+            costPer1M: 'Input: $1.25/1M tokens | Output: $10/1M tokens',
+            costLevel: 'medium',
+            useCase: 'Good for large document analysis - consider Gemini 3 Pro for latest capabilities',
+            exampleCost: 'Typical 3K token analysis: ~$0.034 total'
         },
         {
             id: 'gemini-2.5-flash',
             name: 'Gemini 2.5 Flash',
-            recommended: true,
-            description: 'Fast and capable. Excellent for real-time training plan analysis.',
+            recommended: false,
+            description: 'Fast and capable. Good for real-time training plan analysis.',
             strengths: ['Fast', 'Cost-effective', 'Good reasoning', 'Efficient'],
             costPer1M: 'Input: $0.15/1M tokens | Output: $0.60/1M tokens',
             costLevel: 'low',
-            useCase: 'Best for budget-conscious training planning with good quality',
+            useCase: 'Budget option - Gemini 3 Flash recommended for better performance at similar cost',
             exampleCost: 'Typical 3K token analysis: ~$0.0027 total'
         },
         {
@@ -2170,37 +2181,15 @@ const aiModels = {
             exampleCost: 'Typical 3K token analysis: ~$0.0018 total'
         },
         {
-            id: 'gemini-2.0-flash-lite',
-            name: 'Gemini 2.0 Flash-Lite (Deprecated)',
-            recommended: false,
-            description: 'Will be retired March 31, 2026. Migrate to Gemini 2.5 Flash-Lite.',
-            strengths: ['Low cost', 'Fast'],
-            costPer1M: 'Input: $0.075/1M tokens | Output: $0.30/1M tokens',
-            costLevel: 'low',
-            useCase: 'DEPRECATED - Use Gemini 2.5 Flash-Lite instead',
-            exampleCost: 'Typical 3K token analysis: ~$0.0014 total'
-        },
-        {
             id: 'gemini-1.5-pro-latest',
             name: 'Gemini 1.5 Pro (Legacy)',
             recommended: false,
-            description: 'Previous generation. Large context window but consider newer models.',
+            description: 'Previous generation. Consider upgrading to Gemini 2.5 Pro or 3 Pro.',
             strengths: ['Huge context window', 'Multimodal', 'Good reasoning'],
             costPer1M: 'Input: $3.50/1M tokens | Output: $10.50/1M tokens',
             costLevel: 'medium',
-            useCase: 'Legacy model - Gemini 3 Flash recommended for better value',
+            useCase: 'Legacy model - Gemini 3 Pro recommended for better value',
             exampleCost: 'Typical 3K token analysis: ~$0.042 total'
-        },
-        {
-            id: 'gemini-1.5-flash-latest',
-            name: 'Gemini 1.5 Flash (Legacy)',
-            recommended: false,
-            description: 'Previous generation. Consider upgrading to Gemini 2.5 or 3 Flash.',
-            strengths: ['Fast', 'Good context window', 'Multimodal'],
-            costPer1M: 'Input: $0.35/1M tokens | Output: $1.05/1M tokens',
-            costLevel: 'low',
-            useCase: 'Legacy model - Gemini 2.5 or 3 Flash recommended',
-            exampleCost: 'Typical 3K token analysis: ~$0.0042 total'
         }
     ]
 };
@@ -8483,7 +8472,7 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
     }
 
     const provider = settings.aiProvider || 'anthropic';
-    const model = settings.aiModel || 'claude-3-5-sonnet-20241022';
+    const model = settings.aiModel || 'claude-sonnet-4-5-20250929';
     const temperature = settings.aiTemperature || 0.7;
 
     let apiUrl, headers, body;
