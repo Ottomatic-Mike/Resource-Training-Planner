@@ -2424,6 +2424,20 @@ function openSettings() {
                 </label>
             </div>
         </div>
+
+        <div style="padding: 24px 0 8px 0;">
+            <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">📦 Data Management</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                <button class="btn btn-secondary" onclick="exportToJSON()">📥 Export to JSON</button>
+                <button class="btn btn-secondary" onclick="importFromJSON()">📤 Import from JSON</button>
+                <button class="btn btn-secondary" onclick="exportToExcel()">📊 Export to Excel</button>
+                <button class="btn btn-warning" onclick="loadSampleData()">🔄 Load Sample Data</button>
+                <button class="btn btn-error" onclick="clearAllData()">🗑️ Clear All Data</button>
+            </div>
+            <div style="margin-top: 12px; font-size: 13px; color: #6c757d;">
+                <strong>Load Sample Data</strong> populates the app with example courses, resources, calendars, and training plans. <strong>Clear All Data</strong> removes everything and resets to a blank state.
+            </div>
+        </div>
     `;
 
     document.getElementById('settingsContent').innerHTML = html;
