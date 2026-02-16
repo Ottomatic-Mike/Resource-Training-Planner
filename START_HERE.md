@@ -67,7 +67,7 @@ Now that the application is running, let's explore!
 **You now have:**
 - 6 sample team members
 - 18 competencies across 5 categories
-- 239 training courses from 16 providers (including 88 from ServiceNow University)
+- 509 training courses from 19 providers (including 88 from ServiceNow University)
 - 2 regional calendars
 
 ### Minute 3-4: Explore the Dashboard
@@ -96,7 +96,7 @@ Now that the application is running, let's explore!
 ### Minute 9-10: Check Out Courses
 
 - Click **Course Catalog** (Tab 4)
-- Browse 239 sample courses from 16 providers (including the full ServiceNow University catalog)
+- Browse 509 sample courses from 19 providers (including the full ServiceNow University catalog)
 - Notice: provider, cost, duration, rating, relevant competencies
 - Click "View Details" on any course
 - Try the search and filter features
@@ -122,23 +122,27 @@ Across 5 categories:
 - **Data**: SQL, NoSQL, Data Engineering
 - **Soft Skills**: Leadership, Communication
 
-### 239 Training Courses
-From 16 providers including:
-- **Udemy** (30 courses, $20 each) — Python, JavaScript, React, Angular, Node.js, TypeScript, Java, Go, Rust, AWS, Azure, Docker, Kubernetes, Terraform, CI/CD, SQL, Machine Learning, Ethical Hacking, and more
-- **Coursera** (16 courses, $49–79/course) — Google, IBM, Meta, and University certificates in Cybersecurity, Data Science, Cloud Computing, AI/ML, and Project Management
-- **Pluralsight** (14 courses, $45/month subscription) — Cloud architecture, Kubernetes, DevOps, security, and development paths
-- **LinkedIn Learning** (12 courses, $30/month subscription) — Leadership, project management, programming, DevOps, and career development
-- **AWS Training & Certification** (12 courses, Free–$600) — Cloud Practitioner through Solutions Architect Professional, with exam fees included
-- **Microsoft Learn** (12 courses, Free–$265) — Azure fundamentals through expert-level certifications, Power Platform, and Microsoft 365
-- **Google Cloud Training** (10 courses, Free–$600) — Cloud Digital Leader through Professional Cloud Architect, with exam fees
-- **SANS Institute** (8 courses, $2,479–$9,479) — Premier cybersecurity training with GIAC certification exam fees included
-- **Linux Foundation** (10 courses, $299–$695) — Kubernetes (CKA, CKAD, CKS), Linux administration, and cloud engineering certifications
-- **CompTIA** (7 courses, $358–$581) — ITF+, A+, Network+, Security+, CySA+, PenTest+, CASP+ certification exam fees
-- **ISC2** (3 courses, $249–$749) — CISSP, CCSP, and CC certifications
-- **HashiCorp** (3 courses, $70.50 exam fee each) — Terraform Associate, Vault Associate, and Consul Associate
-- **O'Reilly Learning** (6 paths, $499/year subscription) — Curated learning paths in Python, cloud, Kubernetes, security, data engineering, and AI/ML
-- **Scrum / Agile** (4 courses, $200–$495) — CSM, CSPO, PSM, and SAFe certifications
-- **Frontend Masters** (4 courses, $39/month subscription) — Advanced JavaScript, React, TypeScript, and full-stack development
+### 509 Training Courses
+From 19 providers including:
+- **Udemy** (100 courses, $20 each) — Programming (Python, JavaScript, Java, C#, C++, Go, Rust, PHP, Ruby, Swift, Kotlin), web development (React, Angular, Vue, Next.js, Node.js, Svelte), mobile (React Native, Flutter), cloud (AWS, Azure, GCP), DevOps (Docker, Kubernetes, Terraform, Ansible, CI/CD), security, data science, ML/AI, testing, architecture, and tools
+- **Coursera** (46 courses, Free–$392) — Google, IBM, Meta, DeepLearning.AI, and university professional certificates and specializations in IT, cybersecurity, data science, AI/ML, cloud, and development
+- **Pluralsight** (40 courses, $299/year subscription) — Complete skill paths for cloud (AWS, Azure, GCP), DevOps, programming, security, data, and AI
+- **LinkedIn Learning** (35 courses, $240/year subscription) — Career learning paths and individual courses in development, cloud, security, data, leadership, project management, and soft skills
+- **AWS Training & Certification** (25 courses, Free–$2,100) — All certification levels (Cloud Practitioner through Specialty), classroom training, and AWS Skill Builder
+- **Microsoft Learn** (30 courses, Free–$165) — Complete Azure certification track (Fundamentals through Expert), Security, Microsoft 365, and Power Platform
+- **Google Cloud Training** (20 courses, Free–$1,600) — All professional certifications, classroom training, Skills Boost, and AI/ML specializations
+- **SANS Institute** (20 courses, $7,984–$9,504) — Premier cybersecurity training across security essentials, pen testing, cloud security, forensics, development, and management — all with GIAC exam fees included
+- **Linux Foundation** (20 courses, $200–$395) — Kubernetes (KCNA, CKA, CKAD, CKS), Linux administration (LFCA, LFCS), DevOps, and Node.js certifications
+- **CompTIA** (12 courses, $157–$492) — Complete certification track from ITF+ through CASP+, including A+, Network+, Security+, Cloud+, Data+, CySA+, and PenTest+
+- **ISC2** (8 courses, Free–$749) — CC, SSCP, CISSP, CCSP, CSSLP, CGRC, HCISPP, and CISSP-ISSAP certifications
+- **HashiCorp** (6 courses, Free–$71) — Terraform, Vault, and Consul certifications at Associate and Professional levels
+- **O'Reilly Learning** (15 paths, $499/year subscription) — Curated learning paths in Python, Java, Go, Rust, cloud, Kubernetes, SRE, security, data science, AI/ML, DevOps, microservices, and web development
+- **Scrum / Agile** (10 courses, $150–$1,095) — Scrum Alliance (CSM, CSPO, A-CSM, CSD), Scrum.org (PSM I/II, PSPO I), PMI (PMI-ACP, PMP), and SAFe Agilist
+- **Frontend Masters** (15 courses, $390/year subscription) — JavaScript deep dives, React, TypeScript, CSS, web performance, design systems, databases, testing, Rust, and Go
+- **Codecademy** (8 courses, $240/year Pro subscription) — Career paths in full-stack, front-end, back-end, data science, computer science, cybersecurity, DevOps, and AI/ML
+- **edX** (8 courses, Free–$1,350) — Harvard CS50, MIT MicroMasters, university-backed certificates in computer science, cybersecurity, and development
+- **DataCamp** (8 courses, $300/year subscription) — Data science, data analysis, data engineering, ML, SQL, Power BI, Tableau, and AI skill tracks
+- **Udacity** (1 course, $1,200) — Data Engineering Nanodegree
 - **ServiceNow University** (88 courses, Free–$17,000) — Complete Now Learning catalog covering all CIS certification paths, CSA/CAD prep, simulators, micro-certifications, AI/GenAI, and expert programs (ArchX, CTA, CMA)
 
 ### 2 Regional Calendars
