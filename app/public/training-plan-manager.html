@@ -4843,6 +4843,11 @@ function renderCourses() {
             </div>
         </div>
 
+        <div class="alert alert-info" style="margin-bottom: 12px; font-size: 0.9em; display: flex; align-items: flex-start; gap: 8px;">
+            <span style="font-size: 1.1em;">ℹ️</span>
+            <span>These courses are a <strong>representative starting catalog</strong> with sample pricing. Courses, prices, and availability change frequently. For the latest offerings, use <strong>"🔍 Search Online"</strong> above to discover current courses from any provider using AI-powered search.</span>
+        </div>
+
         <div class="search-filter-bar">
             <input type="text" class="form-input search-input" placeholder="Search courses..." id="courseSearch" oninput="filterCourses()">
             <select class="form-select" id="courseFilterProvider" onchange="filterCourses()">
@@ -8675,6 +8680,9 @@ function loadSampleData() {
             Sample data has been loaded successfully!
         </div>
         <p>Loaded: ${resources.length} resources, ${competencyLibrary.length} competencies, ${courseCatalog.length} courses</p>
+        <div class="alert alert-info" style="margin-top: 12px;">
+            <strong>Note:</strong> Sample courses are a representative starting catalog with sample pricing. Courses, prices, and availability change frequently across providers. To discover the latest courses and current pricing, use the <strong>"🔍 Search Online"</strong> button in the Course Catalog tab — it uses AI-powered search to find current offerings from any training provider.
+        </div>
     `);
 }
 
