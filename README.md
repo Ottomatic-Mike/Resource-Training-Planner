@@ -202,7 +202,7 @@ The app ships with pre-loaded sample data you can activate from **Settings > Loa
 - **6 Team Members** — Senior Developer, Security Engineer, DevOps Engineer, QA Lead, Data Engineer, Frontend Developer
 - **18 Competencies** — Across Programming, Cloud, DevOps, Security, Data, and Soft Skills categories
 - **240 Courses** — Organized by role competencies across 23 providers (Udemy, Coursera, Pluralsight, LinkedIn Learning, ServiceNow University, SANS Institute, CompTIA, ISC2, AWS Training, Microsoft Learn, Google Cloud Training, and more). Each of the 6 sample roles has a dedicated competency track with ServiceNow courses integrated alongside industry providers. Prices range from free to $17,000. Use AI-powered "Search Online" for live course discovery.
-- **2 Holiday Calendars** — US Federal Holidays 2026 and UK Bank Holidays 2026
+- **32 Holiday Calendars** — Worldwide coverage across Americas (7), Europe (9), Asia-Pacific (11), Middle East & Africa (5) with correct 2026 dates for all moveable holidays
 
 This lets you explore every feature immediately without entering any data first.
 

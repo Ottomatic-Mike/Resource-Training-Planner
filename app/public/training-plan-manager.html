@@ -9130,7 +9130,11 @@ function loadSampleCourses() {
 }
 
 function loadSampleCalendars() {
-    // US Federal Holidays
+    // =====================================================================
+    // AMERICAS
+    // =====================================================================
+
+    // 1. US Federal Holidays
     regionalCalendars.push({
         id: nextCalendarId++,
         name: 'US Federal Holidays 2026',
@@ -9142,8 +9146,11 @@ function loadSampleCalendars() {
             { date: '2026-01-19', name: 'Martin Luther King Jr. Day', type: 'Public', isRecurring: true, recurringRule: 'Third Monday of January' },
             { date: '2026-02-16', name: "Presidents' Day", type: 'Public', isRecurring: true, recurringRule: 'Third Monday of February' },
             { date: '2026-05-25', name: 'Memorial Day', type: 'Public', isRecurring: true, recurringRule: 'Last Monday of May' },
+            { date: '2026-06-19', name: 'Juneteenth National Independence Day', type: 'Public', isRecurring: true, recurringRule: 'June 19' },
             { date: '2026-07-03', name: 'Independence Day (Observed)', type: 'Public', isRecurring: true, recurringRule: 'July 4' },
             { date: '2026-09-07', name: 'Labor Day', type: 'Public', isRecurring: true, recurringRule: 'First Monday of September' },
+            { date: '2026-10-12', name: 'Columbus Day', type: 'Public', isRecurring: true, recurringRule: 'Second Monday of October' },
+            { date: '2026-11-11', name: 'Veterans Day', type: 'Public', isRecurring: true, recurringRule: 'November 11' },
             { date: '2026-11-26', name: 'Thanksgiving Day', type: 'Public', isRecurring: true, recurringRule: 'Fourth Thursday of November' },
             { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
         ],
@@ -9153,12 +9160,12 @@ function loadSampleCalendars() {
         lastModified: new Date().toISOString()
     });
 
-    // UK Bank Holidays
+    // 2. UK Bank Holidays
     regionalCalendars.push({
         id: nextCalendarId++,
         name: 'UK Bank Holidays 2026',
         region: 'UK',
-        description: 'United Kingdom Bank Holidays',
+        description: 'United Kingdom Bank Holidays (England & Wales)',
         year: 2026,
         holidays: [
             { date: '2026-01-01', name: "New Year's Day", type: 'Public', isRecurring: true, recurringRule: 'January 1' },
@@ -9175,6 +9182,859 @@ function loadSampleCalendars() {
         createdDate: new Date().toISOString(),
         lastModified: new Date().toISOString()
     });
+
+    // 3. Canada Federal Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Canada Federal Holidays 2026',
+        region: 'CA',
+        description: 'Canada Federal Statutory Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: "New Year's Day", type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-18', name: 'Victoria Day', type: 'Public', isRecurring: true, recurringRule: 'Monday before May 25' },
+            { date: '2026-07-01', name: 'Canada Day', type: 'Public', isRecurring: true, recurringRule: 'July 1' },
+            { date: '2026-09-07', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'First Monday of September' },
+            { date: '2026-09-30', name: 'National Day for Truth and Reconciliation', type: 'Public', isRecurring: true, recurringRule: 'September 30' },
+            { date: '2026-10-12', name: 'Thanksgiving', type: 'Public', isRecurring: true, recurringRule: 'Second Monday of October' },
+            { date: '2026-11-11', name: 'Remembrance Day', type: 'Public', isRecurring: true, recurringRule: 'November 11' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Boxing Day', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 4. Mexico Federal Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Mexico Federal Holidays 2026',
+        region: 'MX',
+        description: 'Mexico Mandatory Rest Days (Dias de Descanso Obligatorio)',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Ano Nuevo)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-02', name: 'Constitution Day (Observed)', type: 'Public', isRecurring: true, recurringRule: 'First Monday of February' },
+            { date: '2026-03-16', name: 'Benito Juarez Birthday (Observed)', type: 'Public', isRecurring: true, recurringRule: 'Third Monday of March' },
+            { date: '2026-05-01', name: 'Labour Day (Dia del Trabajo)', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-09-16', name: 'Independence Day', type: 'Public', isRecurring: true, recurringRule: 'September 16' },
+            { date: '2026-11-16', name: 'Revolution Day (Observed)', type: 'Public', isRecurring: true, recurringRule: 'Third Monday of November' },
+            { date: '2026-12-25', name: 'Christmas Day (Navidad)', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 5. Brazil National Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Brazil National Holidays 2026',
+        region: 'BR',
+        description: 'Brazil National Public Holidays (Feriados Nacionais)',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-16', name: 'Carnival Monday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-17', name: 'Carnival Tuesday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-03', name: 'Good Friday (Sexta-feira Santa)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-21', name: 'Tiradentes Day', type: 'Public', isRecurring: true, recurringRule: 'April 21' },
+            { date: '2026-05-01', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-06-04', name: 'Corpus Christi', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-07', name: 'Independence Day', type: 'Public', isRecurring: true, recurringRule: 'September 7' },
+            { date: '2026-10-12', name: 'Our Lady of Aparecida', type: 'Public', isRecurring: true, recurringRule: 'October 12' },
+            { date: '2026-11-02', name: 'All Souls\' Day', type: 'Public', isRecurring: true, recurringRule: 'November 2' },
+            { date: '2026-11-15', name: 'Republic Day', type: 'Public', isRecurring: true, recurringRule: 'November 15' },
+            { date: '2026-11-20', name: 'Black Awareness Day', type: 'Public', isRecurring: true, recurringRule: 'November 20' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 6. Argentina Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Argentina Public Holidays 2026',
+        region: 'AR',
+        description: 'Argentina National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-16', name: 'Carnival Monday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-17', name: 'Carnival Tuesday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-24', name: 'Day of Remembrance for Truth and Justice', type: 'Public', isRecurring: true, recurringRule: 'March 24' },
+            { date: '2026-04-02', name: 'Malvinas Veterans Day', type: 'Public', isRecurring: true, recurringRule: 'April 2' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-25', name: 'May Revolution Day', type: 'Public', isRecurring: true, recurringRule: 'May 25' },
+            { date: '2026-06-17', name: 'Commemoration of General Guemes', type: 'Public', isRecurring: true, recurringRule: 'June 17' },
+            { date: '2026-06-20', name: 'Flag Day', type: 'Public', isRecurring: true, recurringRule: 'June 20' },
+            { date: '2026-07-09', name: 'Independence Day', type: 'Public', isRecurring: true, recurringRule: 'July 9' },
+            { date: '2026-08-17', name: 'San Martin Day', type: 'Public', isRecurring: true, recurringRule: 'Third Monday of August' },
+            { date: '2026-10-12', name: 'Day of Respect for Cultural Diversity', type: 'Public', isRecurring: true, recurringRule: 'October 12' },
+            { date: '2026-12-08', name: 'Immaculate Conception', type: 'Public', isRecurring: true, recurringRule: 'December 8' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 7. Colombia Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Colombia Public Holidays 2026',
+        region: 'CO',
+        description: 'Colombia National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-12', name: 'Epiphany (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-23', name: 'Saint Joseph\'s Day (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-02', name: 'Maundy Thursday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-18', name: 'Ascension Day (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-08', name: 'Corpus Christi (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-15', name: 'Sacred Heart (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-29', name: 'Saints Peter and Paul (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-07-20', name: 'Independence Day', type: 'Public', isRecurring: true, recurringRule: 'July 20' },
+            { date: '2026-08-07', name: 'Battle of Boyaca', type: 'Public', isRecurring: true, recurringRule: 'August 7' },
+            { date: '2026-08-17', name: 'Assumption of Mary (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-12', name: 'Columbus Day (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-11-02', name: 'All Saints\' Day (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-11-16', name: 'Independence of Cartagena (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-12-08', name: 'Immaculate Conception', type: 'Public', isRecurring: true, recurringRule: 'December 8' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // =====================================================================
+    // EUROPE
+    // =====================================================================
+
+    // 8. Germany National Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Germany National Holidays 2026',
+        region: 'DE',
+        description: 'Germany Nationwide Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Neujahrstag)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-04-03', name: 'Good Friday (Karfreitag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday (Ostermontag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day (Tag der Arbeit)', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-14', name: 'Ascension Day (Christi Himmelfahrt)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-25', name: 'Whit Monday (Pfingstmontag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-03', name: 'German Unity Day (Tag der Deutschen Einheit)', type: 'Public', isRecurring: true, recurringRule: 'October 3' },
+            { date: '2026-12-25', name: 'Christmas Day (Weihnachtstag)', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Second Christmas Day (Zweiter Weihnachtsfeiertag)', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 9. France Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'France Public Holidays 2026',
+        region: 'FR',
+        description: 'France National Public Holidays (Jours Feries)',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Jour de l\'An)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-04-06', name: 'Easter Monday (Lundi de Paques)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day (Fete du Travail)', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-08', name: 'Victory in Europe Day', type: 'Public', isRecurring: true, recurringRule: 'May 8' },
+            { date: '2026-05-14', name: 'Ascension Day (Jour de l\'Ascension)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-25', name: 'Whit Monday (Lundi de Pentecote)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-07-14', name: 'Bastille Day (Fete Nationale)', type: 'Public', isRecurring: true, recurringRule: 'July 14' },
+            { date: '2026-08-15', name: 'Assumption of Mary (Assomption)', type: 'Public', isRecurring: true, recurringRule: 'August 15' },
+            { date: '2026-11-01', name: 'All Saints\' Day (Toussaint)', type: 'Public', isRecurring: true, recurringRule: 'November 1' },
+            { date: '2026-11-11', name: 'Armistice Day', type: 'Public', isRecurring: true, recurringRule: 'November 11' },
+            { date: '2026-12-25', name: 'Christmas Day (Noel)', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 10. Italy Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Italy Public Holidays 2026',
+        region: 'IT',
+        description: 'Italy National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Capodanno)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-06', name: 'Epiphany (Epifania)', type: 'Public', isRecurring: true, recurringRule: 'January 6' },
+            { date: '2026-04-05', name: 'Easter Sunday (Pasqua)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday (Lunedi dell\'Angelo)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-25', name: 'Liberation Day (Festa della Liberazione)', type: 'Public', isRecurring: true, recurringRule: 'April 25' },
+            { date: '2026-05-01', name: 'Labour Day (Festa del Lavoro)', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-06-02', name: 'Republic Day (Festa della Repubblica)', type: 'Public', isRecurring: true, recurringRule: 'June 2' },
+            { date: '2026-08-15', name: 'Assumption (Ferragosto)', type: 'Public', isRecurring: true, recurringRule: 'August 15' },
+            { date: '2026-11-01', name: 'All Saints\' Day (Ognissanti)', type: 'Public', isRecurring: true, recurringRule: 'November 1' },
+            { date: '2026-12-08', name: 'Immaculate Conception', type: 'Public', isRecurring: true, recurringRule: 'December 8' },
+            { date: '2026-12-25', name: 'Christmas Day (Natale)', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'St. Stephen\'s Day (Santo Stefano)', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 11. Spain National Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Spain National Holidays 2026',
+        region: 'ES',
+        description: 'Spain National-Level Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Ano Nuevo)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-06', name: 'Epiphany (Dia de Reyes)', type: 'Public', isRecurring: true, recurringRule: 'January 6' },
+            { date: '2026-04-03', name: 'Good Friday (Viernes Santo)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-08-15', name: 'Assumption of the Virgin', type: 'Public', isRecurring: true, recurringRule: 'August 15' },
+            { date: '2026-10-12', name: 'Spain\'s National Day (Fiesta Nacional)', type: 'Public', isRecurring: true, recurringRule: 'October 12' },
+            { date: '2026-11-01', name: 'All Saints\' Day', type: 'Public', isRecurring: true, recurringRule: 'November 1' },
+            { date: '2026-12-06', name: 'Constitution Day', type: 'Public', isRecurring: true, recurringRule: 'December 6' },
+            { date: '2026-12-08', name: 'Immaculate Conception', type: 'Public', isRecurring: true, recurringRule: 'December 8' },
+            { date: '2026-12-25', name: 'Christmas Day (Navidad)', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 12. Netherlands Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Netherlands Public Holidays 2026',
+        region: 'NL',
+        description: 'Netherlands National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Nieuwjaarsdag)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-04-03', name: 'Good Friday (Goede Vrijdag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-05', name: 'Easter Sunday (Eerste Paasdag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday (Tweede Paasdag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-27', name: 'King\'s Day (Koningsdag)', type: 'Public', isRecurring: true, recurringRule: 'April 27' },
+            { date: '2026-05-05', name: 'Liberation Day (Bevrijdingsdag)', type: 'Public', isRecurring: true, recurringRule: 'May 5' },
+            { date: '2026-05-14', name: 'Ascension Day (Hemelvaartsdag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-24', name: 'Whit Sunday (Eerste Pinksterdag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-25', name: 'Whit Monday (Tweede Pinksterdag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-12-25', name: 'Christmas Day (Eerste Kerstdag)', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Second Christmas Day (Tweede Kerstdag)', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 13. Sweden Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Sweden Public Holidays 2026',
+        region: 'SE',
+        description: 'Sweden National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Nyarsdagen)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-06', name: 'Epiphany (Trettondedag jul)', type: 'Public', isRecurring: true, recurringRule: 'January 6' },
+            { date: '2026-04-03', name: 'Good Friday (Langfredagen)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-05', name: 'Easter Sunday (Paskdagen)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday (Annandag pask)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'May Day (Forsta maj)', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-14', name: 'Ascension Day', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-24', name: 'Whit Sunday (Pingstdagen)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-06', name: 'National Day (Sveriges nationaldag)', type: 'Public', isRecurring: true, recurringRule: 'June 6' },
+            { date: '2026-06-20', name: 'Midsummer Day (Midsommardagen)', type: 'Public', isRecurring: true, recurringRule: 'Saturday between June 20-26' },
+            { date: '2026-10-31', name: 'All Saints\' Day (Alla helgons dag)', type: 'Public', isRecurring: true, recurringRule: 'Saturday between Oct 31 - Nov 6' },
+            { date: '2026-12-25', name: 'Christmas Day (Juldagen)', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Boxing Day (Annandag jul)', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 14. Switzerland Federal Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Switzerland Federal Holidays 2026',
+        region: 'CH',
+        description: 'Switzerland Federal and Widely-Observed Cantonal Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Neujahrstag)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-04-03', name: 'Good Friday (Karfreitag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday (Ostermontag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-14', name: 'Ascension Day (Auffahrt)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-25', name: 'Whit Monday (Pfingstmontag)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-08-01', name: 'Swiss National Day (Bundesfeiertag)', type: 'Public', isRecurring: true, recurringRule: 'August 1' },
+            { date: '2026-12-25', name: 'Christmas Day (Weihnachtstag)', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'St. Stephen\'s Day (Stephanstag)', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 15. Poland Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Poland Public Holidays 2026',
+        region: 'PL',
+        description: 'Poland National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Nowy Rok)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-06', name: 'Epiphany (Trzech Kroli)', type: 'Public', isRecurring: true, recurringRule: 'January 6' },
+            { date: '2026-04-05', name: 'Easter Sunday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day (Swieto Pracy)', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-03', name: 'Constitution Day', type: 'Public', isRecurring: true, recurringRule: 'May 3' },
+            { date: '2026-05-24', name: 'Pentecost (Zielone Swiatki)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-04', name: 'Corpus Christi (Boze Cialo)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-08-15', name: 'Assumption of Mary / Armed Forces Day', type: 'Public', isRecurring: true, recurringRule: 'August 15' },
+            { date: '2026-11-01', name: 'All Saints\' Day', type: 'Public', isRecurring: true, recurringRule: 'November 1' },
+            { date: '2026-11-11', name: 'Independence Day', type: 'Public', isRecurring: true, recurringRule: 'November 11' },
+            { date: '2026-12-24', name: 'Christmas Eve (Wigilia)', type: 'Public', isRecurring: true, recurringRule: 'December 24' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Second Day of Christmas', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 16. Ireland Bank Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Ireland Bank Holidays 2026',
+        region: 'IE',
+        description: 'Ireland Public/Bank Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-02', name: 'St. Brigid\'s Day', type: 'Public', isRecurring: true, recurringRule: 'First Monday of February' },
+            { date: '2026-03-17', name: 'St. Patrick\'s Day', type: 'Public', isRecurring: true, recurringRule: 'March 17' },
+            { date: '2026-04-06', name: 'Easter Monday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-04', name: 'May Bank Holiday', type: 'Public', isRecurring: true, recurringRule: 'First Monday of May' },
+            { date: '2026-06-01', name: 'June Bank Holiday', type: 'Public', isRecurring: true, recurringRule: 'First Monday of June' },
+            { date: '2026-08-03', name: 'August Bank Holiday', type: 'Public', isRecurring: true, recurringRule: 'First Monday of August' },
+            { date: '2026-10-26', name: 'October Bank Holiday', type: 'Public', isRecurring: true, recurringRule: 'Last Monday of October' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'St. Stephen\'s Day', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // =====================================================================
+    // ASIA-PACIFIC
+    // =====================================================================
+
+    // 17. Japan National Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Japan National Holidays 2026',
+        region: 'JP',
+        description: 'Japan National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Ganjitsu)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-12', name: 'Coming of Age Day (Seijin no Hi)', type: 'Public', isRecurring: true, recurringRule: 'Second Monday of January' },
+            { date: '2026-02-11', name: 'National Foundation Day (Kenkoku Kinen no Hi)', type: 'Public', isRecurring: true, recurringRule: 'February 11' },
+            { date: '2026-02-23', name: 'Emperor\'s Birthday (Tenno Tanjobi)', type: 'Public', isRecurring: true, recurringRule: 'February 23' },
+            { date: '2026-03-20', name: 'Vernal Equinox Day (Shunbun no Hi)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-29', name: 'Showa Day (Showa no Hi)', type: 'Public', isRecurring: true, recurringRule: 'April 29' },
+            { date: '2026-05-03', name: 'Constitution Memorial Day', type: 'Public', isRecurring: true, recurringRule: 'May 3' },
+            { date: '2026-05-04', name: 'Greenery Day (Midori no Hi)', type: 'Public', isRecurring: true, recurringRule: 'May 4' },
+            { date: '2026-05-05', name: 'Children\'s Day (Kodomo no Hi)', type: 'Public', isRecurring: true, recurringRule: 'May 5' },
+            { date: '2026-05-06', name: 'Substitute Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-07-20', name: 'Marine Day (Umi no Hi)', type: 'Public', isRecurring: true, recurringRule: 'Third Monday of July' },
+            { date: '2026-08-11', name: 'Mountain Day (Yama no Hi)', type: 'Public', isRecurring: true, recurringRule: 'August 11' },
+            { date: '2026-09-21', name: 'Respect for the Aged Day (Keiro no Hi)', type: 'Public', isRecurring: true, recurringRule: 'Third Monday of September' },
+            { date: '2026-09-22', name: 'Bridge Holiday (Silver Week)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-23', name: 'Autumnal Equinox Day (Shubun no Hi)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-12', name: 'Sports Day (Supotsu no Hi)', type: 'Public', isRecurring: true, recurringRule: 'Second Monday of October' },
+            { date: '2026-11-03', name: 'Culture Day (Bunka no Hi)', type: 'Public', isRecurring: true, recurringRule: 'November 3' },
+            { date: '2026-11-23', name: 'Labour Thanksgiving Day', type: 'Public', isRecurring: true, recurringRule: 'November 23' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 18. South Korea Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'South Korea Public Holidays 2026',
+        region: 'KR',
+        description: 'South Korea National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Sinjeong)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-16', name: 'Seollal Eve (Lunar New Year)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-17', name: 'Seollal (Lunar New Year)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-18', name: 'Seollal Day After', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-01', name: 'Independence Movement Day (Samiljeol)', type: 'Public', isRecurring: true, recurringRule: 'March 1' },
+            { date: '2026-03-02', name: 'Substitute Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-05', name: 'Children\'s Day (Eorini Nal)', type: 'Public', isRecurring: true, recurringRule: 'May 5' },
+            { date: '2026-05-24', name: 'Buddha\'s Birthday (Bucheonim Osinnal)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-25', name: 'Substitute Holiday for Buddha\'s Birthday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-06', name: 'Memorial Day (Hyeonchungil)', type: 'Public', isRecurring: true, recurringRule: 'June 6' },
+            { date: '2026-08-15', name: 'Liberation Day (Gwangbokjeol)', type: 'Public', isRecurring: true, recurringRule: 'August 15' },
+            { date: '2026-08-17', name: 'Substitute Holiday for Liberation Day', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-24', name: 'Chuseok Eve (Mid-Autumn Festival)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-25', name: 'Chuseok (Mid-Autumn Festival)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-26', name: 'Chuseok Day After', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-03', name: 'National Foundation Day (Gaecheonjeol)', type: 'Public', isRecurring: true, recurringRule: 'October 3' },
+            { date: '2026-10-05', name: 'Substitute Holiday for National Foundation Day', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-09', name: 'Hangeul Day (Hangeulnal)', type: 'Public', isRecurring: true, recurringRule: 'October 9' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 19. China Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'China Public Holidays 2026',
+        region: 'CN',
+        description: 'China Official Public Holiday Periods',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day (Yuan Dan)', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-02', name: 'New Year Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-01-03', name: 'New Year Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-17', name: 'Spring Festival (Chinese New Year)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-18', name: 'Spring Festival Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-19', name: 'Spring Festival Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-20', name: 'Spring Festival Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-04', name: 'Tomb Sweeping Festival (Qing Ming)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-05', name: 'Tomb Sweeping Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Tomb Sweeping Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day (Lao Dong Jie)', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-02', name: 'Labour Day Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-03', name: 'Labour Day Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-19', name: 'Dragon Boat Festival (Duan Wu)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-20', name: 'Dragon Boat Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-21', name: 'Dragon Boat Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-25', name: 'Mid-Autumn Festival (Zhong Qiu)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-26', name: 'Mid-Autumn Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-27', name: 'Mid-Autumn Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-01', name: 'National Day (Guo Qing Jie)', type: 'Public', isRecurring: true, recurringRule: 'October 1' },
+            { date: '2026-10-02', name: 'National Day Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-03', name: 'National Day Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-04', name: 'National Day Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-05', name: 'National Day Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-06', name: 'National Day Holiday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-07', name: 'National Day Holiday', type: 'Public', isRecurring: false, recurringRule: '' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 20. Hong Kong Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Hong Kong Public Holidays 2026',
+        region: 'HK',
+        description: 'Hong Kong SAR General Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-17', name: 'Lunar New Year Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-18', name: 'Lunar New Year Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-19', name: 'Lunar New Year Day 3', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-04', name: 'Day after Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Ching Ming Festival (Substitute)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-25', name: 'Birthday of the Buddha (Substitute)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-19', name: 'Tuen Ng Festival (Dragon Boat)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-07-01', name: 'HKSAR Establishment Day', type: 'Public', isRecurring: true, recurringRule: 'July 1' },
+            { date: '2026-09-26', name: 'Day after Mid-Autumn Festival', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-01', name: 'National Day', type: 'Public', isRecurring: true, recurringRule: 'October 1' },
+            { date: '2026-10-19', name: 'Chung Yeung Festival (Substitute)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Day after Christmas', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 21. Taiwan Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Taiwan Public Holidays 2026',
+        region: 'TW',
+        description: 'Taiwan National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'Republic Day / New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-16', name: 'Lunar New Year\'s Eve (Chuxi)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-17', name: 'Lunar New Year Day 1 (Chunjie)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-18', name: 'Lunar New Year Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-19', name: 'Lunar New Year Day 3', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-20', name: 'Lunar New Year Day 4', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-28', name: 'Peace Memorial Day (228)', type: 'Public', isRecurring: true, recurringRule: 'February 28' },
+            { date: '2026-04-04', name: 'Children\'s Day', type: 'Public', isRecurring: true, recurringRule: 'April 4' },
+            { date: '2026-04-05', name: 'Tomb Sweeping Day (Qingming)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-06-19', name: 'Dragon Boat Festival (Duanwu)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-25', name: 'Mid-Autumn Festival (Zhongqiu)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-10', name: 'National Day (Double Tenth)', type: 'Public', isRecurring: true, recurringRule: 'October 10' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 22. Singapore Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Singapore Public Holidays 2026',
+        region: 'SG',
+        description: 'Singapore Gazetted Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-17', name: 'Chinese New Year Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-02-18', name: 'Chinese New Year Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-21', name: 'Hari Raya Puasa (Eid al-Fitr)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-27', name: 'Hari Raya Haji (Eid al-Adha)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-01', name: 'Vesak Day (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-08-10', name: 'National Day (Observed)', type: 'Public', isRecurring: true, recurringRule: 'August 9' },
+            { date: '2026-11-09', name: 'Deepavali (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 23. India Gazetted Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'India Gazetted Holidays 2026',
+        region: 'IN',
+        description: 'India Central Government Gazetted Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-26', name: 'Republic Day', type: 'Public', isRecurring: true, recurringRule: 'January 26' },
+            { date: '2026-03-04', name: 'Holi', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-21', name: 'Id-ul-Fitr (Eid al-Fitr)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-26', name: 'Rama Navami', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-31', name: 'Mahavir Jayanti', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Buddha Purnima', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-27', name: 'Id-ul-Zuha (Eid al-Adha)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-26', name: 'Muharram', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-08-15', name: 'Independence Day', type: 'Public', isRecurring: true, recurringRule: 'August 15' },
+            { date: '2026-08-26', name: 'Milad-un-Nabi (Prophet\'s Birthday)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-04', name: 'Janmashtami', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-02', name: 'Mahatma Gandhi Jayanti', type: 'Public', isRecurring: true, recurringRule: 'October 2' },
+            { date: '2026-10-20', name: 'Dussehra', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-11-08', name: 'Diwali (Deepavali)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-11-24', name: 'Guru Nanak Jayanti', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 24. Philippines Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Philippines Public Holidays 2026',
+        region: 'PH',
+        description: 'Philippines Regular and Special Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-02-17', name: 'Chinese New Year', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-02', name: 'Maundy Thursday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-09', name: 'Araw ng Kagitingan (Day of Valor)', type: 'Public', isRecurring: true, recurringRule: 'April 9' },
+            { date: '2026-05-01', name: 'Labor Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-06-12', name: 'Independence Day', type: 'Public', isRecurring: true, recurringRule: 'June 12' },
+            { date: '2026-08-21', name: 'Ninoy Aquino Day', type: 'Public', isRecurring: true, recurringRule: 'August 21' },
+            { date: '2026-08-31', name: 'National Heroes Day', type: 'Public', isRecurring: true, recurringRule: 'Last Monday of August' },
+            { date: '2026-11-01', name: 'All Saints\' Day', type: 'Public', isRecurring: true, recurringRule: 'November 1' },
+            { date: '2026-11-30', name: 'Bonifacio Day', type: 'Public', isRecurring: true, recurringRule: 'November 30' },
+            { date: '2026-12-08', name: 'Feast of the Immaculate Conception', type: 'Public', isRecurring: true, recurringRule: 'December 8' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-30', name: 'Rizal Day', type: 'Public', isRecurring: true, recurringRule: 'December 30' },
+            { date: '2026-12-31', name: 'Last Day of the Year', type: 'Public', isRecurring: true, recurringRule: 'December 31' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 25. Thailand Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Thailand Public Holidays 2026',
+        region: 'TH',
+        description: 'Thailand National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-03-03', name: 'Makha Bucha Day', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Chakri Memorial Day', type: 'Public', isRecurring: true, recurringRule: 'April 6' },
+            { date: '2026-04-13', name: 'Songkran Festival Day 1', type: 'Public', isRecurring: true, recurringRule: 'April 13' },
+            { date: '2026-04-14', name: 'Songkran Festival Day 2', type: 'Public', isRecurring: true, recurringRule: 'April 14' },
+            { date: '2026-04-15', name: 'Songkran Festival Day 3', type: 'Public', isRecurring: true, recurringRule: 'April 15' },
+            { date: '2026-05-01', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-04', name: 'Coronation Day', type: 'Public', isRecurring: true, recurringRule: 'May 4' },
+            { date: '2026-06-01', name: 'Visakha Bucha Day (Observed)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-03', name: 'Queen Suthida\'s Birthday', type: 'Public', isRecurring: true, recurringRule: 'June 3' },
+            { date: '2026-07-28', name: 'King\'s Birthday', type: 'Public', isRecurring: true, recurringRule: 'July 28' },
+            { date: '2026-07-29', name: 'Asalha Bucha Day', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-08-12', name: 'Queen Mother\'s Birthday / Mother\'s Day', type: 'Public', isRecurring: true, recurringRule: 'August 12' },
+            { date: '2026-10-13', name: 'Anniversary of King Bhumibol', type: 'Public', isRecurring: true, recurringRule: 'October 13' },
+            { date: '2026-10-23', name: 'Chulalongkorn Day', type: 'Public', isRecurring: true, recurringRule: 'October 23' },
+            { date: '2026-12-05', name: 'King Bhumibol\'s Birthday / Father\'s Day', type: 'Public', isRecurring: true, recurringRule: 'December 5' },
+            { date: '2026-12-10', name: 'Constitution Day', type: 'Public', isRecurring: true, recurringRule: 'December 10' },
+            { date: '2026-12-31', name: 'New Year\'s Eve', type: 'Public', isRecurring: true, recurringRule: 'December 31' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 26. Australia National Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Australia National Holidays 2026',
+        region: 'AU',
+        description: 'Australia National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-26', name: 'Australia Day', type: 'Public', isRecurring: true, recurringRule: 'January 26' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-04', name: 'Easter Saturday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-25', name: 'Anzac Day', type: 'Public', isRecurring: true, recurringRule: 'April 25' },
+            { date: '2026-06-08', name: 'King\'s Birthday (Most States)', type: 'Public', isRecurring: true, recurringRule: 'Second Monday of June' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Boxing Day', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 27. New Zealand Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'New Zealand Public Holidays 2026',
+        region: 'NZ',
+        description: 'New Zealand National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-01-02', name: 'Day after New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 2' },
+            { date: '2026-02-06', name: 'Waitangi Day', type: 'Public', isRecurring: true, recurringRule: 'February 6' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-27', name: 'Anzac Day (Observed)', type: 'Public', isRecurring: true, recurringRule: 'April 25' },
+            { date: '2026-06-01', name: 'King\'s Birthday', type: 'Public', isRecurring: true, recurringRule: 'First Monday of June' },
+            { date: '2026-07-10', name: 'Matariki', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-26', name: 'Labour Day', type: 'Public', isRecurring: true, recurringRule: 'Fourth Monday of October' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-28', name: 'Boxing Day (Observed)', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // =====================================================================
+    // MIDDLE EAST & AFRICA
+    // =====================================================================
+
+    // 28. UAE Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'UAE Public Holidays 2026',
+        region: 'AE',
+        description: 'United Arab Emirates Public Holidays (Islamic dates approximate)',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-03-20', name: 'Eid al-Fitr Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-21', name: 'Eid al-Fitr Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-22', name: 'Eid al-Fitr Day 3', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-26', name: 'Arafat Day', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-27', name: 'Eid al-Adha Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-28', name: 'Eid al-Adha Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-29', name: 'Eid al-Adha Day 3', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-16', name: 'Islamic New Year (Hijri)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-08-25', name: 'Prophet Muhammad\'s Birthday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-12-02', name: 'National Day (Day 1)', type: 'Public', isRecurring: true, recurringRule: 'December 2' },
+            { date: '2026-12-03', name: 'National Day (Day 2)', type: 'Public', isRecurring: true, recurringRule: 'December 3' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 29. Saudi Arabia Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Saudi Arabia Public Holidays 2026',
+        region: 'SA',
+        description: 'Saudi Arabia Public Holidays (Islamic dates approximate)',
+        year: 2026,
+        holidays: [
+            { date: '2026-02-22', name: 'Founding Day (Yawm al-Ta\'sis)', type: 'Public', isRecurring: true, recurringRule: 'February 22' },
+            { date: '2026-03-20', name: 'Eid al-Fitr Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-21', name: 'Eid al-Fitr Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-22', name: 'Eid al-Fitr Day 3', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-26', name: 'Arafat Day', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-27', name: 'Eid al-Adha Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-28', name: 'Eid al-Adha Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-29', name: 'Eid al-Adha Day 3', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-23', name: 'Saudi National Day', type: 'Public', isRecurring: true, recurringRule: 'September 23' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 30. Israel Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Israel Public Holidays 2026',
+        region: 'IL',
+        description: 'Israel National Public Holidays (begin at sunset prior evening)',
+        year: 2026,
+        holidays: [
+            { date: '2026-04-02', name: 'Passover Day 1 (Pesach)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-08', name: 'Passover Day 7', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-22', name: 'Independence Day (Yom HaAtzmaut)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-22', name: 'Shavuot', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-12', name: 'Rosh Hashana Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-13', name: 'Rosh Hashana Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-21', name: 'Yom Kippur', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-09-26', name: 'Sukkot Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-03', name: 'Shemini Atzeret / Simchat Torah', type: 'Public', isRecurring: false, recurringRule: '' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 31. South Africa Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'South Africa Public Holidays 2026',
+        region: 'ZA',
+        description: 'South Africa National Public Holidays',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-03-21', name: 'Human Rights Day', type: 'Public', isRecurring: true, recurringRule: 'March 21' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Family Day', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-27', name: 'Freedom Day', type: 'Public', isRecurring: true, recurringRule: 'April 27' },
+            { date: '2026-05-01', name: 'Workers\' Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-06-16', name: 'Youth Day', type: 'Public', isRecurring: true, recurringRule: 'June 16' },
+            { date: '2026-08-10', name: 'National Women\'s Day (Observed)', type: 'Public', isRecurring: true, recurringRule: 'August 9' },
+            { date: '2026-09-24', name: 'Heritage Day', type: 'Public', isRecurring: true, recurringRule: 'September 24' },
+            { date: '2026-12-16', name: 'Day of Reconciliation', type: 'Public', isRecurring: true, recurringRule: 'December 16' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Day of Goodwill', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
+    // 32. Nigeria Public Holidays
+    regionalCalendars.push({
+        id: nextCalendarId++,
+        name: 'Nigeria Public Holidays 2026',
+        region: 'NG',
+        description: 'Nigeria National Public Holidays (Islamic dates approximate)',
+        year: 2026,
+        holidays: [
+            { date: '2026-01-01', name: 'New Year\'s Day', type: 'Public', isRecurring: true, recurringRule: 'January 1' },
+            { date: '2026-03-20', name: 'Eid el-Fitr Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-03-21', name: 'Eid el-Fitr Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-03', name: 'Good Friday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-04-06', name: 'Easter Monday', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-01', name: 'Workers\' Day', type: 'Public', isRecurring: true, recurringRule: 'May 1' },
+            { date: '2026-05-27', name: 'Eid el-Kabir Day 1', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-05-28', name: 'Eid el-Kabir Day 2', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-06-12', name: 'Democracy Day', type: 'Public', isRecurring: true, recurringRule: 'June 12' },
+            { date: '2026-08-26', name: 'Eid el-Maulud (Prophet\'s Birthday)', type: 'Public', isRecurring: false, recurringRule: '' },
+            { date: '2026-10-01', name: 'National Day (Independence Day)', type: 'Public', isRecurring: true, recurringRule: 'October 1' },
+            { date: '2026-12-25', name: 'Christmas Day', type: 'Public', isRecurring: true, recurringRule: 'December 25' },
+            { date: '2026-12-26', name: 'Boxing Day', type: 'Public', isRecurring: true, recurringRule: 'December 26' }
+        ],
+        isTemplate: true,
+        useCount: 0,
+        createdDate: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    });
+
 }
 
 function loadSampleResources() {
@@ -9208,7 +10068,7 @@ function loadSampleResources() {
             preferredTrainingDays: ['Tuesday', 'Thursday'],
             learningPace: 'Moderate',
             formatPreference: 'Online',
-            regionalCalendarIds: data.location.includes('US') ? [1] : (data.location.includes('UK') ? [2] : []),
+            regionalCalendarIds: data.location.includes('US') ? [1] : (data.location.includes('UK') ? [2] : (data.location.includes('Germany') ? [8] : (data.location.includes('Singapore') ? [22] : []))),
             personalTimeOff: [],
             blackoutPeriods: [],
             assignedCourses: [],

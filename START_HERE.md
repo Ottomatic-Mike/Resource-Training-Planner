@@ -166,9 +166,14 @@ Courses are structured around competency areas for each of the 6 sample roles:
 
 **From 23 providers** including Udemy, Coursera, Pluralsight, LinkedIn Learning, ServiceNow University, SANS Institute, CompTIA, ISC2, AWS Training, Microsoft Learn, Google Cloud Training, Frontend Masters, O'Reilly, and more.
 
-### 2 Regional Calendars
-- **US Federal Holidays 2026** (8 holidays)
-- **UK Bank Holidays 2026** (8 holidays)
+### 32 Regional Calendars
+Covering every major region worldwide:
+- **Americas** (7): US, Canada, Mexico, Brazil, Argentina, Colombia
+- **Europe** (9): UK, Germany, France, Italy, Spain, Netherlands, Sweden, Switzerland, Poland, Ireland
+- **Asia-Pacific** (11): Japan, South Korea, China, Hong Kong, Taiwan, Singapore, India, Philippines, Thailand, Australia, New Zealand
+- **Middle East & Africa** (5): UAE, Saudi Arabia, Israel, South Africa, Nigeria
+
+Each calendar includes all 2026 public holidays with correct dates for moveable holidays (Easter, Chinese New Year, Islamic holidays, Diwali, etc.).
 
 ---
 
