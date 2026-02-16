@@ -201,7 +201,7 @@ The app ships with pre-loaded sample data you can activate from **Settings > Loa
 
 - **6 Team Members** — Senior Developer, Security Engineer, DevOps Engineer, QA Lead, Data Engineer, Frontend Developer
 - **18 Competencies** — Across Programming, Cloud, DevOps, Security, Data, and Soft Skills categories
-- **71 Courses** — From providers including ServiceNow University (59 courses), Udemy, A Cloud Guru, Linux Foundation, SANS, Microsoft Learn, and more ($0–$17,000)
+- **100 Courses** — From providers including ServiceNow University (88 courses covering all CIS paths, security, developer, and expert programs), Udemy, A Cloud Guru, Linux Foundation, SANS, Microsoft Learn, and more ($0–$17,000). Costs include exam fees where certifications apply.
 - **2 Holiday Calendars** — US Federal Holidays 2026 and UK Bank Holidays 2026
 
 This lets you explore every feature immediately without entering any data first.

@@ -8741,16 +8741,16 @@ function loadSampleCompetencies() {
 function loadSampleCourses() {
     const sampleCourses = [
         { title: 'Complete Python Bootcamp', provider: 'Udemy', cost: 89, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'AWS Certified Solutions Architect', provider: 'A Cloud Guru', cost: 299, duration: 50, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Kubernetes for Developers', provider: 'Linux Foundation', cost: 299, duration: 40, format: 'Online Live', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'AWS Certified Solutions Architect', provider: 'A Cloud Guru', cost: 599, duration: 50, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'Kubernetes for Developers (CKAD)', provider: 'Linux Foundation', cost: 694, duration: 40, format: 'Online Live', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
         { title: 'Advanced JavaScript Concepts', provider: 'Frontend Masters', cost: 390, duration: 15, format: 'Online Self-Paced', level: 'Advanced', rating: 4.8, cert: false, travel: false, travelCost: 0 },
         { title: 'Docker Mastery', provider: 'Udemy', cost: 89, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Terraform Associate Certification', provider: 'HashiCorp', cost: 495, duration: 45, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'OWASP Top 10 Security', provider: 'SANS Institute', cost: 1500, duration: 40, format: 'In-Person', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 2500 },
+        { title: 'Terraform Associate Certification', provider: 'HashiCorp', cost: 566, duration: 45, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
+        { title: 'OWASP Top 10 Security (GIAC)', provider: 'SANS Institute', cost: 2479, duration: 40, format: 'In-Person', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 2500 },
         { title: 'Data Engineering Nanodegree', provider: 'Udacity', cost: 1200, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
         { title: 'React Complete Guide', provider: 'Udemy', cost: 89, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
         { title: 'Go Programming Language', provider: 'Pluralsight', cost: 299, duration: 30, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Azure Fundamentals', provider: 'Microsoft Learn', cost: 0, duration: 25, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'Azure Fundamentals (AZ-900)', provider: 'Microsoft Learn', cost: 99, duration: 25, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
         { title: 'Leadership for Tech Managers', provider: 'Coursera', cost: 200, duration: 20, format: 'Hybrid', level: 'All Levels', rating: 4.4, cert: true, travel: true, travelCost: 1800 },
         // ServiceNow University (Now Learning) courses
         { title: 'Welcome to ServiceNow', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
@@ -8806,6 +8806,44 @@ function loadSampleCourses() {
         { title: 'Agile and Test Management Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
         { title: 'DevOps Change Velocity', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
         { title: 'GRC Business Continuity Management', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        // CIS-SIR: Missing simulator
+        { title: 'Security Incident Response (SIR) Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        // CIS-RC: Missing implementation course
+        { title: 'IRM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        // CIS-SM: Missing simulator
+        { title: 'Service Mapping Advanced Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        // CIS-HAM: Missing simulator
+        { title: 'Hardware Asset Management (HAM) Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        // CIS-SPM: Missing courses
+        { title: 'Innovation Management', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'SPM Implementation Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        // CIS-PA: Missing courses
+        { title: 'Formula Indicators Overview', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'PA Widgets', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'Responsive Dashboards Overview', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        // CIS-SP: Missing courses
+        { title: 'Service Provider Architecture', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'Service Provider Implementer', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        // Micro-certifications: Security and Developer focused
+        { title: 'Playbooks Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'Playbooks Advanced', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'Service Portal Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: 'CMDB Health', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'Configure CMDB', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'Virtual Agent Implementer', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        // CIS Exam Prep ILTs for security and specialist paths
+        { title: 'ServiceNow CIS-SIR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-VR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-CSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-HR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-DISCO Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-SM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-HAM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-SAM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-RC Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-SPM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-FSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'ServiceNow CIS-EM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
         { title: 'ServiceNow CSA Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 2700, duration: 24, format: 'Online Live', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0 },
         { title: 'ServiceNow CAD Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 2700, duration: 24, format: 'Online Live', level: 'Intermediate', rating: 4.8, cert: true, travel: false, travelCost: 0 },
         { title: 'ServiceNow CIS-ITSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },

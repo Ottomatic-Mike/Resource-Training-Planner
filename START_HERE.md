@@ -67,7 +67,7 @@ Now that the application is running, let's explore!
 **You now have:**
 - 6 sample team members
 - 18 competencies across 5 categories
-- 71 training courses (including 59 from ServiceNow University)
+- 100 training courses (including 88 from ServiceNow University)
 - 2 regional calendars
 
 ### Minute 3-4: Explore the Dashboard
@@ -96,7 +96,7 @@ Now that the application is running, let's explore!
 ### Minute 9-10: Check Out Courses
 
 - Click **Course Catalog** (Tab 4)
-- Browse 71 sample courses (including the full ServiceNow University catalog)
+- Browse 100 sample courses (including the full ServiceNow University catalog)
 - Notice: provider, cost, duration, rating, relevant competencies
 - Click "View Details" on any course
 - Try the search and filter features
@@ -122,9 +122,9 @@ Across 5 categories:
 - **Data**: SQL, NoSQL, Data Engineering
 - **Soft Skills**: Leadership, Communication
 
-### 71 Training Courses
+### 100 Training Courses
 From providers including:
-- **ServiceNow University** (59 courses, Free–$17,000) — Complete Now Learning catalog covering CSA, CAD, CIS paths, ITSM, CSM, HRSD, SecOps, ITOM, GRC, SPM, FSM, AI/GenAI, and expert programs
+- **ServiceNow University** (88 courses, Free–$17,000) — Complete Now Learning catalog covering all CIS certification paths (ITSM, CSM, HRSD, SIR, VR, DISCO, SM, EM, HAM, SAM, RC, TPRM, SPM, FSM, SP, PA, Data Foundations), CSA/CAD prep, simulators, micro-certifications, AI/GenAI, and expert programs (ArchX, CTA, CMA). Exam fees included where applicable.
 - Udemy ($89–390)
 - A Cloud Guru ($299)
 - Linux Foundation ($299–395)
