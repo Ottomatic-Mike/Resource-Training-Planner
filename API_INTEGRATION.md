@@ -125,7 +125,7 @@ AI simply accelerates and enhances these workflows.
 2. Click **Settings ⚙️**
 3. Select **AI Provider**: Anthropic
 4. Enter **API Key**: (paste your key)
-5. Select **Model**: `claude-sonnet-4-5-20250929` (recommended)
+5. Select **Model**: `claude-opus-4-6` (default, recommended)
 6. Set **Temperature**: 0.7 (default)
 7. Click **"Save Settings"**
 
@@ -148,9 +148,9 @@ AI simply accelerates and enhances these workflows.
 - Cost: ~$0.09 per request
 - Use for: Complex enterprise training analysis
 
-**claude-sonnet-4-5-20250929** (Recommended)
-- Best balance of quality and cost
-- Cost: ~$0.054 per request
+**claude-opus-4-6** (Default, Recommended)
+- Most capable model for training plan analysis
+- Cost: ~$0.15 per request
 - Use for: All features
 
 **claude-haiku-4-5-20251001** (Budget)

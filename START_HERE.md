@@ -67,7 +67,7 @@ Now that the application is running, let's explore!
 **You now have:**
 - 6 sample team members
 - 18 competencies across 5 categories
-- 100 training courses (including 88 from ServiceNow University)
+- 239 training courses from 16 providers (including 88 from ServiceNow University)
 - 2 regional calendars
 
 ### Minute 3-4: Explore the Dashboard
@@ -96,7 +96,7 @@ Now that the application is running, let's explore!
 ### Minute 9-10: Check Out Courses
 
 - Click **Course Catalog** (Tab 4)
-- Browse 100 sample courses (including the full ServiceNow University catalog)
+- Browse 239 sample courses from 16 providers (including the full ServiceNow University catalog)
 - Notice: provider, cost, duration, rating, relevant competencies
 - Click "View Details" on any course
 - Try the search and filter features
@@ -122,15 +122,24 @@ Across 5 categories:
 - **Data**: SQL, NoSQL, Data Engineering
 - **Soft Skills**: Leadership, Communication
 
-### 100 Training Courses
-From providers including:
-- **ServiceNow University** (88 courses, Free–$17,000) — Complete Now Learning catalog covering all CIS certification paths (ITSM, CSM, HRSD, SIR, VR, DISCO, SM, EM, HAM, SAM, RC, TPRM, SPM, FSM, SP, PA, Data Foundations), CSA/CAD prep, simulators, micro-certifications, AI/GenAI, and expert programs (ArchX, CTA, CMA). Exam fees included where applicable.
-- Udemy ($89–390)
-- A Cloud Guru ($299)
-- Linux Foundation ($299–395)
-- SANS Institute ($1,500)
-- HashiCorp ($495)
-- Microsoft Learn (Free!)
+### 239 Training Courses
+From 16 providers including:
+- **Udemy** (30 courses, $20 each) — Python, JavaScript, React, Angular, Node.js, TypeScript, Java, Go, Rust, AWS, Azure, Docker, Kubernetes, Terraform, CI/CD, SQL, Machine Learning, Ethical Hacking, and more
+- **Coursera** (16 courses, $49–79/course) — Google, IBM, Meta, and University certificates in Cybersecurity, Data Science, Cloud Computing, AI/ML, and Project Management
+- **Pluralsight** (14 courses, $45/month subscription) — Cloud architecture, Kubernetes, DevOps, security, and development paths
+- **LinkedIn Learning** (12 courses, $30/month subscription) — Leadership, project management, programming, DevOps, and career development
+- **AWS Training & Certification** (12 courses, Free–$600) — Cloud Practitioner through Solutions Architect Professional, with exam fees included
+- **Microsoft Learn** (12 courses, Free–$265) — Azure fundamentals through expert-level certifications, Power Platform, and Microsoft 365
+- **Google Cloud Training** (10 courses, Free–$600) — Cloud Digital Leader through Professional Cloud Architect, with exam fees
+- **SANS Institute** (8 courses, $2,479–$9,479) — Premier cybersecurity training with GIAC certification exam fees included
+- **Linux Foundation** (10 courses, $299–$695) — Kubernetes (CKA, CKAD, CKS), Linux administration, and cloud engineering certifications
+- **CompTIA** (7 courses, $358–$581) — ITF+, A+, Network+, Security+, CySA+, PenTest+, CASP+ certification exam fees
+- **ISC2** (3 courses, $249–$749) — CISSP, CCSP, and CC certifications
+- **HashiCorp** (3 courses, $70.50 exam fee each) — Terraform Associate, Vault Associate, and Consul Associate
+- **O'Reilly Learning** (6 paths, $499/year subscription) — Curated learning paths in Python, cloud, Kubernetes, security, data engineering, and AI/ML
+- **Scrum / Agile** (4 courses, $200–$495) — CSM, CSPO, PSM, and SAFe certifications
+- **Frontend Masters** (4 courses, $39/month subscription) — Advanced JavaScript, React, TypeScript, and full-stack development
+- **ServiceNow University** (88 courses, Free–$17,000) — Complete Now Learning catalog covering all CIS certification paths, CSA/CAD prep, simulators, micro-certifications, AI/GenAI, and expert programs (ArchX, CTA, CMA)
 
 ### 2 Regional Calendars
 - **US Federal Holidays 2026** (8 holidays)
