@@ -201,8 +201,8 @@ The app ships with pre-loaded sample data you can activate from **Settings > Loa
 
 - **6 Team Members** — Senior Developer, Security Engineer, DevOps Engineer, QA Lead, Data Engineer, Frontend Developer
 - **18 Competencies** — Across Programming, Cloud, DevOps, Security, Data, and Soft Skills categories
-- **12 Courses** — From providers like Udemy, A Cloud Guru, Linux Foundation, SANS, and Microsoft Learn ($0–$1,500)
-- **2 Holiday Calendars** — US Federal Holidays and UK Bank Holidays
+- **71 Courses** — From providers including ServiceNow University (59 courses), Udemy, A Cloud Guru, Linux Foundation, SANS, Microsoft Learn, and more ($0–$17,000)
+- **2 Holiday Calendars** — US Federal Holidays 2026 and UK Bank Holidays 2026
 
 This lets you explore every feature immediately without entering any data first.
 
@@ -282,7 +282,7 @@ Contributions are welcome! This is a solo-developed project with clear conventio
 
 ## License
 
-MIT License — Copyright (c) 2025 Training Plan Manager
+MIT License — Copyright (c) 2026 Training Plan Manager
 
 See the full license in the repository.
 

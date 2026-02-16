@@ -2,7 +2,7 @@
 
 **Complete reference documentation for all features and workflows.**
 
-Version 1.0.1 | Last Updated: January 24, 2024
+Version 2.0.4 | Last Updated: February 16, 2026
 
 ---
 
@@ -824,8 +824,8 @@ Manage regional holiday calendars and resource availability to improve schedule 
 ### Calendar Templates
 
 **Pre-loaded:**
-- US Federal Holidays 2024 (8 holidays)
-- UK Bank Holidays 2024 (8 holidays)
+- US Federal Holidays 2026 (8 holidays)
+- UK Bank Holidays 2026 (8 holidays)
 
 **Custom:**
 - Create your own
@@ -836,9 +836,9 @@ Manage regional holiday calendars and resource availability to improve schedule 
 
 1. Click **"+ Add Calendar"**
 2. Fill in:
-   - **Name** (e.g., "Canada Statutory Holidays 2024")
+   - **Name** (e.g., "Canada Statutory Holidays 2026")
    - **Region** (e.g., "CA")
-   - **Year** (e.g., 2024)
+   - **Year** (e.g., 2026)
    - **Description**
 3. Click **"Add Calendar"**
 

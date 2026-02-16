@@ -254,7 +254,7 @@ docker compose ps
 
 **Health Check:**
 - Visit: `http://localhost:3000/health`
-- Expected response: `{"status":"healthy","service":"training-plan-manager","version":"2.0.3",...}`
+- Expected response: `{"status":"healthy","service":"training-plan-manager","version":"2.0.4",...}`
 
 ---
 
@@ -560,6 +560,6 @@ If you encounter issues not covered here:
 
 ---
 
-**Version:** 2.0.3
-**Last Updated:** January 2025
+**Version:** 2.0.4
+**Last Updated:** February 2026
 **License:** MIT

@@ -584,8 +584,8 @@ Each model displays:
   "schedule": [
     {
       "courseId": 1,
-      "startDate": "2024-02-01",
-      "endDate": "2024-04-15",
+      "startDate": "2026-03-01",
+      "endDate": "2026-05-15",
       "weeklyHours": 5,
       "milestones": [...]
     },

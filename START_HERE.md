@@ -67,7 +67,7 @@ Now that the application is running, let's explore!
 **You now have:**
 - 6 sample team members
 - 18 competencies across 5 categories
-- 12 training courses
+- 71 training courses (including 59 from ServiceNow University)
 - 2 regional calendars
 
 ### Minute 3-4: Explore the Dashboard
@@ -96,7 +96,7 @@ Now that the application is running, let's explore!
 ### Minute 9-10: Check Out Courses
 
 - Click **Course Catalog** (Tab 4)
-- Browse 12 sample courses
+- Browse 71 sample courses (including the full ServiceNow University catalog)
 - Notice: provider, cost, duration, rating, relevant competencies
 - Click "View Details" on any course
 - Try the search and filter features
@@ -122,18 +122,19 @@ Across 5 categories:
 - **Data**: SQL, NoSQL, Data Engineering
 - **Soft Skills**: Leadership, Communication
 
-### 12 Training Courses
-From providers like:
-- Udemy ($89-390)
+### 71 Training Courses
+From providers including:
+- **ServiceNow University** (59 courses, Free–$17,000) — Complete Now Learning catalog covering CSA, CAD, CIS paths, ITSM, CSM, HRSD, SecOps, ITOM, GRC, SPM, FSM, AI/GenAI, and expert programs
+- Udemy ($89–390)
 - A Cloud Guru ($299)
-- Linux Foundation ($299-395)
+- Linux Foundation ($299–395)
 - SANS Institute ($1,500)
 - HashiCorp ($495)
 - Microsoft Learn (Free!)
 
 ### 2 Regional Calendars
-- **US Federal Holidays 2024** (8 holidays)
-- **UK Bank Holidays 2024** (8 holidays)
+- **US Federal Holidays 2026** (8 holidays)
+- **UK Bank Holidays 2026** (8 holidays)
 
 ---
 
@@ -278,7 +279,7 @@ Changes save automatically to localStorage every 2 seconds while you work.
 
 1. Go to **Settings** → **Data Management**
 2. Click **"Export Data to JSON"**
-3. File downloads with timestamp (e.g., `training-data-2025-01-24.json`)
+3. File downloads with timestamp (e.g., `training-data-2026-02-16.json`)
 4. Store in:
    - Cloud storage (Dropbox, Google Drive, OneDrive)
    - Version control (Git repository)
@@ -440,4 +441,4 @@ GitHub: https://github.com/Ottomatic-Mike/Resource-Training-Planning
 *For AI setup, see [API_INTEGRATION.md](API_INTEGRATION.md)*
 
 **Version:** 2.0.4
-**Last Updated:** January 2025
+**Last Updated:** February 2026
