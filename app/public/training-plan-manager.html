@@ -4862,11 +4862,26 @@ function renderCourses() {
             <span>These courses are a <strong>representative starting catalog</strong> with sample pricing. Courses, prices, and availability change frequently. For the latest offerings, use <strong>"🔍 Search Online"</strong> above to discover current courses from any provider using AI-powered search.</span>
         </div>
 
-        <div class="search-filter-bar">
+        <div class="search-filter-bar" style="flex-wrap: wrap;">
             <input type="text" class="form-input search-input" placeholder="Search courses..." id="courseSearch" oninput="filterCourses()">
+            <select class="form-select" id="courseFilterRole" onchange="onRoleFilterChange()">
+                <option value="">All Roles</option>
+                ${[...new Set(courseCatalog.map(c => c.roleTrack).filter(Boolean))].sort().map(r => `<option value="${r}">${r}</option>`).join('')}
+            </select>
+            <select class="form-select" id="courseFilterCompetency" onchange="filterCourses()">
+                <option value="">All Competencies</option>
+                ${[...new Set(courseCatalog.map(c => c.competencyArea).filter(Boolean))].sort().map(c => `<option value="${c}">${c}</option>`).join('')}
+            </select>
+            <select class="form-select" id="courseFilterGoal" onchange="filterCourses()">
+                <option value="">All Goals</option>
+                <option value="Foundation Building">Foundation Building</option>
+                <option value="Skill Development">Skill Development</option>
+                <option value="Certification">Certification</option>
+                <option value="Career Growth">Career Growth</option>
+            </select>
             <select class="form-select" id="courseFilterProvider" onchange="filterCourses()">
                 <option value="">All Providers</option>
-                ${[...new Set(courseCatalog.map(c => c.provider))].map(prov => `<option value="${prov}">${prov}</option>`).join('')}
+                ${[...new Set(courseCatalog.map(c => c.provider))].sort().map(prov => `<option value="${prov}">${prov}</option>`).join('')}
             </select>
             <select class="form-select" id="courseFilterFormat" onchange="filterCourses()">
                 <option value="">All Formats</option>
@@ -4885,8 +4900,38 @@ function renderCourses() {
     content.innerHTML = html;
 }
 
+function onRoleFilterChange() {
+    const role = document.getElementById('courseFilterRole')?.value || '';
+    const compSelect = document.getElementById('courseFilterCompetency');
+    if (!compSelect) return;
+
+    // Remember current selection
+    const currentComp = compSelect.value;
+
+    // Rebuild competency options based on selected role
+    let competencies;
+    if (role) {
+        competencies = [...new Set(courseCatalog.filter(c => c.roleTrack === role).map(c => c.competencyArea).filter(Boolean))].sort();
+    } else {
+        competencies = [...new Set(courseCatalog.map(c => c.competencyArea).filter(Boolean))].sort();
+    }
+
+    compSelect.innerHTML = '<option value="">All Competencies</option>' +
+        competencies.map(c => `<option value="${c}"${c === currentComp ? ' selected' : ''}>${c}</option>`).join('');
+
+    // If current competency is no longer valid for the selected role, reset it
+    if (currentComp && !competencies.includes(currentComp)) {
+        compSelect.value = '';
+    }
+
+    filterCourses();
+}
+
 function filterCourses() {
     const search = document.getElementById('courseSearch')?.value.toLowerCase() || '';
+    const role = document.getElementById('courseFilterRole')?.value || '';
+    const competency = document.getElementById('courseFilterCompetency')?.value || '';
+    const goal = document.getElementById('courseFilterGoal')?.value || '';
     const provider = document.getElementById('courseFilterProvider')?.value || '';
     const format = document.getElementById('courseFilterFormat')?.value || '';
 
@@ -4897,8 +4942,22 @@ function filterCourses() {
             course.title.toLowerCase().includes(search) ||
             (course.provider && course.provider.toLowerCase().includes(search)) ||
             (course.description && course.description.toLowerCase().includes(search)) ||
-            (course.skillLevel && course.skillLevel.toLowerCase().includes(search))
+            (course.skillLevel && course.skillLevel.toLowerCase().includes(search)) ||
+            (course.roleTrack && course.roleTrack.toLowerCase().includes(search)) ||
+            (course.competencyArea && course.competencyArea.toLowerCase().includes(search))
         );
+    }
+
+    if (role) {
+        filtered = filtered.filter(course => course.roleTrack === role);
+    }
+
+    if (competency) {
+        filtered = filtered.filter(course => course.competencyArea === competency);
+    }
+
+    if (goal) {
+        filtered = filtered.filter(course => course.learningGoal === goal);
     }
 
     if (provider) {
@@ -5012,10 +5071,18 @@ function renderCoursesList(filteredCourses = null) {
             ? '<span class="badge badge-warning" style="font-size: 10px; margin-left: 4px;">Travel</span>'
             : '';
 
+        const roleBadge = course.roleTrack
+            ? `<span class="badge" style="font-size: 9px; margin-left: 4px; background: var(--primary-color); color: white;">${course.roleTrack}</span>`
+            : '';
+        const compBadge = course.competencyArea
+            ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${escapeHtml(course.competencyArea)}${course.learningGoal ? ` · ${course.learningGoal}` : ''}</div>`
+            : '';
+
         html += `
             <tr onclick="viewCourseDetail(${course.id})" style="cursor: pointer;">
                 <td>
-                    <div><strong>${escapeHtml(course.title)}</strong>${certBadge}${travelIndicator}</div>
+                    <div><strong>${escapeHtml(course.title)}</strong>${certBadge}${travelIndicator}${roleBadge}</div>
+                    ${compBadge}
                 </td>
                 <td>${escapeHtml(course.provider)}</td>
                 <td>${escapeHtml(course.format)}</td>
@@ -5102,6 +5169,35 @@ function showAddCourseForm() {
             <div class="form-group">
                 <label class="form-label">Rating (1-5)</label>
                 <input type="number" class="form-input" id="newCourseRating" placeholder="4.5" min="1" max="5" step="0.1">
+            </div>
+        </div>
+
+        <div class="form-inline">
+            <div class="form-group">
+                <label class="form-label">Role Track</label>
+                <select class="form-select" id="newCourseRole" onchange="updateNewCourseCompetencies()">
+                    <option value="">-- Select Role --</option>
+                    ${[...new Set(courseCatalog.map(c => c.roleTrack).filter(Boolean))].sort().map(r => `<option value="${r}">${r}</option>`).join('')}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Competency Area</label>
+                <select class="form-select" id="newCourseCompetency">
+                    <option value="">-- Select Competency --</option>
+                    ${[...new Set(courseCatalog.map(c => c.competencyArea).filter(Boolean))].sort().map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Learning Goal</label>
+                <select class="form-select" id="newCourseGoal">
+                    <option value="">-- Select Goal --</option>
+                    <option value="Foundation Building">Foundation Building</option>
+                    <option value="Skill Development">Skill Development</option>
+                    <option value="Certification">Certification</option>
+                    <option value="Career Growth">Career Growth</option>
+                </select>
             </div>
         </div>
 
@@ -5475,6 +5571,9 @@ function saveNewCourse() {
         certificationValidityYears: 0,
         requiresTravel: document.getElementById('newCourseTravelRequired').checked,
         estimatedTravelCost: parseFloat(document.getElementById('newCourseTravelCost').value) || 0,
+        roleTrack: document.getElementById('newCourseRole')?.value || '',
+        competencyArea: document.getElementById('newCourseCompetency')?.value || '',
+        learningGoal: document.getElementById('newCourseGoal')?.value || '',
         relevantCompetencies: selectedCompetencies,
         discoveredBy: 'Manual Entry',
         discoveryDate: new Date().toISOString(),
@@ -5495,6 +5594,22 @@ function saveNewCourse() {
     closeModal();
     triggerSave();
     renderCourses();
+}
+
+function updateNewCourseCompetencies() {
+    const role = document.getElementById('newCourseRole')?.value || '';
+    const compSelect = document.getElementById('newCourseCompetency');
+    if (!compSelect) return;
+
+    let competencies;
+    if (role) {
+        competencies = [...new Set(courseCatalog.filter(c => c.roleTrack === role).map(c => c.competencyArea).filter(Boolean))].sort();
+    } else {
+        competencies = [...new Set(courseCatalog.map(c => c.competencyArea).filter(Boolean))].sort();
+    }
+
+    compSelect.innerHTML = '<option value="">-- Select Competency --</option>' +
+        competencies.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
 function viewCourseDetail(courseId) {
@@ -8757,40 +8872,40 @@ function loadSampleCourses() {
         // =====================================================================
 
         // --- Competency: Professional Development & Methodology ---
-        { title: 'Agile Crash Course: Agile Project Management / Scrum', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Jira For Beginners: Project Management Essentials', provider: 'Udemy', cost: 20, duration: 6, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'ChatGPT & AI Prompt Engineering for Developers', provider: 'Udemy', cost: 20, duration: 22, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Certified ScrumMaster (CSM) - Scrum Alliance', provider: 'Scrum Alliance', cost: 1095, duration: 16, format: 'Online Live', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Professional Scrum Master I (PSM I) - Scrum.org', provider: 'Scrum.org', cost: 150, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'PMI Agile Certified Practitioner (PMI-ACP)', provider: 'PMI', cost: 435, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Google Project Management Professional Certificate', provider: 'Coursera', cost: 294, duration: 120, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'Project Management Foundations', provider: 'LinkedIn Learning', cost: 240, duration: 3, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Leadership Foundations', provider: 'LinkedIn Learning', cost: 240, duration: 2, format: 'Online Self-Paced', level: 'All Levels', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Communication Foundations', provider: 'LinkedIn Learning', cost: 240, duration: 2, format: 'Online Self-Paced', level: 'All Levels', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'SAFe Agilist Certification (SA) - Scaled Agile', provider: 'Scaled Agile', cost: 995, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'Agile Crash Course: Agile Project Management / Scrum', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Foundation Building' },
+        { title: 'Jira For Beginners: Project Management Essentials', provider: 'Udemy', cost: 20, duration: 6, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Foundation Building' },
+        { title: 'ChatGPT & AI Prompt Engineering for Developers', provider: 'Udemy', cost: 20, duration: 22, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Skill Development' },
+        { title: 'Certified ScrumMaster (CSM) - Scrum Alliance', provider: 'Scrum Alliance', cost: 1095, duration: 16, format: 'Online Live', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Certification' },
+        { title: 'Professional Scrum Master I (PSM I) - Scrum.org', provider: 'Scrum.org', cost: 150, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Certification' },
+        { title: 'PMI Agile Certified Practitioner (PMI-ACP)', provider: 'PMI', cost: 435, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Certification' },
+        { title: 'Google Project Management Professional Certificate', provider: 'Coursera', cost: 294, duration: 120, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Certification' },
+        { title: 'Project Management Foundations', provider: 'LinkedIn Learning', cost: 240, duration: 3, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Career Growth' },
+        { title: 'Leadership Foundations', provider: 'LinkedIn Learning', cost: 240, duration: 2, format: 'Online Self-Paced', level: 'All Levels', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Career Growth' },
+        { title: 'Communication Foundations', provider: 'LinkedIn Learning', cost: 240, duration: 2, format: 'Online Self-Paced', level: 'All Levels', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Career Growth' },
+        { title: 'SAFe Agilist Certification (SA) - Scaled Agile', provider: 'Scaled Agile', cost: 995, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Professional Development & Methodology', goal: 'Certification' },
 
         // --- Competency: Technical Foundations ---
-        { title: 'Git & GitHub - The Practical Guide', provider: 'Udemy', cost: 20, duration: 11, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Linux Mastery: Master the Linux Command Line', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'The Complete Networking Fundamentals Course', provider: 'Udemy', cost: 20, duration: 80, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Introduction to Computer Science (Harvard CS50)', provider: 'Coursera', cost: 0, duration: 100, format: 'Online Self-Paced', level: 'Beginner', rating: 4.9, cert: false, travel: false, travelCost: 0 },
-        { title: 'Google IT Support Professional Certificate', provider: 'Coursera', cost: 294, duration: 200, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'Google AI Essentials', provider: 'Coursera', cost: 49, duration: 20, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'CompTIA ITF+ Certification (FC0-U71)', provider: 'CompTIA', cost: 157, duration: 20, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'Software Architecture Learning Path', provider: 'O\'Reilly', cost: 499, duration: 30, format: 'Online Self-Paced', level: 'Advanced', rating: 4.7, cert: false, travel: false, travelCost: 0 },
+        { title: 'Git & GitHub - The Practical Guide', provider: 'Udemy', cost: 20, duration: 11, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Technical Foundations', goal: 'Foundation Building' },
+        { title: 'Linux Mastery: Master the Linux Command Line', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Technical Foundations', goal: 'Foundation Building' },
+        { title: 'The Complete Networking Fundamentals Course', provider: 'Udemy', cost: 20, duration: 80, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Technical Foundations', goal: 'Foundation Building' },
+        { title: 'Introduction to Computer Science (Harvard CS50)', provider: 'Coursera', cost: 0, duration: 100, format: 'Online Self-Paced', level: 'Beginner', rating: 4.9, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Technical Foundations', goal: 'Foundation Building' },
+        { title: 'Google IT Support Professional Certificate', provider: 'Coursera', cost: 294, duration: 200, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Technical Foundations', goal: 'Certification' },
+        { title: 'Google AI Essentials', provider: 'Coursera', cost: 49, duration: 20, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Technical Foundations', goal: 'Foundation Building' },
+        { title: 'CompTIA ITF+ Certification (FC0-U71)', provider: 'CompTIA', cost: 157, duration: 20, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Technical Foundations', goal: 'Certification' },
+        { title: 'Software Architecture Learning Path', provider: 'O\'Reilly', cost: 499, duration: 30, format: 'Online Self-Paced', level: 'Advanced', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Technical Foundations', goal: 'Skill Development' },
 
         // --- Competency: Platform Fundamentals (ServiceNow) ---
-        { title: 'Welcome to ServiceNow', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow Administration Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 24, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow Administration Advanced', provider: 'ServiceNow University', cost: 0, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Introduction to Generative AI', provider: 'ServiceNow University', cost: 0, duration: 1, format: 'Online Self-Paced', level: 'Beginner', rating: 4.4, cert: false, travel: false, travelCost: 0 },
-        { title: 'Now Assist Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CSA Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 2700, duration: 24, format: 'Online Live', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow Upgrade Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.4, cert: false, travel: false, travelCost: 0 },
-        { title: 'Strategic Portfolio Management (SPM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'SPM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Innovation Management', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-SPM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'Welcome to ServiceNow', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'ServiceNow Administration Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 24, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'ServiceNow Administration Advanced', provider: 'ServiceNow University', cost: 0, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Introduction to Generative AI', provider: 'ServiceNow University', cost: 0, duration: 1, format: 'Online Self-Paced', level: 'Beginner', rating: 4.4, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'Now Assist Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'ServiceNow CSA Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 2700, duration: 24, format: 'Online Live', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow Upgrade Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.4, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Strategic Portfolio Management (SPM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Skill Development' },
+        { title: 'SPM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Innovation Management', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Skill Development' },
+        { title: 'ServiceNow CIS-SPM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Cross-Role Foundations', competency: 'Platform Fundamentals (ServiceNow)', goal: 'Certification' },
 
         // =====================================================================
         // SENIOR DEVELOPER TRACK (40 courses)
@@ -8798,54 +8913,54 @@ function loadSampleCourses() {
         // =====================================================================
 
         // --- Competency: Programming Languages ---
-        { title: '100 Days of Code: Complete Python Pro Bootcamp', provider: 'Udemy', cost: 20, duration: 65, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Java Programming Masterclass', provider: 'Udemy', cost: 20, duration: 80, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Go: The Complete Developer\'s Guide (Golang)', provider: 'Udemy', cost: 20, duration: 9, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Python for Everybody Specialization (U of Michigan)', provider: 'Coursera', cost: 245, duration: 80, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'Python Development Path', provider: 'Pluralsight', cost: 299, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Java Development Path', provider: 'Pluralsight', cost: 299, duration: 40, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: '100 Days of Code: Complete Python Pro Bootcamp', provider: 'Udemy', cost: 20, duration: 65, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Programming Languages', goal: 'Foundation Building' },
+        { title: 'Java Programming Masterclass', provider: 'Udemy', cost: 20, duration: 80, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Programming Languages', goal: 'Foundation Building' },
+        { title: 'Go: The Complete Developer\'s Guide (Golang)', provider: 'Udemy', cost: 20, duration: 9, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Programming Languages', goal: 'Foundation Building' },
+        { title: 'Python for Everybody Specialization (U of Michigan)', provider: 'Coursera', cost: 245, duration: 80, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Programming Languages', goal: 'Certification' },
+        { title: 'Python Development Path', provider: 'Pluralsight', cost: 299, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Programming Languages', goal: 'Foundation Building' },
+        { title: 'Java Development Path', provider: 'Pluralsight', cost: 299, duration: 40, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Programming Languages', goal: 'Foundation Building' },
 
         // --- Competency: Frameworks & Architecture ---
-        { title: 'Spring Boot 3, Spring 6 & Hibernate for Beginners', provider: 'Udemy', cost: 20, duration: 37, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'NodeJS - The Complete Guide (MVC, REST APIs, GraphQL)', provider: 'Udemy', cost: 20, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Software Architecture & Design of Modern Large Scale Systems', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Advanced', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Microservices with Node JS and React', provider: 'Udemy', cost: 20, duration: 54, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Design Patterns in Java', provider: 'Udemy', cost: 20, duration: 14, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Clean Architecture in .NET', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Algorithms Specialization (Stanford)', provider: 'Coursera', cost: 196, duration: 60, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.9, cert: true, travel: false, travelCost: 0 },
-        { title: 'IBM Full Stack Software Developer Professional Certificate', provider: 'Coursera', cost: 245, duration: 150, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'Microservices Architecture Learning Path', provider: 'O\'Reilly', cost: 499, duration: 25, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: 'Spring Boot 3, Spring 6 & Hibernate for Beginners', provider: 'Udemy', cost: 20, duration: 37, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Skill Development' },
+        { title: 'NodeJS - The Complete Guide (MVC, REST APIs, GraphQL)', provider: 'Udemy', cost: 20, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Skill Development' },
+        { title: 'Software Architecture & Design of Modern Large Scale Systems', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Advanced', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Skill Development' },
+        { title: 'Microservices with Node JS and React', provider: 'Udemy', cost: 20, duration: 54, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Skill Development' },
+        { title: 'Design Patterns in Java', provider: 'Udemy', cost: 20, duration: 14, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Skill Development' },
+        { title: 'Clean Architecture in .NET', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Skill Development' },
+        { title: 'Algorithms Specialization (Stanford)', provider: 'Coursera', cost: 196, duration: 60, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.9, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Certification' },
+        { title: 'IBM Full Stack Software Developer Professional Certificate', provider: 'Coursera', cost: 245, duration: 150, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Certification' },
+        { title: 'Microservices Architecture Learning Path', provider: 'O\'Reilly', cost: 499, duration: 25, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Frameworks & Architecture', goal: 'Skill Development' },
 
         // --- Competency: Database Engineering ---
-        { title: 'The Complete SQL Bootcamp: Go from Zero to Hero', provider: 'Udemy', cost: 20, duration: 9, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'MongoDB - The Complete Developer\'s Guide', provider: 'Udemy', cost: 20, duration: 17, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'REST APIs with Flask and Python', provider: 'Udemy', cost: 20, duration: 17, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: 'The Complete SQL Bootcamp: Go from Zero to Hero', provider: 'Udemy', cost: 20, duration: 9, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Database Engineering', goal: 'Foundation Building' },
+        { title: 'MongoDB - The Complete Developer\'s Guide', provider: 'Udemy', cost: 20, duration: 17, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Database Engineering', goal: 'Skill Development' },
+        { title: 'REST APIs with Flask and Python', provider: 'Udemy', cost: 20, duration: 17, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Database Engineering', goal: 'Skill Development' },
 
         // --- Competency: Developer Certifications ---
-        { title: 'Become a Software Developer Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Full-Stack Engineer Career Path', provider: 'Codecademy', cost: 240, duration: 100, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'JSNAD: OpenJS Node.js Application Developer Exam', provider: 'Linux Foundation', cost: 395, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'DEV522: Defending Web Applications Security Essentials (GWEB)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'Become a Software Developer Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Developer Certifications', goal: 'Certification' },
+        { title: 'Full-Stack Engineer Career Path', provider: 'Codecademy', cost: 240, duration: 100, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Developer Certifications', goal: 'Certification' },
+        { title: 'JSNAD: OpenJS Node.js Application Developer Exam', provider: 'Linux Foundation', cost: 395, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Developer Certifications', goal: 'Certification' },
+        { title: 'DEV522: Defending Web Applications Security Essentials (GWEB)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Developer Certifications', goal: 'Certification' },
 
         // --- Competency: Platform Development (ServiceNow) ---
-        { title: 'Scripting in ServiceNow Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Application Development Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 24, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Flow Designer Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Integration Hub Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'App Engine Studio Introduction', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Now Assist for Creator Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Playbooks Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Playbooks Advanced', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Domain Separation Basics', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Domain Separation Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CAD Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 2700, duration: 24, format: 'Online Live', level: 'Intermediate', rating: 4.8, cert: true, travel: false, travelCost: 0 },
+        { title: 'Scripting in ServiceNow Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Application Development Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 24, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Flow Designer Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'Integration Hub Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Skill Development' },
+        { title: 'App Engine Studio Introduction', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'Now Assist for Creator Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Playbooks Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'Playbooks Advanced', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Domain Separation Basics', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Domain Separation Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Skill Development' },
+        { title: 'ServiceNow CAD Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 2700, duration: 24, format: 'Online Live', level: 'Intermediate', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Development (ServiceNow)', goal: 'Certification' },
 
         // --- Competency: Platform Architecture (ServiceNow) ---
-        { title: 'Service Provider Architecture', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Service Provider Implementer', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Architecture Excellence (ArchX) Program', provider: 'ServiceNow University', cost: 2500, duration: 24, format: 'Online Live', level: 'Advanced', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'Certified Technical Architect (CTA) Program', provider: 'ServiceNow University', cost: 7000, duration: 120, format: 'Online Live', level: 'Advanced', rating: 4.9, cert: true, travel: false, travelCost: 0 },
-        { title: 'Certified Master Architect (CMA) Program', provider: 'ServiceNow University', cost: 17000, duration: 240, format: 'Hybrid', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 3000 },
+        { title: 'Service Provider Architecture', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Architecture (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Service Provider Implementer', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Architecture (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Architecture Excellence (ArchX) Program', provider: 'ServiceNow University', cost: 2500, duration: 24, format: 'Online Live', level: 'Advanced', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Architecture (ServiceNow)', goal: 'Certification' },
+        { title: 'Certified Technical Architect (CTA) Program', provider: 'ServiceNow University', cost: 7000, duration: 120, format: 'Online Live', level: 'Advanced', rating: 4.9, cert: true, travel: false, travelCost: 0, role: 'Senior Developer', competency: 'Platform Architecture (ServiceNow)', goal: 'Certification' },
+        { title: 'Certified Master Architect (CMA) Program', provider: 'ServiceNow University', cost: 17000, duration: 240, format: 'Hybrid', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 3000, role: 'Senior Developer', competency: 'Platform Architecture (ServiceNow)', goal: 'Certification' },
 
         // =====================================================================
         // SECURITY ENGINEER TRACK (40 courses)
@@ -8853,56 +8968,56 @@ function loadSampleCourses() {
         // =====================================================================
 
         // --- Competency: Security Fundamentals ---
-        { title: 'The Complete Cyber Security Course: Hackers Exposed', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'CompTIA Security+ (SY0-701) Complete Course & Exam', provider: 'Udemy', cost: 20, duration: 21, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Google Cybersecurity Professional Certificate', provider: 'Coursera', cost: 294, duration: 170, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'IBM Cybersecurity Analyst Professional Certificate', provider: 'Coursera', cost: 294, duration: 120, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Become a Cybersecurity Analyst Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 30, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'CC: Certified in Cybersecurity (Entry-Level, Free Exam)', provider: 'ISC2', cost: 0, duration: 14, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'CompTIA Security+ Certification (SY0-701)', provider: 'CompTIA', cost: 392, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Cybersecurity Career Path', provider: 'Codecademy', cost: 240, duration: 60, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'SEC401: Security Essentials (GSEC)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.9, cert: true, travel: false, travelCost: 0 },
+        { title: 'The Complete Cyber Security Course: Hackers Exposed', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Foundation Building' },
+        { title: 'CompTIA Security+ (SY0-701) Complete Course & Exam', provider: 'Udemy', cost: 20, duration: 21, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Skill Development' },
+        { title: 'Google Cybersecurity Professional Certificate', provider: 'Coursera', cost: 294, duration: 170, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Certification' },
+        { title: 'IBM Cybersecurity Analyst Professional Certificate', provider: 'Coursera', cost: 294, duration: 120, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Certification' },
+        { title: 'Become a Cybersecurity Analyst Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 30, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Certification' },
+        { title: 'CC: Certified in Cybersecurity (Entry-Level, Free Exam)', provider: 'ISC2', cost: 0, duration: 14, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Certification' },
+        { title: 'CompTIA Security+ Certification (SY0-701)', provider: 'CompTIA', cost: 392, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Certification' },
+        { title: 'Cybersecurity Career Path', provider: 'Codecademy', cost: 240, duration: 60, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Certification' },
+        { title: 'SEC401: Security Essentials (GSEC)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.9, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Security Fundamentals', goal: 'Certification' },
 
         // --- Competency: Offensive Security & Penetration Testing ---
-        { title: 'Learn Ethical Hacking From Scratch', provider: 'Udemy', cost: 20, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'The Web Application Hacker\'s Handbook (OWASP Top 10)', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Ethical Hacking Path', provider: 'Pluralsight', cost: 299, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'CompTIA PenTest+ Certification (PT0-002)', provider: 'CompTIA', cost: 392, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'SEC504: Hacker Tools, Techniques & Incident Handling (GCIH)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.9, cert: true, travel: false, travelCost: 0 },
-        { title: 'SEC560: Enterprise Penetration Testing (GPEN)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'In-Person', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 2500 },
+        { title: 'Learn Ethical Hacking From Scratch', provider: 'Udemy', cost: 20, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Offensive Security & Penetration Testing', goal: 'Foundation Building' },
+        { title: 'The Web Application Hacker\'s Handbook (OWASP Top 10)', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Offensive Security & Penetration Testing', goal: 'Skill Development' },
+        { title: 'Ethical Hacking Path', provider: 'Pluralsight', cost: 299, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Offensive Security & Penetration Testing', goal: 'Skill Development' },
+        { title: 'CompTIA PenTest+ Certification (PT0-002)', provider: 'CompTIA', cost: 392, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Offensive Security & Penetration Testing', goal: 'Certification' },
+        { title: 'SEC504: Hacker Tools, Techniques & Incident Handling (GCIH)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.9, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Offensive Security & Penetration Testing', goal: 'Certification' },
+        { title: 'SEC560: Enterprise Penetration Testing (GPEN)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'In-Person', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 2500, role: 'Security Engineer', competency: 'Offensive Security & Penetration Testing', goal: 'Certification' },
 
         // --- Competency: Advanced Security Certifications ---
-        { title: 'CISSP Certification: Complete CISSP Bootcamp', provider: 'Udemy', cost: 20, duration: 35, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'CISSP Certification Path', provider: 'Pluralsight', cost: 299, duration: 40, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'CompTIA CySA+ Certification (CS0-003)', provider: 'CompTIA', cost: 392, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'CompTIA CASP+ Certification (CAS-004)', provider: 'CompTIA', cost: 480, duration: 50, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'CISSP: Certified Information Systems Security Professional', provider: 'ISC2', cost: 749, duration: 60, format: 'Online Self-Paced', level: 'Advanced', rating: 4.8, cert: true, travel: false, travelCost: 0 },
+        { title: 'CISSP Certification: Complete CISSP Bootcamp', provider: 'Udemy', cost: 20, duration: 35, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Advanced Security Certifications', goal: 'Skill Development' },
+        { title: 'CISSP Certification Path', provider: 'Pluralsight', cost: 299, duration: 40, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Advanced Security Certifications', goal: 'Skill Development' },
+        { title: 'CompTIA CySA+ Certification (CS0-003)', provider: 'CompTIA', cost: 392, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Advanced Security Certifications', goal: 'Certification' },
+        { title: 'CompTIA CASP+ Certification (CAS-004)', provider: 'CompTIA', cost: 480, duration: 50, format: 'Online Self-Paced', level: 'Advanced', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Advanced Security Certifications', goal: 'Certification' },
+        { title: 'CISSP: Certified Information Systems Security Professional', provider: 'ISC2', cost: 749, duration: 60, format: 'Online Self-Paced', level: 'Advanced', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Advanced Security Certifications', goal: 'Certification' },
 
         // --- Competency: Cloud & Application Security ---
-        { title: 'Cloud Security Path', provider: 'Pluralsight', cost: 299, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'CCSP: Certified Cloud Security Professional', provider: 'ISC2', cost: 599, duration: 40, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'SEC540: Cloud Security and DevSecOps Automation (GCSA)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Advanced', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'Cybersecurity Essentials Learning Path', provider: 'O\'Reilly', cost: 499, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'Cloud Security Path', provider: 'Pluralsight', cost: 299, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Cloud & Application Security', goal: 'Skill Development' },
+        { title: 'CCSP: Certified Cloud Security Professional', provider: 'ISC2', cost: 599, duration: 40, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Cloud & Application Security', goal: 'Certification' },
+        { title: 'SEC540: Cloud Security and DevSecOps Automation (GCSA)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Advanced', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Cloud & Application Security', goal: 'Certification' },
+        { title: 'Cybersecurity Essentials Learning Path', provider: 'O\'Reilly', cost: 499, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Cloud & Application Security', goal: 'Skill Development' },
 
         // --- Competency: Incident Response & Forensics ---
-        { title: 'FOR508: Advanced Incident Response & Threat Hunting (GCFA)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'In-Person', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 2500 },
-        { title: 'MGT512: Security Leadership Essentials for Managers (GSLC)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'FOR508: Advanced Incident Response & Threat Hunting (GCFA)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'In-Person', level: 'Advanced', rating: 4.9, cert: true, travel: true, travelCost: 2500, role: 'Security Engineer', competency: 'Incident Response & Forensics', goal: 'Certification' },
+        { title: 'MGT512: Security Leadership Essentials for Managers (GSLC)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Incident Response & Forensics', goal: 'Career Growth' },
 
         // --- Competency: Platform Security & GRC (ServiceNow) ---
-        { title: 'Security Operations (SecOps) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Security Incident Response (SIR) Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Security Incident Response (SIR) Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Vulnerability Response Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'GRC: Integrated Risk Management (IRM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'IRM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Risk Assessment Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Audit Management Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Third-Party Risk Management (TPRM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'TPRM Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'GRC Business Continuity Management', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-SIR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-VR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-RC Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'Security Operations (SecOps) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Security Incident Response (SIR) Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Security Incident Response (SIR) Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Vulnerability Response Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'GRC: Integrated Risk Management (IRM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'IRM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Risk Assessment Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Audit Management Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Third-Party Risk Management (TPRM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'TPRM Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'GRC Business Continuity Management', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Skill Development' },
+        { title: 'ServiceNow CIS-SIR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow CIS-VR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow CIS-RC Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Security Engineer', competency: 'Platform Security & GRC (ServiceNow)', goal: 'Certification' },
 
         // =====================================================================
         // DEVOPS ENGINEER TRACK (40 courses)
@@ -8910,77 +9025,77 @@ function loadSampleCourses() {
         // =====================================================================
 
         // --- Competency: Containers & Orchestration ---
-        { title: 'Docker & Kubernetes: The Practical Guide', provider: 'Udemy', cost: 20, duration: 24, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Kubernetes Administration Path', provider: 'Pluralsight', cost: 299, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'CKA: Certified Kubernetes Administrator Exam', provider: 'Linux Foundation', cost: 395, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'Docker & Kubernetes: The Practical Guide', provider: 'Udemy', cost: 20, duration: 24, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Containers & Orchestration', goal: 'Skill Development' },
+        { title: 'Kubernetes Administration Path', provider: 'Pluralsight', cost: 299, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Containers & Orchestration', goal: 'Skill Development' },
+        { title: 'CKA: Certified Kubernetes Administrator Exam', provider: 'Linux Foundation', cost: 395, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Containers & Orchestration', goal: 'Certification' },
 
         // --- Competency: Infrastructure as Code & Configuration ---
-        { title: 'HashiCorp Certified: Terraform Associate', provider: 'Udemy', cost: 20, duration: 19, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Ansible for the Absolute Beginner - Hands-On DevOps', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Infrastructure as Code Path', provider: 'Pluralsight', cost: 299, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'HashiCorp Terraform Associate Certification (003)', provider: 'HashiCorp', cost: 71, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'HashiCorp Vault Associate Certification (003)', provider: 'HashiCorp', cost: 71, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
+        { title: 'HashiCorp Certified: Terraform Associate', provider: 'Udemy', cost: 20, duration: 19, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Infrastructure as Code & Configuration', goal: 'Skill Development' },
+        { title: 'Ansible for the Absolute Beginner - Hands-On DevOps', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Infrastructure as Code & Configuration', goal: 'Foundation Building' },
+        { title: 'Infrastructure as Code Path', provider: 'Pluralsight', cost: 299, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Infrastructure as Code & Configuration', goal: 'Skill Development' },
+        { title: 'HashiCorp Terraform Associate Certification (003)', provider: 'HashiCorp', cost: 71, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Infrastructure as Code & Configuration', goal: 'Certification' },
+        { title: 'HashiCorp Vault Associate Certification (003)', provider: 'HashiCorp', cost: 71, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Infrastructure as Code & Configuration', goal: 'Certification' },
 
         // --- Competency: CI/CD & Automation ---
-        { title: 'GitHub Actions - The Complete Guide', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'IBM DevOps and Software Engineering Professional Certificate', provider: 'Coursera', cost: 294, duration: 150, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Become a DevOps Engineer Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'DevOps Engineer Career Path', provider: 'Codecademy', cost: 240, duration: 60, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'GitHub Actions - The Complete Guide', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'CI/CD & Automation', goal: 'Skill Development' },
+        { title: 'IBM DevOps and Software Engineering Professional Certificate', provider: 'Coursera', cost: 294, duration: 150, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'CI/CD & Automation', goal: 'Certification' },
+        { title: 'Become a DevOps Engineer Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'CI/CD & Automation', goal: 'Certification' },
+        { title: 'DevOps Engineer Career Path', provider: 'Codecademy', cost: 240, duration: 60, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'CI/CD & Automation', goal: 'Certification' },
 
         // --- Competency: Cloud Platforms & Certifications ---
-        { title: 'Ultimate AWS Certified Solutions Architect Associate', provider: 'Udemy', cost: 20, duration: 27, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'AWS Certified Solutions Architect Associate Path', provider: 'Pluralsight', cost: 299, duration: 38, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'AWS Solutions Architect Associate (SAA-C03) Exam', provider: 'AWS Training', cost: 150, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'AWS DevOps Engineer Professional (DOP-C02) Exam', provider: 'AWS Training', cost: 300, duration: 35, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'AZ-400: Azure DevOps Engineer Expert', provider: 'Microsoft Learn', cost: 165, duration: 30, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'AZ-104: Microsoft Azure Administrator', provider: 'Microsoft Learn', cost: 165, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Google Professional Cloud DevOps Engineer Certification', provider: 'Google Cloud Training', cost: 200, duration: 35, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'CompTIA Linux+ Certification (XK0-005)', provider: 'CompTIA', cost: 358, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'LFCS: Linux Foundation Certified SysAdmin Exam', provider: 'Linux Foundation', cost: 395, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
+        { title: 'Ultimate AWS Certified Solutions Architect Associate', provider: 'Udemy', cost: 20, duration: 27, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Skill Development' },
+        { title: 'AWS Certified Solutions Architect Associate Path', provider: 'Pluralsight', cost: 299, duration: 38, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Skill Development' },
+        { title: 'AWS Solutions Architect Associate (SAA-C03) Exam', provider: 'AWS Training', cost: 150, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Certification' },
+        { title: 'AWS DevOps Engineer Professional (DOP-C02) Exam', provider: 'AWS Training', cost: 300, duration: 35, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Certification' },
+        { title: 'AZ-400: Azure DevOps Engineer Expert', provider: 'Microsoft Learn', cost: 165, duration: 30, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Certification' },
+        { title: 'AZ-104: Microsoft Azure Administrator', provider: 'Microsoft Learn', cost: 165, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Certification' },
+        { title: 'Google Professional Cloud DevOps Engineer Certification', provider: 'Google Cloud Training', cost: 200, duration: 35, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Certification' },
+        { title: 'CompTIA Linux+ Certification (XK0-005)', provider: 'CompTIA', cost: 358, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Certification' },
+        { title: 'LFCS: Linux Foundation Certified SysAdmin Exam', provider: 'Linux Foundation', cost: 395, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Cloud Platforms & Certifications', goal: 'Certification' },
 
         // --- Competency: Monitoring & Reliability ---
-        { title: 'Prometheus & Grafana: The Complete Monitoring Guide', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Site Reliability Engineering (SRE) Learning Path', provider: 'O\'Reilly', cost: 499, duration: 25, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'DevOps Practices Learning Path', provider: 'O\'Reilly', cost: 499, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'SEC510: Public Cloud Security: AWS, Azure, GCP (GPCS)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'In-Person', level: 'Advanced', rating: 4.8, cert: true, travel: true, travelCost: 2500 },
+        { title: 'Prometheus & Grafana: The Complete Monitoring Guide', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Monitoring & Reliability', goal: 'Skill Development' },
+        { title: 'Site Reliability Engineering (SRE) Learning Path', provider: 'O\'Reilly', cost: 499, duration: 25, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Monitoring & Reliability', goal: 'Skill Development' },
+        { title: 'DevOps Practices Learning Path', provider: 'O\'Reilly', cost: 499, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Monitoring & Reliability', goal: 'Skill Development' },
+        { title: 'SEC510: Public Cloud Security: AWS, Azure, GCP (GPCS)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'In-Person', level: 'Advanced', rating: 4.8, cert: true, travel: true, travelCost: 2500, role: 'DevOps Engineer', competency: 'Monitoring & Reliability', goal: 'Certification' },
 
         // --- Competency: Platform Operations & Service Management (ServiceNow) ---
-        { title: 'IT Service Management (ITSM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'ITSM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Discovery Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Service Mapping Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Service Mapping Advanced', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Service Mapping Advanced Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Event Management Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'CMDB and CSDM Data Foundations', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Configure CMDB', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'CMDB Health', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Hardware Asset Management (HAM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Hardware Asset Management (HAM) Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Software Asset Management (SAM) Professional Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'DevOps Change Velocity', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Virtual Agent Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Virtual Agent Implementer', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Now Assist for ITSM', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-ITSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-DISCO Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-SM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-HAM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-SAM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-EM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-FSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Field Service Management (FSM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'FSM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Customer Service Management (CSM) Essentials', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'CSM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Now Assist for CSM', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-CSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'HR Service Delivery (HRSD) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'HRSD Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Employee Center Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Now Assist for HRSD', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-HR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'SPM Implementation Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'IT Service Management (ITSM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'ITSM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Discovery Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Service Mapping Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Service Mapping Advanced', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Service Mapping Advanced Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Event Management Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'CMDB and CSDM Data Foundations', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'Configure CMDB', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'CMDB Health', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Hardware Asset Management (HAM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'Hardware Asset Management (HAM) Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Software Asset Management (SAM) Professional Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'DevOps Change Velocity', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Virtual Agent Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Virtual Agent Implementer', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Now Assist for ITSM', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'ServiceNow CIS-ITSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow CIS-DISCO Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow CIS-SM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow CIS-HAM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow CIS-SAM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow CIS-EM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'ServiceNow CIS-FSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'Field Service Management (FSM) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'FSM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Customer Service Management (CSM) Essentials', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'CSM Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Now Assist for CSM', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'ServiceNow CIS-CSM Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'HR Service Delivery (HRSD) Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'HRSD Implementation', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Employee Center Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'Now Assist for HRSD', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
+        { title: 'ServiceNow CIS-HR Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Certification' },
+        { title: 'SPM Implementation Simulator', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'DevOps Engineer', competency: 'Platform Operations & Service Management (ServiceNow)', goal: 'Skill Development' },
 
         // =====================================================================
         // QA LEAD TRACK (25 courses)
@@ -8988,34 +9103,34 @@ function loadSampleCourses() {
         // =====================================================================
 
         // --- Competency: Test Automation Frameworks ---
-        { title: 'Selenium WebDriver with Java - Basics to Advanced', provider: 'Udemy', cost: 20, duration: 32, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Cypress End-to-End Testing: Getting Started', provider: 'Udemy', cost: 20, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Playwright: Web Automation Testing From Zero to Hero', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Testing JavaScript with Jest', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Python Automated Testing with pytest', provider: 'Udemy', cost: 20, duration: 6, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Automate the Boring Stuff with Python Programming', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Testing Practices and Principles', provider: 'Frontend Masters', cost: 390, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'CS50 Web Programming with Python and JavaScript (Harvard)', provider: 'edX', cost: 0, duration: 100, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.8, cert: false, travel: false, travelCost: 0 },
+        { title: 'Selenium WebDriver with Java - Basics to Advanced', provider: 'Udemy', cost: 20, duration: 32, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Test Automation Frameworks', goal: 'Skill Development' },
+        { title: 'Cypress End-to-End Testing: Getting Started', provider: 'Udemy', cost: 20, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Test Automation Frameworks', goal: 'Skill Development' },
+        { title: 'Playwright: Web Automation Testing From Zero to Hero', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Test Automation Frameworks', goal: 'Skill Development' },
+        { title: 'Testing JavaScript with Jest', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Test Automation Frameworks', goal: 'Skill Development' },
+        { title: 'Python Automated Testing with pytest', provider: 'Udemy', cost: 20, duration: 6, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Test Automation Frameworks', goal: 'Skill Development' },
+        { title: 'Automate the Boring Stuff with Python Programming', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Test Automation Frameworks', goal: 'Foundation Building' },
+        { title: 'Testing Practices and Principles', provider: 'Frontend Masters', cost: 390, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Test Automation Frameworks', goal: 'Skill Development' },
+        { title: 'CS50 Web Programming with Python and JavaScript (Harvard)', provider: 'edX', cost: 0, duration: 100, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.8, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Test Automation Frameworks', goal: 'Skill Development' },
 
         // --- Competency: Quality Process & Methodology ---
-        { title: 'Google IT Automation with Python Professional Certificate', provider: 'Coursera', cost: 294, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'Agile with Atlassian Jira', provider: 'Coursera', cost: 49, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Become a Project Manager Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 15, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Agile Project Management with Scrum', provider: 'LinkedIn Learning', cost: 240, duration: 2, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Certified Scrum Product Owner (CSPO) - Scrum Alliance', provider: 'Scrum Alliance', cost: 1095, duration: 16, format: 'Online Live', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Professional Scrum Master II (PSM II) - Scrum.org', provider: 'Scrum.org', cost: 250, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'CompTIA Project+ Certification (PK0-005)', provider: 'CompTIA', cost: 358, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'Google IT Automation with Python Professional Certificate', provider: 'Coursera', cost: 294, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Quality Process & Methodology', goal: 'Certification' },
+        { title: 'Agile with Atlassian Jira', provider: 'Coursera', cost: 49, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Quality Process & Methodology', goal: 'Certification' },
+        { title: 'Become a Project Manager Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 15, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Quality Process & Methodology', goal: 'Career Growth' },
+        { title: 'Agile Project Management with Scrum', provider: 'LinkedIn Learning', cost: 240, duration: 2, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Quality Process & Methodology', goal: 'Career Growth' },
+        { title: 'Certified Scrum Product Owner (CSPO) - Scrum Alliance', provider: 'Scrum Alliance', cost: 1095, duration: 16, format: 'Online Live', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Quality Process & Methodology', goal: 'Certification' },
+        { title: 'Professional Scrum Master II (PSM II) - Scrum.org', provider: 'Scrum.org', cost: 250, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Quality Process & Methodology', goal: 'Certification' },
+        { title: 'CompTIA Project+ Certification (PK0-005)', provider: 'CompTIA', cost: 358, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Quality Process & Methodology', goal: 'Certification' },
 
         // --- Competency: Security & Compliance Testing ---
-        { title: 'CompTIA Security+ (SY0-701) Path', provider: 'Pluralsight', cost: 299, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'SSCP: Systems Security Certified Practitioner', provider: 'ISC2', cost: 249, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'DEV544: Secure Coding in .NET (GSSP)', provider: 'SANS Institute', cost: 7984, duration: 36, format: 'Online Live', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'SEC573: Automating Information Security with Python (GPYC)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'CompTIA Security+ (SY0-701) Path', provider: 'Pluralsight', cost: 299, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Security & Compliance Testing', goal: 'Skill Development' },
+        { title: 'SSCP: Systems Security Certified Practitioner', provider: 'ISC2', cost: 249, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Security & Compliance Testing', goal: 'Certification' },
+        { title: 'DEV544: Secure Coding in .NET (GSSP)', provider: 'SANS Institute', cost: 7984, duration: 36, format: 'Online Live', level: 'Intermediate', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Security & Compliance Testing', goal: 'Certification' },
+        { title: 'SEC573: Automating Information Security with Python (GPYC)', provider: 'SANS Institute', cost: 9504, duration: 46, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Security & Compliance Testing', goal: 'Certification' },
 
         // --- Competency: Platform Testing & Quality (ServiceNow) ---
-        { title: 'Automated Test Framework (ATF) Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Agile and Test Management Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Predictive Intelligence Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
+        { title: 'Automated Test Framework (ATF) Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Platform Testing & Quality (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Agile and Test Management Implementation', provider: 'ServiceNow University', cost: 0, duration: 12, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Platform Testing & Quality (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Predictive Intelligence Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'QA / Test Engineer', competency: 'Platform Testing & Quality (ServiceNow)', goal: 'Skill Development' },
 
         // =====================================================================
         // DATA ENGINEER TRACK (25 courses)
@@ -9023,39 +9138,39 @@ function loadSampleCourses() {
         // =====================================================================
 
         // --- Competency: Data Pipelines & Processing ---
-        { title: 'Apache Kafka Series - Learn Apache Kafka for Beginners', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Data Warehouse Fundamentals for Beginners', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'The Complete PostgreSQL Bootcamp', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'IBM Data Engineering Professional Certificate', provider: 'Coursera', cost: 294, duration: 150, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'Data Engineering Path', provider: 'Pluralsight', cost: 299, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Data Engineer Career Track', provider: 'DataCamp', cost: 300, duration: 80, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'Data Engineering Learning Path', provider: 'O\'Reilly', cost: 499, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Data Engineering Nanodegree', provider: 'Udacity', cost: 1200, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
+        { title: 'Apache Kafka Series - Learn Apache Kafka for Beginners', provider: 'Udemy', cost: 20, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Data Pipelines & Processing', goal: 'Foundation Building' },
+        { title: 'Data Warehouse Fundamentals for Beginners', provider: 'Udemy', cost: 20, duration: 10, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Data Pipelines & Processing', goal: 'Foundation Building' },
+        { title: 'The Complete PostgreSQL Bootcamp', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Data Pipelines & Processing', goal: 'Foundation Building' },
+        { title: 'IBM Data Engineering Professional Certificate', provider: 'Coursera', cost: 294, duration: 150, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Data Pipelines & Processing', goal: 'Certification' },
+        { title: 'Data Engineering Path', provider: 'Pluralsight', cost: 299, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Data Pipelines & Processing', goal: 'Skill Development' },
+        { title: 'Data Engineer Career Track', provider: 'DataCamp', cost: 300, duration: 80, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Data Pipelines & Processing', goal: 'Certification' },
+        { title: 'Data Engineering Learning Path', provider: 'O\'Reilly', cost: 499, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Data Pipelines & Processing', goal: 'Skill Development' },
+        { title: 'Data Engineering Nanodegree', provider: 'Udacity', cost: 1200, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Data Pipelines & Processing', goal: 'Certification' },
 
         // --- Competency: Machine Learning & AI ---
-        { title: 'Python for Data Science and Machine Learning Bootcamp', provider: 'Udemy', cost: 20, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Machine Learning A-Z: AI, Python & R', provider: 'Udemy', cost: 20, duration: 44, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Deep Learning Specialization (DeepLearning.AI)', provider: 'Coursera', cost: 196, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.9, cert: true, travel: false, travelCost: 0 },
-        { title: 'Machine Learning Specialization (Stanford / DeepLearning.AI)', provider: 'Coursera', cost: 147, duration: 100, format: 'Online Self-Paced', level: 'Beginner', rating: 4.9, cert: true, travel: false, travelCost: 0 },
-        { title: 'AI and Machine Learning Learning Path', provider: 'O\'Reilly', cost: 499, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: 'Python for Data Science and Machine Learning Bootcamp', provider: 'Udemy', cost: 20, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Machine Learning & AI', goal: 'Skill Development' },
+        { title: 'Machine Learning A-Z: AI, Python & R', provider: 'Udemy', cost: 20, duration: 44, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Machine Learning & AI', goal: 'Skill Development' },
+        { title: 'Deep Learning Specialization (DeepLearning.AI)', provider: 'Coursera', cost: 196, duration: 120, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.9, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Machine Learning & AI', goal: 'Certification' },
+        { title: 'Machine Learning Specialization (Stanford / DeepLearning.AI)', provider: 'Coursera', cost: 147, duration: 100, format: 'Online Self-Paced', level: 'Beginner', rating: 4.9, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Machine Learning & AI', goal: 'Certification' },
+        { title: 'AI and Machine Learning Learning Path', provider: 'O\'Reilly', cost: 499, duration: 40, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Machine Learning & AI', goal: 'Skill Development' },
 
         // --- Competency: Cloud Data Services & Certifications ---
-        { title: 'Google Data Analytics Professional Certificate', provider: 'Coursera', cost: 294, duration: 180, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'IBM Data Science Professional Certificate', provider: 'Coursera', cost: 294, duration: 200, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Become a Data Scientist Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'DP-203: Azure Data Engineer Associate', provider: 'Microsoft Learn', cost: 165, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'AWS Data Engineer Associate (DEA-C01) Exam', provider: 'AWS Training', cost: 150, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'Google Professional Data Engineer Certification', provider: 'Google Cloud Training', cost: 200, duration: 35, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'Data Scientist with Python Career Track', provider: 'DataCamp', cost: 300, duration: 90, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0 },
+        { title: 'Google Data Analytics Professional Certificate', provider: 'Coursera', cost: 294, duration: 180, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Cloud Data Services & Certifications', goal: 'Certification' },
+        { title: 'IBM Data Science Professional Certificate', provider: 'Coursera', cost: 294, duration: 200, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Cloud Data Services & Certifications', goal: 'Certification' },
+        { title: 'Become a Data Scientist Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 30, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Cloud Data Services & Certifications', goal: 'Certification' },
+        { title: 'DP-203: Azure Data Engineer Associate', provider: 'Microsoft Learn', cost: 165, duration: 35, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Cloud Data Services & Certifications', goal: 'Certification' },
+        { title: 'AWS Data Engineer Associate (DEA-C01) Exam', provider: 'AWS Training', cost: 150, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Cloud Data Services & Certifications', goal: 'Certification' },
+        { title: 'Google Professional Data Engineer Certification', provider: 'Google Cloud Training', cost: 200, duration: 35, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Cloud Data Services & Certifications', goal: 'Certification' },
+        { title: 'Data Scientist with Python Career Track', provider: 'DataCamp', cost: 300, duration: 90, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Cloud Data Services & Certifications', goal: 'Certification' },
 
         // --- Competency: Platform Analytics & Reporting (ServiceNow) ---
-        { title: 'Performance Analytics Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Performance Analytics Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Performance Analytics Advanced', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Formula Indicators Overview', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'PA Widgets', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Responsive Dashboards Overview', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'ServiceNow CIS-PA Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0 },
+        { title: 'Performance Analytics Essentials', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Platform Analytics & Reporting (ServiceNow)', goal: 'Foundation Building' },
+        { title: 'Performance Analytics Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Platform Analytics & Reporting (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Performance Analytics Advanced', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Advanced', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Platform Analytics & Reporting (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Formula Indicators Overview', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Platform Analytics & Reporting (ServiceNow)', goal: 'Skill Development' },
+        { title: 'PA Widgets', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Platform Analytics & Reporting (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Responsive Dashboards Overview', provider: 'ServiceNow University', cost: 0, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Platform Analytics & Reporting (ServiceNow)', goal: 'Skill Development' },
+        { title: 'ServiceNow CIS-PA Exam Prep (Instructor-Led)', provider: 'ServiceNow University', cost: 1900, duration: 16, format: 'Online Live', level: 'Intermediate', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Data Engineer', competency: 'Platform Analytics & Reporting (ServiceNow)', goal: 'Certification' },
 
         // =====================================================================
         // FRONTEND DEVELOPER TRACK (25 courses)
@@ -9063,36 +9178,36 @@ function loadSampleCourses() {
         // =====================================================================
 
         // --- Competency: JavaScript & TypeScript ---
-        { title: 'The Complete JavaScript Course: From Zero to Expert', provider: 'Udemy', cost: 20, duration: 69, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Understanding TypeScript', provider: 'Udemy', cost: 20, duration: 27, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'JavaScript: The Hard Parts', provider: 'Frontend Masters', cost: 390, duration: 6, format: 'Online Self-Paced', level: 'Advanced', rating: 4.9, cert: false, travel: false, travelCost: 0 },
-        { title: 'TypeScript 5+ Fundamentals v4', provider: 'Frontend Masters', cost: 390, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.8, cert: false, travel: false, travelCost: 0 },
+        { title: 'The Complete JavaScript Course: From Zero to Expert', provider: 'Udemy', cost: 20, duration: 69, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'JavaScript & TypeScript', goal: 'Foundation Building' },
+        { title: 'Understanding TypeScript', provider: 'Udemy', cost: 20, duration: 27, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'JavaScript & TypeScript', goal: 'Skill Development' },
+        { title: 'JavaScript: The Hard Parts', provider: 'Frontend Masters', cost: 390, duration: 6, format: 'Online Self-Paced', level: 'Advanced', rating: 4.9, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'JavaScript & TypeScript', goal: 'Skill Development' },
+        { title: 'TypeScript 5+ Fundamentals v4', provider: 'Frontend Masters', cost: 390, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.8, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'JavaScript & TypeScript', goal: 'Skill Development' },
 
         // --- Competency: Frontend Frameworks ---
-        { title: 'React - The Complete Guide (incl. Next.js, Redux)', provider: 'Udemy', cost: 20, duration: 68, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Angular - The Complete Guide', provider: 'Udemy', cost: 20, duration: 37, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Vue.js - The Complete Guide (incl. Router & Composition API)', provider: 'Udemy', cost: 20, duration: 32, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'React Native - The Practical Guide', provider: 'Udemy', cost: 20, duration: 29, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Complete Intro to React v9', provider: 'Frontend Masters', cost: 390, duration: 10, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: false, travel: false, travelCost: 0 },
-        { title: 'React Development Path', provider: 'Pluralsight', cost: 299, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
+        { title: 'React - The Complete Guide (incl. Next.js, Redux)', provider: 'Udemy', cost: 20, duration: 68, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'Frontend Frameworks', goal: 'Skill Development' },
+        { title: 'Angular - The Complete Guide', provider: 'Udemy', cost: 20, duration: 37, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'Frontend Frameworks', goal: 'Skill Development' },
+        { title: 'Vue.js - The Complete Guide (incl. Router & Composition API)', provider: 'Udemy', cost: 20, duration: 32, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'Frontend Frameworks', goal: 'Skill Development' },
+        { title: 'React Native - The Practical Guide', provider: 'Udemy', cost: 20, duration: 29, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'Frontend Frameworks', goal: 'Skill Development' },
+        { title: 'Complete Intro to React v9', provider: 'Frontend Masters', cost: 390, duration: 10, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'Frontend Frameworks', goal: 'Foundation Building' },
+        { title: 'React Development Path', provider: 'Pluralsight', cost: 299, duration: 25, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'Frontend Frameworks', goal: 'Skill Development' },
 
         // --- Competency: CSS, Design Systems & Performance ---
-        { title: 'Tailwind CSS From Scratch', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Design Systems with React & Storybook', provider: 'Frontend Masters', cost: 390, duration: 6, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Web Performance Fundamentals', provider: 'Frontend Masters', cost: 390, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0 },
-        { title: 'Complete Intro to Web Development v3', provider: 'Frontend Masters', cost: 390, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: false, travel: false, travelCost: 0 },
+        { title: 'Tailwind CSS From Scratch', provider: 'Udemy', cost: 20, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'CSS, Design Systems & Performance', goal: 'Foundation Building' },
+        { title: 'Design Systems with React & Storybook', provider: 'Frontend Masters', cost: 390, duration: 6, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'CSS, Design Systems & Performance', goal: 'Skill Development' },
+        { title: 'Web Performance Fundamentals', provider: 'Frontend Masters', cost: 390, duration: 4, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.7, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'CSS, Design Systems & Performance', goal: 'Skill Development' },
+        { title: 'Complete Intro to Web Development v3', provider: 'Frontend Masters', cost: 390, duration: 12, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'CSS, Design Systems & Performance', goal: 'Foundation Building' },
 
         // --- Competency: UX Design & Accessibility ---
-        { title: 'Meta Front-End Developer Professional Certificate', provider: 'Coursera', cost: 343, duration: 200, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0 },
-        { title: 'Google UX Design Professional Certificate', provider: 'Coursera', cost: 294, duration: 140, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0 },
-        { title: 'Become a UX Designer Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 20, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0 },
-        { title: 'TypeScript Development Path', provider: 'Pluralsight', cost: 299, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
-        { title: 'Front-End Engineer Career Path', provider: 'Codecademy', cost: 240, duration: 80, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0 },
-        { title: 'Web Development Learning Path', provider: 'O\'Reilly', cost: 499, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: 'Meta Front-End Developer Professional Certificate', provider: 'Coursera', cost: 343, duration: 200, format: 'Online Self-Paced', level: 'Beginner', rating: 4.7, cert: true, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'UX Design & Accessibility', goal: 'Certification' },
+        { title: 'Google UX Design Professional Certificate', provider: 'Coursera', cost: 294, duration: 140, format: 'Online Self-Paced', level: 'Beginner', rating: 4.8, cert: true, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'UX Design & Accessibility', goal: 'Certification' },
+        { title: 'Become a UX Designer Learning Path', provider: 'LinkedIn Learning', cost: 240, duration: 20, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: true, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'UX Design & Accessibility', goal: 'Certification' },
+        { title: 'TypeScript Development Path', provider: 'Pluralsight', cost: 299, duration: 20, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'UX Design & Accessibility', goal: 'Skill Development' },
+        { title: 'Front-End Engineer Career Path', provider: 'Codecademy', cost: 240, duration: 80, format: 'Online Self-Paced', level: 'Beginner', rating: 4.5, cert: true, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'UX Design & Accessibility', goal: 'Certification' },
+        { title: 'Web Development Learning Path', provider: 'O\'Reilly', cost: 499, duration: 35, format: 'Online Self-Paced', level: 'Beginner', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'UX Design & Accessibility', goal: 'Foundation Building' },
 
         // --- Competency: Platform UI Development (ServiceNow) ---
-        { title: 'UI Builder Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0 },
-        { title: 'Service Portal Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0 },
+        { title: 'UI Builder Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 8, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.5, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'Platform UI Development (ServiceNow)', goal: 'Skill Development' },
+        { title: 'Service Portal Fundamentals', provider: 'ServiceNow University', cost: 0, duration: 16, format: 'Online Self-Paced', level: 'Intermediate', rating: 4.6, cert: false, travel: false, travelCost: 0, role: 'Frontend Developer', competency: 'Platform UI Development (ServiceNow)', goal: 'Skill Development' },
 
     ];
 
@@ -9125,6 +9240,9 @@ function loadSampleCourses() {
             certificationValidityYears: course.cert ? 3 : 0,
             requiresTravel: course.travel,
             estimatedTravelCost: course.travelCost,
+            roleTrack: course.role || '',
+            competencyArea: course.competency || '',
+            learningGoal: course.goal || '',
             relevantCompetencies: [],
             discoveredBy: 'Sample Data',
             discoveryDate: new Date().toISOString(),
