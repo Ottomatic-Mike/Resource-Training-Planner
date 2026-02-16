@@ -32,3 +32,6 @@ Thumbs.db
 # Build artifacts
 dist/
 build/
+
+# Project intelligence (local only)
+CLAUDE.md

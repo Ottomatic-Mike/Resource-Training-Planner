@@ -217,7 +217,6 @@ This lets you explore every feature immediately without entering any data first.
 | [**USER_GUIDE.md**](USER_GUIDE.md) | Complete feature reference manual | Learning every feature |
 | [**API_INTEGRATION.md**](API_INTEGRATION.md) | AI provider setup and troubleshooting | Enabling AI features |
 | [**CHANGELOG.md**](CHANGELOG.md) | Full version history and release notes | Tracking changes between versions |
-| [**CLAUDE.md**](CLAUDE.md) | Project intelligence for Claude Code | Developers contributing to the codebase |
 
 ---
 
@@ -273,7 +272,7 @@ Contributions are welcome! This is a solo-developed project with clear conventio
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Review [CLAUDE.md](CLAUDE.md) for coding conventions and project architecture
+3. Follow existing coding conventions in the codebase
 4. Make your changes
 5. Test locally with `npm start` or `docker-compose up`
 6. Commit using the project format: `<Prefix> v<version> - <Description>` (e.g., `Feature v2.0.5 - Add dark mode toggle`)
