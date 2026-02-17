@@ -4862,6 +4862,51 @@ function renderCourses() {
             <span>These courses are a <strong>representative starting catalog</strong> with sample pricing. Courses, prices, and availability change frequently. For the latest offerings, use <strong>"🔍 Search Online"</strong> above to discover current courses from any provider using AI-powered search.</span>
         </div>
 
+        ${(() => {
+            // Build role-to-resource mapping from actual data
+            const roleMap = {};
+            const roleTracks = [...new Set(courseCatalog.map(c => c.roleTrack).filter(Boolean))].sort();
+            roleTracks.forEach(role => { roleMap[role] = []; });
+
+            // Match resources to roles by job title
+            resources.forEach(r => {
+                const title = (r.jobTitle || '').toLowerCase();
+                roleTracks.forEach(role => {
+                    const roleKey = role.toLowerCase();
+                    // Match if job title contains the role name or vice versa
+                    if (role === 'Cross-Role Foundations') {
+                        // Cross-role applies to everyone
+                        roleMap[role].push(r.name);
+                    } else if (title.includes(roleKey) || roleKey.includes(title) ||
+                               (roleKey.includes('qa') && (title.includes('qa') || title.includes('quality') || title.includes('test'))) ||
+                               (roleKey.includes('frontend') && title.includes('frontend'))) {
+                        roleMap[role].push(r.name);
+                    }
+                });
+            });
+
+            return `<div style="margin-bottom: 12px; padding: 14px 16px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <strong style="font-size: 14px;">Role Tracks</strong>
+                    <span style="font-size: 12px; color: var(--text-muted);">— Use the Role filter below to view courses for a specific track</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    ${roleTracks.map(role => {
+                        const members = roleMap[role];
+                        const memberText = role === 'Cross-Role Foundations'
+                            ? 'All team members'
+                            : (members.length > 0 ? members.join(', ') : 'No resources matched');
+                        const count = courseCatalog.filter(c => c.roleTrack === role).length;
+                        return `<button class="btn btn-sm" style="border: 1px solid var(--border-color); background: var(--bg-primary); font-size: 12px; padding: 4px 10px; cursor: pointer;" onclick="document.getElementById('courseFilterRole').value='${role}'; onRoleFilterChange();" title="${memberText}">
+                            <span style="font-weight: 600;">${role}</span>
+                            <span style="color: var(--text-muted); margin-left: 4px;">(${count})</span>
+                            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${memberText}</div>
+                        </button>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        })()}
+
         <div class="search-filter-bar" style="flex-wrap: wrap;">
             <input type="text" class="form-input search-input" placeholder="Search courses..." id="courseSearch" oninput="filterCourses()">
             <select class="form-select" id="courseFilterRole" onchange="onRoleFilterChange()">
