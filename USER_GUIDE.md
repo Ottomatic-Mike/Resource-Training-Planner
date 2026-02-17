@@ -470,22 +470,33 @@ Category (e.g., "Programming Languages")
 
 ### Purpose
 
-Centralized database of available training courses from all providers. Track costs, durations, ratings, and competency mappings.
+Centralized database of available training courses from all providers. Track costs, durations, ratings, and competency mappings. Pre-filter by role track, competency area, and learning goal.
+
+### Role Tracks Panel
+
+At the top of the Course Catalog, a **Role Tracks panel** displays all role tracks as clickable chips:
+- Each chip shows the **role name**, **course count**, and **team members** the role applies to
+- Clicking a chip automatically sets the Role filter
+- Cross-Role Foundations shows "All team members"
+- Other roles dynamically match resources by job title
 
 ### List View
 
-**Course Cards show:**
-- Title and provider
-- Rating (stars) and review count
-- Cost, duration, skill level
-- Format (Online, In-Person, Hybrid)
+**Course table rows show:**
+- Title with **role badge** (colored tag showing role track)
+- **Competency area** and **learning goal** subtitle
+- Provider, format, skill level
+- Duration (hours), cost, rating
 - Certification badge (if applicable)
+- Travel indicator (if travel required)
 
-**Filtering:**
-- Search by title
-- Filter by provider
-- Filter by format
-- Future: Filter by cost range, level
+**Filtering (6 dimensions):**
+- **Text search** — across titles, providers, descriptions, role tracks, and competencies
+- **Role** — filter by job track (7 roles). Selecting a role dynamically updates the Competency dropdown to show only competencies for that role
+- **Competency** — filter by skill area (~30 competency areas)
+- **Goal** — Foundation Building, Skill Development, Certification, or Career Growth
+- **Provider** — filter by training provider (23 providers)
+- **Format** — Online Self-Paced, Online Live, In-Person, Hybrid
 
 ### Adding a Course
 
@@ -503,6 +514,11 @@ Centralized database of available training courses from all providers. Track cos
 - **Duration** (hours)
 - **Format** (Online Self-Paced, Online Live, In-Person, Hybrid)
 - **Skill Level** (Beginner, Intermediate, Advanced, Expert, All Levels)
+
+**Classification:**
+- **Role Track** — which job role this course serves (e.g., Senior Developer, Security Engineer)
+- **Competency Area** — which skill area it develops (dynamically filtered by selected role)
+- **Learning Goal** — Foundation Building, Skill Development, Certification, or Career Growth
 
 **Quality:**
 - **Rating** (1-5 stars)

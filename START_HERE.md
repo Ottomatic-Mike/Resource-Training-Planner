@@ -67,8 +67,8 @@ Now that the application is running, let's explore!
 **You now have:**
 - 6 sample team members
 - 18 competencies across 5 categories
-- 240 training courses organized by role competencies across 23 providers
-- 2 regional calendars
+- 240 training courses organized by 7 role tracks and ~30 competency areas across 23 providers
+- 32 regional holiday calendars covering Americas, Europe, Asia-Pacific, and Middle East & Africa
 
 ### Minute 3-4: Explore the Dashboard
 
@@ -96,10 +96,11 @@ Now that the application is running, let's explore!
 ### Minute 9-10: Check Out Courses
 
 - Click **Course Catalog** (Tab 4)
-- Browse 240 sample courses organized by role competencies across 23 providers
-- Notice: provider, cost, duration, rating, relevant competencies
+- See the **Role Tracks panel** at the top — click any role to filter courses for that track
+- Use the **6 filter dropdowns**: Role, Competency, Goal, Provider, Format, plus text search
+- Browse 240 sample courses across 23 providers — each shows role badge, competency area, and learning goal
 - Click "View Details" on any course
-- Try the search and filter features
+- Try filtering by "Certification" goal to see all cert-prep courses
 
 ---
 
@@ -122,47 +123,67 @@ Across 5 categories:
 - **Data**: SQL, NoSQL, Data Engineering
 - **Soft Skills**: Leadership, Communication
 
-### 240 Training Courses — Organized by Role Competencies
+### 240 Training Courses — Organized by Role, Competency & Goal
 
-Courses are structured around competency areas for each of the 6 sample roles:
+Every course is tagged with three filterable dimensions:
 
-**Cross-Role Foundations (30 courses)**
+**Role Track** — which job role the course serves
+**Competency Area** — which skill area it develops (~30 areas)
+**Learning Goal** — what the learner wants to achieve (Foundation Building, Skill Development, Certification, Career Growth)
+
+A clickable **Role Tracks panel** at the top of the Course Catalog shows all roles, course counts, and which team members each role applies to.
+
+#### 7 Role Tracks:
+
+**Cross-Role Foundations (30 courses)** — All team members
 - Professional Development & Methodology (Agile, PM, leadership)
 - Technical Foundations (Git, Linux, networking, CS fundamentals)
 - Platform Fundamentals (ServiceNow admin, CSA prep, AI essentials)
 
-**Senior Developer Track (38 courses)** — for John Smith
+**Senior Developer Track (40 courses)** — John Smith
 - Programming Languages, Frameworks & Architecture, Database Engineering
 - Developer Certifications (JSNAD, GWEB)
-- Platform Development (ServiceNow scripting, Flow Designer, App Engine, CTA/CMA)
+- Platform Development & Architecture (ServiceNow scripting, Flow Designer, App Engine, CTA/CMA)
 
-**Security Engineer Track (40 courses)** — for Jane Doe
+**Security Engineer Track (40 courses)** — Jane Doe
 - Security Fundamentals & Advanced Certifications (CompTIA, ISC2, SANS)
 - Offensive Security & Penetration Testing
 - Cloud & Application Security, Incident Response & Forensics
 - Platform Security & GRC (ServiceNow SecOps, IRM, SIR, VR, TPRM)
 
-**DevOps Engineer Track (61 courses)** — for Bob Wilson
+**DevOps Engineer Track (61 courses)** — Bob Wilson
 - Containers & Orchestration, Infrastructure as Code, CI/CD
 - Cloud Platforms (AWS, Azure, GCP certifications)
 - Monitoring & Reliability (Prometheus, Grafana, SRE)
 - Platform Operations (ServiceNow ITSM, Discovery, CMDB, Service Mapping, HAM/SAM, CSM, HRSD, FSM)
 
-**QA Lead Track (22 courses)** — for Sarah Lee
+**QA / Test Engineer Track (25 courses)** — Sarah Lee
 - Test Automation Frameworks (Selenium, Cypress, Playwright, Jest, pytest)
-- Quality Process & Methodology
+- Quality Process & Methodology, Security & Compliance Testing
 - Platform Testing (ServiceNow ATF, Agile/Test Management)
 
-**Data Engineer Track (27 courses)** — for Mike Chen
+**Data Engineer Track (27 courses)** — Mike Chen
 - Data Pipelines & Processing, Machine Learning & AI
 - Cloud Data Services (AWS, Azure, GCP data certs)
 - Platform Analytics (ServiceNow Performance Analytics, dashboards)
 
-**Frontend Developer Track (22 courses)** — for Emma Brown
+**Frontend Developer Track (25 courses)** — Emma Brown
 - JavaScript & TypeScript, Frontend Frameworks (React, Angular, Vue)
 - CSS, Design Systems & Performance
 - UX Design & Accessibility
 - Platform UI Development (ServiceNow UI Builder, Service Portal)
+
+#### Filtering
+
+The Course Catalog provides **6 filter dimensions**:
+1. **Role** — filter by job track (dynamic competency dropdown updates)
+2. **Competency** — filter by skill area (~30 options)
+3. **Goal** — Foundation Building, Skill Development, Certification, Career Growth
+4. **Provider** — filter by training provider (23 providers)
+5. **Format** — Online Self-Paced, Online Live, In-Person, Hybrid
+6. **Text search** — search across titles, providers, descriptions
+
+Each course row displays a **role badge**, **competency area**, and **learning goal** subtitle for at-a-glance browsing.
 
 **From 23 providers** including Udemy, Coursera, Pluralsight, LinkedIn Learning, ServiceNow University, SANS Institute, CompTIA, ISC2, AWS Training, Microsoft Learn, Google Cloud Training, Frontend Masters, O'Reilly, and more.
 
@@ -241,7 +262,7 @@ If you want to start fresh:
 
 **Option A: Manual Entry**
 - Click **"+ Add Course"**
-- Fill in course details
+- Fill in course details including **Role Track**, **Competency Area**, and **Learning Goal**
 - Select relevant competencies (or create new ones inline!)
 
 **Option B: AI Course Discovery** (Requires AI configured)

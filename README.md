@@ -45,7 +45,7 @@ Training Plan Manager helps engineering managers build structured, AI-powered tr
 
 - **Resource Management** — Add team members with job titles, departments, locations, budgets, and weekly training hours
 - **Competency Library** — Define skills across categories (Programming, Cloud, DevOps, Security, Data, Soft Skills) with 5-level proficiency scales
-- **Course Catalog** — Maintain a searchable database of training courses with providers, costs, durations, and ratings
+- **Course Catalog** — Maintain a searchable, filterable database of training courses. Pre-filter by role track, competency area, learning goal, provider, or format
 - **Training Plan Wizard** — Create plans through a guided 6-step process: select resource, assess competencies, set goals, choose courses, schedule training, and review
 - **Regional Calendars** — Manage holiday calendars per region to avoid scheduling conflicts
 - **Reports & Analytics** — Budget breakdowns, progress tracking, competency gap analysis, and visual charts
@@ -170,7 +170,7 @@ Your manager creates a training plan visible in the app. You can see:
 | Component | Technology | Notes |
 |-----------|-----------|-------|
 | **Backend** | Node.js 20 + Express 4.18 | Lightweight server, CORS proxy for AI API calls |
-| **Frontend** | Vanilla HTML/CSS/JavaScript | Single-file SPA (~8,900 lines), no framework dependencies |
+| **Frontend** | Vanilla HTML/CSS/JavaScript | Single-file SPA (~10,000+ lines), no framework dependencies |
 | **Charts** | Chart.js 4.4 | Visual analytics in Reports tab |
 | **Container** | Docker (Alpine Linux) | Multi-stage build, non-root user, health checks |
 | **Orchestration** | Docker Compose | One-command deployment with restart policies |
@@ -201,8 +201,9 @@ The app ships with pre-loaded sample data you can activate from **Settings > Loa
 
 - **6 Team Members** — Senior Developer, Security Engineer, DevOps Engineer, QA Lead, Data Engineer, Frontend Developer
 - **18 Competencies** — Across Programming, Cloud, DevOps, Security, Data, and Soft Skills categories
-- **240 Courses** — Organized by role competencies across 23 providers (Udemy, Coursera, Pluralsight, LinkedIn Learning, ServiceNow University, SANS Institute, CompTIA, ISC2, AWS Training, Microsoft Learn, Google Cloud Training, and more). Each of the 6 sample roles has a dedicated competency track with ServiceNow courses integrated alongside industry providers. Prices range from free to $17,000. Use AI-powered "Search Online" for live course discovery.
+- **240 Courses** — Organized by 7 role tracks and ~30 competency areas across 23 providers. Every course is tagged with a **role track** (e.g., Senior Developer, Security Engineer), **competency area** (e.g., Programming Languages, Containers & Orchestration), and **learning goal** (Foundation Building, Skill Development, Certification, or Career Growth). A clickable **Role Tracks panel** maps each role to its team members. Prices range from free to $17,000. Use AI-powered "Search Online" for live course discovery.
 - **32 Holiday Calendars** — Worldwide coverage across Americas (7), Europe (9), Asia-Pacific (11), Middle East & Africa (5) with correct 2026 dates for all moveable holidays
+- **Data Management** — Load Sample Data, Clear All Data, Export/Import JSON and Excel — all accessible from the Settings modal
 
 This lets you explore every feature immediately without entering any data first.
 
@@ -243,7 +244,7 @@ The app is designed for single-user use (typically one engineering manager per b
 <details>
 <summary><strong>How do I back up my data?</strong></summary>
 
-Go to **Settings** > **Data Management** > **Export Data**. This downloads a JSON file with all your resources, competencies, courses, plans, and calendars. To restore, use **Import Data** and select your backup file.
+Click **Settings** (gear icon), scroll to **Data Management**, and click **Export to JSON**. This downloads a JSON file with all your resources, competencies, courses, plans, and calendars. To restore, use **Import from JSON** and select your backup file.
 </details>
 
 <details>

@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.5] - 2026-02-16
+
+### Added - Role-Based Course Filtering & Data Management Improvements
+
+**Three major enhancements to the Course Catalog and Settings experience.**
+
+#### 1. Role/Competency/Goal Course Filters
+
+**Problem:** The Course Catalog displayed all 240 courses in a flat table with only 3 filters (text search, provider, format). Users had no way to quickly find courses relevant to a specific job role, competency area, or learning objective.
+
+**Solution:** Added three new metadata fields and filter dimensions to the Course Catalog:
+
+- **Role Track** (7 values) — Cross-Role Foundations, Senior Developer, Security Engineer, DevOps Engineer, QA / Test Engineer, Data Engineer, Frontend Developer
+- **Competency Area** (~30 values) — Programming Languages, Security Fundamentals, Containers & Orchestration, Cloud Architecture, Platform Fundamentals (ServiceNow), and more
+- **Learning Goal** (4 values) — Foundation Building, Skill Development, Certification, Career Growth
+
+**Changes:**
+- All 240 sample courses now include `role`, `competency`, and `goal` fields
+- Three new filter dropdowns added to the Course Catalog toolbar (6 total filters)
+- Dynamic competency filtering — selecting a role narrows the competency dropdown to only relevant options
+- Course table rows now display a role badge and competency/goal subtitle under each course title
+- Text search also matches role track and competency area
+- Add Course form updated with Role Track, Competency Area, and Learning Goal dropdowns
+
+#### 2. Role Tracks Reference Panel
+
+**Problem:** The role filter dropdown listed 7 role tracks, but users had no way to see which team members belonged to which role or how many courses each role contained.
+
+**Solution:** Added a clickable **Role Tracks** panel above the filter bar that:
+- Lists all 7 role tracks with course counts
+- Dynamically maps team members to roles based on job title
+- Clicking a role chip sets the Role filter and updates the course list
+- Cross-Role Foundations shows "All team members"
+
+#### 3. Data Management in Settings Modal
+
+**Problem:** Users expected to find Data Management options (Load Sample Data, Clear All Data, Export/Import) in the Settings modal, but these controls were only available in the Reports tab.
+
+**Solution:** Added the complete Data Management section to the Settings modal:
+- Export to JSON, Import from JSON, Export to Excel
+- Load Sample Data, Clear All Data
+- Accessible via the gear icon from any tab
+- Also remains available in the Reports tab for convenience
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `app/public/training-plan-manager.html` | Added role/competency/goal to 240 courses, 3 new filter dropdowns, Role Tracks panel, Data Management in Settings modal, dynamic competency filtering, role badges in table, updated Add Course form |
+| `training-plan-manager.html` | Mirror copy of all changes |
+
+#### Documentation Updated
+
+| File | Changes |
+|------|---------|
+| `README.md` | Updated Course Catalog description, Sample Data section, FAQ, frontend line count |
+| `START_HERE.md` | Rewritten course catalog walkthrough, updated sample data counts, added role track details |
+| `USER_GUIDE.md` | Rewritten Course Catalog section with Role Tracks Panel, filtering dimensions, updated Add Course form |
+
+---
+
 ## [2.0.4] - 2025-01-24
 
 ### Fixed - Corrected CORS Proxy Documentation
