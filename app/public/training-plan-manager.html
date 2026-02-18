@@ -1305,6 +1305,15 @@ const SECURITY_KEY = 'trainingPlanManager_security';
 // Security state (in-memory only)
 let decryptedApiKey = null;
 let masterPasswordHash = null;
+
+// SSO state (populated from server /api/config)
+let ssoConfig = {
+    ssoEnabled: false,
+    ssoProtocol: null,
+    serverManagedKeys: null,
+    user: null,
+    authenticated: null
+};
 let isSecurityEnabled = false;
 
 // Wizard state
@@ -1550,11 +1559,24 @@ function isSecurityConfigured() {
 }
 
 function getEffectiveApiKey() {
+    // In SSO mode with server-managed keys, return a placeholder
+    // (the server injects the real key on the proxy endpoint)
+    const provider = settings.aiProvider || 'anthropic';
+    if (ssoConfig.ssoEnabled && ssoConfig.serverManagedKeys) {
+        if (ssoConfig.serverManagedKeys[provider]) {
+            return 'SERVER_MANAGED';
+        }
+    }
     // Return decrypted key if security is enabled, otherwise plain text key
     return isSecurityEnabled ? decryptedApiKey : settings.apiKey;
 }
 
 function hasApiKey() {
+    // In SSO mode with server-managed keys, the server has the key
+    const provider = settings.aiProvider || 'anthropic';
+    if (ssoConfig.ssoEnabled && ssoConfig.serverManagedKeys && ssoConfig.serverManagedKeys[provider]) {
+        return true;
+    }
     // Check if API key is available (either decrypted or in settings)
     return (isSecurityEnabled && decryptedApiKey) || (!isSecurityEnabled && settings.apiKey);
 }
@@ -1564,12 +1586,25 @@ document.addEventListener('DOMContentLoaded', function() {
     checkLibrariesAndInitialize();
 });
 
-function checkLibrariesAndInitialize() {
+async function checkLibrariesAndInitialize() {
     // Check if libraries loaded
     if (typeof Chart === 'undefined' || typeof Sortable === 'undefined' || typeof XLSX === 'undefined') {
         alert('Required libraries failed to load. Please check your internet connection and refresh.');
         return;
     }
+
+    // Fetch SSO configuration from server
+    try {
+        const configResponse = await fetch('/api/config');
+        if (configResponse.ok) {
+            ssoConfig = await configResponse.json();
+        }
+    } catch (e) {
+        console.warn('Could not fetch server config, running in standalone mode');
+    }
+
+    // Update header with SSO user info
+    updateSSOHeader();
 
     // Check if security is configured
     if (isSecurityConfigured()) {
@@ -1578,6 +1613,28 @@ function checkLibrariesAndInitialize() {
     } else {
         // Proceed with normal initialization
         initializeApplication();
+    }
+}
+
+function updateSSOHeader() {
+    const headerRight = document.querySelector('.header-right');
+    if (!headerRight) return;
+
+    // Remove any existing SSO elements
+    const existing = document.getElementById('ssoUserInfo');
+    if (existing) existing.remove();
+
+    if (ssoConfig.ssoEnabled && ssoConfig.authenticated && ssoConfig.user) {
+        const ssoEl = document.createElement('span');
+        ssoEl.id = 'ssoUserInfo';
+        ssoEl.style.cssText = 'display: inline-flex; align-items: center; gap: 8px; margin-right: 8px; color: white; font-size: 13px;';
+        ssoEl.innerHTML = `
+            <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;">
+                ${ssoConfig.user.displayName || ssoConfig.user.email}
+            </span>
+            <a href="/auth/logout" style="color: rgba(255,255,255,0.8); font-size: 12px; text-decoration: none;" title="Sign out">Sign Out</a>
+        `;
+        headerRight.insertBefore(ssoEl, headerRight.firstChild);
     }
 }
 
@@ -2341,8 +2398,27 @@ function openSettings() {
     const currentModel = settings.aiModel || aiModels[currentProvider][0].id;
     const hasEncryptedKey = isSecurityConfigured();
     const apiKeyValue = decryptedApiKey || settings.apiKey || '';
+    const isSSO = ssoConfig.ssoEnabled && ssoConfig.authenticated;
+    const serverKeys = ssoConfig.serverManagedKeys || {};
 
     const html = `
+        ${isSSO ? `
+        <div style="padding: 8px 0;">
+            <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">🔐 Corporate Authentication</h3>
+            <div class="alert alert-success" style="margin-bottom: 16px;">
+                <strong>✓ Signed in via SSO</strong> — ${ssoConfig.user ? ssoConfig.user.displayName + (ssoConfig.user.email ? ' (' + ssoConfig.user.email + ')' : '') : 'Authenticated'}
+            </div>
+            <div style="margin-bottom: 16px;">
+                <strong>Server-Managed API Keys:</strong>
+                <div style="display: flex; gap: 16px; margin-top: 8px;">
+                    <span style="font-size: 13px;">Anthropic: ${serverKeys.anthropic ? '<span style="color: #22c55e; font-weight: 600;">Active</span>' : '<span style="color: #999;">Not configured</span>'}</span>
+                    <span style="font-size: 13px;">OpenAI: ${serverKeys.openai ? '<span style="color: #22c55e; font-weight: 600;">Active</span>' : '<span style="color: #999;">Not configured</span>'}</span>
+                    <span style="font-size: 13px;">Google: ${serverKeys.google ? '<span style="color: #22c55e; font-weight: 600;">Active</span>' : '<span style="color: #999;">Not configured</span>'}</span>
+                </div>
+                <div class="form-help" style="margin-top: 8px;">API keys are managed by your administrator. You can use any provider with a configured key without entering your own.</div>
+            </div>
+        </div>
+        ` : `
         <div style="padding: 8px 0;">
             <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">🔒 Security</h3>
 
@@ -2368,6 +2444,7 @@ function openSettings() {
                 </div>
             `}
         </div>
+        `}
 
         <div style="padding: 24px 0 8px 0;">
             <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">AI Configuration</h3>
@@ -2389,11 +2466,20 @@ function openSettings() {
                 <div id="modelInfo"></div>
             </div>
 
+            ${isSSO && serverKeys[currentProvider] ? `
+            <div class="form-group">
+                <label class="form-label">API Key</label>
+                <div class="alert" style="background: #f0f9ff; border-color: #bae6fd; padding: 10px 14px; font-size: 13px;">
+                    Managed by your organization — no API key needed for this provider.
+                </div>
+            </div>
+            ` : `
             <div class="form-group">
                 <label class="form-label">API Key ${hasEncryptedKey ? '<span class="badge" style="background: #22c55e; color: white; font-size: 11px; margin-left: 8px;">Encrypted</span>' : ''}</label>
                 <input type="password" class="form-input" id="settingApiKey" value="${apiKeyValue}" placeholder="Enter your API key">
                 <div class="form-help">${hasEncryptedKey ? 'Your API key is encrypted. Changes will be automatically encrypted with your master password.' : 'Your API key is stored locally and never sent anywhere except to the AI provider. Enable security above to encrypt it.'}</div>
             </div>
+            `}
         </div>
 
         <div style="padding: 24px 0 8px 0;">
@@ -2475,7 +2561,8 @@ function closeSettings() {
 async function saveSettings() {
     settings.aiProvider = document.getElementById('settingAiProvider').value;
     settings.aiModel = document.getElementById('settingAiModel').value;
-    const newApiKey = document.getElementById('settingApiKey').value;
+    const apiKeyEl = document.getElementById('settingApiKey');
+    const newApiKey = apiKeyEl ? apiKeyEl.value : null;
     settings.currency = document.getElementById('settingCurrency').value;
     settings.dateFormat = document.getElementById('settingDateFormat').value;
     settings.defaultWeeklyHours = parseInt(document.getElementById('settingDefaultWeeklyHours').value);
@@ -2487,8 +2574,12 @@ async function saveSettings() {
     const currencySymbols = { 'USD': '$', 'EUR': '€', 'GBP': '£' };
     settings.currencySymbol = currencySymbols[settings.currency] || '$';
 
-    // Handle API key based on security status
-    if (isSecurityConfigured()) {
+    // Handle API key based on security status (skip if SSO manages this provider's key)
+    const currentProvider = settings.aiProvider || 'anthropic';
+    const ssoManagesKey = ssoConfig.ssoEnabled && ssoConfig.serverManagedKeys && ssoConfig.serverManagedKeys[currentProvider];
+    if (ssoManagesKey) {
+        // Server manages the API key - nothing to save locally
+    } else if (isSecurityConfigured()) {
         // Security is enabled - check if API key changed
         if (newApiKey && newApiKey !== decryptedApiKey) {
             // API key changed - re-encrypt with current master password
@@ -9174,6 +9265,7 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
     const provider = settings.aiProvider || 'anthropic';
     const model = settings.aiModel || 'claude-opus-4-6';
     const temperature = settings.aiTemperature || 0.7;
+    const serverManaged = (apiKey === 'SERVER_MANAGED');
 
     let apiUrl, headers, body;
 
@@ -9181,10 +9273,13 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
     if (provider === 'anthropic') {
         apiUrl = 'https://api.anthropic.com/v1/messages';
         headers = {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json'
+            'content-type': 'application/json',
+            'anthropic-version': '2023-06-01'
         };
+        // Only include API key if not server-managed
+        if (!serverManaged) {
+            headers['x-api-key'] = apiKey;
+        }
         body = {
             model: model,
             max_tokens: 4096,
@@ -9195,9 +9290,11 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
     } else if (provider === 'openai') {
         apiUrl = 'https://api.openai.com/v1/chat/completions';
         headers = {
-            'Authorization': `Bearer ${apiKey}`,
             'content-type': 'application/json'
         };
+        if (!serverManaged) {
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        }
         body = {
             model: model,
             max_tokens: 4096,
@@ -9208,8 +9305,10 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
             ]
         };
     } else if (provider === 'google') {
-        // Google Gemini API uses a different URL pattern
-        apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        // Google Gemini API - key is URL param when user-provided, server handles it when managed
+        apiUrl = serverManaged
+            ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+            : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         headers = {
             'content-type': 'application/json'
         };
@@ -9245,6 +9344,11 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
         });
 
         if (!response.ok) {
+            // Handle SSO session expiry
+            if (response.status === 401 && ssoConfig.ssoEnabled) {
+                window.location.href = '/auth/login';
+                throw new Error('Session expired. Redirecting to login...');
+            }
             let errorMessage = `AI API request failed (${response.status})`;
             try {
                 const error = await response.json();

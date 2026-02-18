@@ -1,10 +1,18 @@
 # Training Plan Manager - Docker Compose Configuration
-# Version: 2.0.4
+# Version: 2.1.0-dev
 #
-# Quick Start:
+# Quick Start (Standalone - no SSO):
 #   docker-compose up -d        # Start in background
 #   docker-compose logs -f      # View logs
 #   docker-compose down         # Stop and remove containers
+#
+# With SSO (OIDC example - Azure AD, Okta, Google, etc.):
+#   1. Copy .env.example to .env
+#   2. Fill in your SSO and API key values
+#   3. docker-compose up -d
+#
+# With SSO (SAML example):
+#   Same as above, but set SSO_PROTOCOL=saml and SAML_* variables
 
 version: '3.8'
 
@@ -14,12 +22,39 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: training-plan-manager
-    image: training-plan-manager:2.0.4
+    image: training-plan-manager:2.1.0-dev
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
+      #
+      # === SSO Configuration (uncomment to enable) ===
+      # - SSO_ENABLED=true
+      # - SESSION_SECRET=change-this-to-a-random-string
+      # - TRUST_PROXY=true
+      #
+      # --- OIDC (Azure AD, Okta, Google Workspace, Auth0, Keycloak, etc.) ---
+      # - SSO_PROTOCOL=oidc
+      # - OIDC_ISSUER=https://login.microsoftonline.com/{tenant-id}/v2.0
+      # - OIDC_CLIENT_ID=your-client-id
+      # - OIDC_CLIENT_SECRET=your-client-secret
+      # - OIDC_CALLBACK_URL=https://your-domain.com/auth/callback
+      #
+      # --- SAML 2.0 (alternative to OIDC) ---
+      # - SSO_PROTOCOL=saml
+      # - SAML_ENTRY_POINT=https://idp.example.com/sso/saml
+      # - SAML_ISSUER=training-plan-manager
+      # - SAML_CERT=MIIDpDCCA...base64-cert...
+      # - SAML_CALLBACK_URL=https://your-domain.com/auth/callback
+      #
+      # === Server-Side AI API Keys (used when SSO is enabled) ===
+      # - ANTHROPIC_API_KEY=sk-ant-...
+      # - OPENAI_API_KEY=sk-...
+      # - GOOGLE_API_KEY=AIza...
+    # Uncomment to load env vars from .env file (copy .env.example to .env first):
+    # env_file:
+    #   - .env
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
@@ -29,7 +64,7 @@ services:
       start_period: 5s
     labels:
       - "com.training-manager.description=Training Plan Manager Web Service"
-      - "com.training-manager.version=2.0.4"
+      - "com.training-manager.version=2.1.0-dev"
     networks:
       - training-manager-network
 
