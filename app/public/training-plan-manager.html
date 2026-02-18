@@ -1170,16 +1170,16 @@ tbody tr:hover {
                 <span class="section-number">4</span> Course Catalog
             </button>
             <button class="tab-button" onclick="switchTab(5)">
-                <span class="section-number">5</span> Training Plans
+                <span class="section-number">5</span> Role Profiles
             </button>
             <button class="tab-button" onclick="switchTab(6)">
-                <span class="section-number">6</span> Calendars
+                <span class="section-number">6</span> Training Plans
             </button>
             <button class="tab-button" onclick="switchTab(7)">
-                <span class="section-number">7</span> Reports
+                <span class="section-number">7</span> Calendars
             </button>
             <button class="tab-button" onclick="switchTab(8)">
-                <span class="section-number">8</span> Role Profiles
+                <span class="section-number">8</span> Reports
             </button>
         </div>
 
@@ -1203,24 +1203,24 @@ tbody tr:hover {
             <div id="coursesContent"></div>
         </div>
 
-        <!-- Tab 5: Training Plans -->
+        <!-- Tab 5: Role Profiles -->
         <div id="tab-5" class="tab-content">
+            <div id="roleProfilesContent"></div>
+        </div>
+
+        <!-- Tab 6: Training Plans -->
+        <div id="tab-6" class="tab-content">
             <div id="trainingPlansContent"></div>
         </div>
 
-        <!-- Tab 6: Calendar Management -->
-        <div id="tab-6" class="tab-content">
+        <!-- Tab 7: Calendar Management -->
+        <div id="tab-7" class="tab-content">
             <div id="calendarsContent"></div>
         </div>
 
-        <!-- Tab 7: Reports & Analytics -->
-        <div id="tab-7" class="tab-content">
-            <div id="reportsContent"></div>
-        </div>
-
-        <!-- Tab 8: Role Profiles -->
+        <!-- Tab 8: Reports & Analytics -->
         <div id="tab-8" class="tab-content">
-            <div id="roleProfilesContent"></div>
+            <div id="reportsContent"></div>
         </div>
 
     </div>
@@ -1786,10 +1786,10 @@ function renderActiveTab() {
         case 2: renderResources(); break;
         case 3: renderCompetencies(); break;
         case 4: renderCourses(); break;
-        case 5: renderTrainingPlans(); break;
-        case 6: renderCalendars(); break;
-        case 7: renderReports(); break;
-        case 8: renderRoleProfiles(); break;
+        case 5: renderRoleProfiles(); break;
+        case 6: renderTrainingPlans(); break;
+        case 7: renderCalendars(); break;
+        case 8: renderReports(); break;
     }
 }
 
@@ -2794,7 +2794,7 @@ function renderDashboard() {
                 <div class="metric-change">${metrics.completionRate}% completion rate</div>
             </div>
 
-            <div class="card metric-card" onclick="switchTab(8)" style="cursor: pointer;">
+            <div class="card metric-card" onclick="switchTab(5)" style="cursor: pointer;">
                 <div class="metric-label">Role Profiles</div>
                 <div class="metric-value">${roleProfiles.length}</div>
                 <div class="metric-change">${[...new Set(roleProfiles.map(p => p.roleTrack))].length} role tracks</div>
@@ -2804,10 +2804,10 @@ function renderDashboard() {
         <!-- Quick Actions -->
         <div class="quick-actions">
             <button class="btn btn-primary" onclick="switchTab(2); showAddResourceForm()">+ Add Resource</button>
-            <button class="btn btn-primary" onclick="switchTab(5); startNewPlan()">+ Create Training Plan</button>
+            <button class="btn btn-primary" onclick="switchTab(6); startNewPlan()">+ Create Training Plan</button>
             <button class="btn btn-secondary" onclick="switchTab(3)">Manage Competencies</button>
             <button class="btn btn-secondary" onclick="switchTab(4)">Browse Courses</button>
-            <button class="btn btn-secondary" onclick="switchTab(8)">Role Profiles</button>
+            <button class="btn btn-secondary" onclick="switchTab(5)">Role Profiles</button>
         </div>
 
         <!-- Resources Overview -->
@@ -3434,7 +3434,7 @@ function viewResourceDetail(resourceId) {
         const calendarLinks = resource.regionalCalendarIds.map(calId => {
             const calendar = regionalCalendars.find(c => c.id === calId);
             if (calendar) {
-                return `<a href="#" onclick="event.preventDefault(); closeModal(); switchTab(6); setTimeout(() => viewCalendarDetail(${calendar.id}), 100);" style="color: #044d4b; text-decoration: underline;">${escapeHtml(calendar.name)} (${escapeHtml(calendar.region)} ${calendar.year})</a>`;
+                return `<a href="#" onclick="event.preventDefault(); closeModal(); switchTab(7); setTimeout(() => viewCalendarDetail(${calendar.id}), 100);" style="color: #044d4b; text-decoration: underline;">${escapeHtml(calendar.name)} (${escapeHtml(calendar.region)} ${calendar.year})</a>`;
             }
             return null;
         }).filter(link => link !== null);
@@ -3582,7 +3582,7 @@ function viewResourceDetail(resourceId) {
             }
 
             trainingPlansHtml += `
-                <div class="card" style="cursor: pointer; margin: 0;" onclick="closeModal(); switchTab(5); setTimeout(() => viewPlanDetails(${plan.id}), 100);">
+                <div class="card" style="cursor: pointer; margin: 0;" onclick="closeModal(); switchTab(6); setTimeout(() => viewPlanDetails(${plan.id}), 100);">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <h4 style="margin: 0 0 8px 0; font-size: 14px;">${escapeHtml(plan.title)}</h4>
@@ -3685,7 +3685,7 @@ function viewResourceDetail(resourceId) {
             <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h3 style="margin: 0; font-size: 16px; color: var(--primary-color);">Training Plans (${resourcePlans.length})</h3>
-                    <button class="btn btn-sm btn-primary" onclick="closeModal(); switchTab(5); setTimeout(() => startWizard(${resourceId}), 100);">+ Create Plan</button>
+                    <button class="btn btn-sm btn-primary" onclick="closeModal(); switchTab(6); setTimeout(() => startWizard(${resourceId}), 100);">+ Create Plan</button>
                 </div>
                 ${trainingPlansHtml}
             </div>
