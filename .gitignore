@@ -1,9 +1,41 @@
 # Environment variables (may contain secrets)
 .env
+.env.local
+.env.production
 
 # Dependencies
 node_modules/
 
+# SSL/TLS certificates and keys
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.pfx
+*.p12
+*.jks
+
+# Credentials and secrets
+credentials*
+secrets*
+*-secret*
+*.keystore
+
 # OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# Logs
+*.log
+npm-debug.log*

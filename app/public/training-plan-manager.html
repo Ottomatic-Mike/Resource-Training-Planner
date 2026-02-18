@@ -1593,11 +1593,33 @@ async function checkLibrariesAndInitialize() {
         return;
     }
 
-    // Fetch SSO configuration from server
+    // Fetch SSO configuration from server — [Security] validate response schema
     try {
         const configResponse = await fetch('/api/config');
         if (configResponse.ok) {
-            ssoConfig = await configResponse.json();
+            const raw = await configResponse.json();
+            if (raw && typeof raw === 'object') {
+                ssoConfig = {
+                    ssoEnabled: Boolean(raw.ssoEnabled),
+                    ssoProtocol: typeof raw.ssoProtocol === 'string' ? raw.ssoProtocol : null,
+                    authenticated: Boolean(raw.authenticated),
+                    user: null,
+                    serverManagedKeys: null
+                };
+                if (raw.user && typeof raw.user === 'object') {
+                    ssoConfig.user = {
+                        displayName: String(raw.user.displayName || '').slice(0, 255),
+                        email: String(raw.user.email || '').slice(0, 255)
+                    };
+                }
+                if (raw.serverManagedKeys && typeof raw.serverManagedKeys === 'object') {
+                    ssoConfig.serverManagedKeys = {
+                        anthropic: Boolean(raw.serverManagedKeys.anthropic),
+                        openai: Boolean(raw.serverManagedKeys.openai),
+                        google: Boolean(raw.serverManagedKeys.google)
+                    };
+                }
+            }
         }
     } catch (e) {
         console.warn('Could not fetch server config, running in standalone mode');
@@ -1628,12 +1650,20 @@ function updateSSOHeader() {
         const ssoEl = document.createElement('span');
         ssoEl.id = 'ssoUserInfo';
         ssoEl.style.cssText = 'display: inline-flex; align-items: center; gap: 8px; margin-right: 8px; color: white; font-size: 13px;';
-        ssoEl.innerHTML = `
-            <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;">
-                ${ssoConfig.user.displayName || ssoConfig.user.email}
-            </span>
-            <a href="/auth/logout" style="color: rgba(255,255,255,0.8); font-size: 12px; text-decoration: none;" title="Sign out">Sign Out</a>
-        `;
+
+        // [C3] Use textContent for user-supplied fields to prevent XSS
+        const nameSpan = document.createElement('span');
+        nameSpan.style.cssText = 'background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;';
+        nameSpan.textContent = ssoConfig.user.displayName || ssoConfig.user.email;
+
+        const logoutLink = document.createElement('a');
+        logoutLink.href = '/auth/logout';
+        logoutLink.style.cssText = 'color: rgba(255,255,255,0.8); font-size: 12px; text-decoration: none;';
+        logoutLink.title = 'Sign out';
+        logoutLink.textContent = 'Sign Out';
+
+        ssoEl.appendChild(nameSpan);
+        ssoEl.appendChild(logoutLink);
         headerRight.insertBefore(ssoEl, headerRight.firstChild);
     }
 }
@@ -2406,7 +2436,7 @@ function openSettings() {
         <div style="padding: 8px 0;">
             <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">🔐 Corporate Authentication</h3>
             <div class="alert alert-success" style="margin-bottom: 16px;">
-                <strong>✓ Signed in via SSO</strong> — ${ssoConfig.user ? ssoConfig.user.displayName + (ssoConfig.user.email ? ' (' + ssoConfig.user.email + ')' : '') : 'Authenticated'}
+                <strong>✓ Signed in via SSO</strong> — ${ssoConfig.user ? escapeHtml(ssoConfig.user.displayName) + (ssoConfig.user.email ? ' (' + escapeHtml(ssoConfig.user.email) + ')' : '') : 'Authenticated'}
             </div>
             <div style="margin-bottom: 16px;">
                 <strong>Server-Managed API Keys:</strong>
@@ -8638,8 +8668,16 @@ function importFromJSON() {
             try {
                 const importData = JSON.parse(event.target.result);
 
-                // Validate data structure
+                // [H8] Validate top-level structure
+                if (!importData || typeof importData !== 'object' || Array.isArray(importData)) {
+                    throw new Error('Invalid data format');
+                }
                 if (!importData.resources || !Array.isArray(importData.resources)) {
+                    throw new Error('Invalid data format: missing resources array');
+                }
+
+                // [H8] Block prototype pollution
+                if ('__proto__' in importData || 'constructor' in importData || 'prototype' in importData) {
                     throw new Error('Invalid data format');
                 }
 
@@ -8647,15 +8685,28 @@ function importFromJSON() {
                     return;
                 }
 
-                // Import data
-                resources = importData.resources || [];
-                competencyLibrary = importData.competencyLibrary || [];
-                courseCatalog = importData.courseCatalog || [];
-                regionalCalendars = importData.regionalCalendars || [];
-                trainingPlans = importData.trainingPlans || [];
-                roleProfiles = importData.roleProfiles || [];
-                if (importData.settings) {
-                    settings = { ...settings, ...importData.settings };
+                // [H8] Import arrays — verify each is actually an array
+                resources = Array.isArray(importData.resources) ? importData.resources : [];
+                competencyLibrary = Array.isArray(importData.competencyLibrary) ? importData.competencyLibrary : [];
+                courseCatalog = Array.isArray(importData.courseCatalog) ? importData.courseCatalog : [];
+                regionalCalendars = Array.isArray(importData.regionalCalendars) ? importData.regionalCalendars : [];
+                trainingPlans = Array.isArray(importData.trainingPlans) ? importData.trainingPlans : [];
+                roleProfiles = Array.isArray(importData.roleProfiles) ? importData.roleProfiles : [];
+
+                // [H8] Settings — whitelist only known properties
+                if (importData.settings && typeof importData.settings === 'object' && !Array.isArray(importData.settings)) {
+                    const allowedKeys = [
+                        'aiProvider', 'aiModel', 'aiTemperature', 'theme',
+                        'dateFormat', 'currency', 'currencySymbol',
+                        'defaultWeeklyHours', 'defaultBudget', 'defaultLearningPace',
+                        'defaultRegionalCalendar', 'autoSaveEnabled', 'autoSaveInterval',
+                        'confirmBeforeDelete', 'showTooltips', 'autoBackupEnabled', 'backupFrequencyDays'
+                    ];
+                    for (const key of allowedKeys) {
+                        if (key in importData.settings && typeof importData.settings[key] === typeof settings[key]) {
+                            settings[key] = importData.settings[key];
+                        }
+                    }
                 }
 
                 // Update IDs
@@ -8676,9 +8727,11 @@ function importFromJSON() {
                     <p>Imported: ${resources.length} resources, ${competencyLibrary.length} competencies, ${courseCatalog.length} courses</p>
                 `);
             } catch (error) {
+                // [H6] Generic error message — don't leak error.message to DOM
+                console.error('Import failed:', error);
                 openModal('Import Failed', `
                     <div class="alert alert-error">
-                        Failed to import data: ${error.message}
+                        Failed to import data. Please check the file format and try again.
                     </div>
                 `);
             }
@@ -9344,10 +9397,13 @@ async function callClaudeAPI(systemPrompt, userPrompt) {
         });
 
         if (!response.ok) {
-            // Handle SSO session expiry
+            // [M6] Handle SSO session expiry — clear sensitive data before redirect
             if (response.status === 401 && ssoConfig.ssoEnabled) {
+                decryptedApiKey = null;
+                masterPasswordHash = null;
+                isSecurityEnabled = false;
                 window.location.href = '/auth/login';
-                throw new Error('Session expired. Redirecting to login...');
+                return;
             }
             let errorMessage = `AI API request failed (${response.status})`;
             try {
