@@ -2,7 +2,7 @@
 
 **Complete guide to setting up and using AI features in the Training Plan Manager.**
 
-Version 1.0.9 | Last Updated: January 24, 2026
+Version 2.1.0-dev | Last Updated: February 2026
 
 ---
 
@@ -35,10 +35,16 @@ The Training Plan Manager integrates with AI providers to offer intelligent assi
 
 ### Requirements
 
+**Standalone mode (default):**
 - Active API account with a supported provider
 - Valid API key
 - Available credits/billing enabled
 - Internet connection
+
+**SSO mode (corporate deployments):**
+- SSO configured with your identity provider
+- API keys set as server environment variables by your administrator
+- No API account needed for individual users
 
 ### Optional vs Required
 
@@ -49,6 +55,17 @@ The Training Plan Manager integrates with AI providers to offer intelligent assi
 - Manual schedule creation
 
 AI simply accelerates and enhances these workflows.
+
+### Two Modes of Operation
+
+| | Standalone Mode | SSO Mode |
+|---|---|---|
+| **Who manages keys** | Each user in their browser | Server administrator |
+| **Key storage** | Browser localStorage (encrypted) | Server environment variables |
+| **User setup** | Configure in Settings > AI Configuration | Just log in — AI works automatically |
+| **Best for** | Individual use, testing | Teams, corporate deployments |
+
+To enable SSO mode, see [INSTALLATION.md](INSTALLATION.md) > Configure SSO Authentication.
 
 ---
 
@@ -784,19 +801,34 @@ Job Title: Engineer
 - Personal notes
 - Other sensitive PII
 
-### Local Storage
+### Standalone Mode — Local Storage
 
 **API Key:**
 - Stored in localStorage
-- Browser-specific
-- Not encrypted (browser limitation)
-- Never transmitted except to AI provider
+- Encrypted using AES-256-GCM with PBKDF2 key derivation (100,000 iterations)
+- Browser-specific — each browser has its own encrypted storage
+- Only decrypted when making AI requests
+- Never transmitted except to AI provider via the server's CORS proxy
 
 **Risk Mitigation:**
 - Use dedicated API keys (not account-wide)
 - Set low usage limits
 - Rotate regularly
 - Don't use shared computers
+
+### SSO Mode — Server-Managed Keys
+
+**API Keys:**
+- Stored as server environment variables (not in the browser)
+- Injected into AI API requests on behalf of authenticated users
+- Users never see or manage API keys — they just log in
+- Configured by the administrator in `.env` file
+
+**Benefits:**
+- Centralized key management for teams
+- Users don't need their own API accounts
+- Keys never exposed to browser
+- Administrator controls which providers are available
 
 ### Compliance
 
@@ -907,5 +939,5 @@ A: Remove API key from Settings. Stop provider billing on their site.
 
 ---
 
-*This guide covers version 1.0.0 of the Training Plan Manager.*
+*This guide covers version 2.1.0-dev of the Training Plan Manager.*
 *For provider-specific help, consult their documentation.*

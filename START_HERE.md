@@ -46,7 +46,7 @@ Before proceeding, confirm the application is running:
    ```
    http://localhost:3000/health
    ```
-   Should return: `{"status":"healthy","service":"training-plan-manager","version":"2.0.4"}`
+   Should return: `{"status":"ok","timestamp":"..."}` (minimal response for security)
 
 **If the app doesn't load, return to [INSTALLATION.md](INSTALLATION.md) and review the troubleshooting section.**
 
@@ -66,7 +66,7 @@ Now that the application is running, let's explore!
 
 **You now have:**
 - 6 sample team members
-- 18 competencies across 5 categories
+- 18 competencies across 6 categories
 - 240 training courses organized by 7 role tracks and ~30 competency areas across 23 providers
 - 32 regional holiday calendars covering Americas, Europe, Asia-Pacific, and Middle East & Africa
 
@@ -93,7 +93,7 @@ Now that the application is running, let's explore!
 - Notice the 5-level proficiency definitions
 - Close the modal
 
-### Minute 9-10: Check Out Courses
+### Minute 9-10: Check Out Courses & Role Profiles
 
 - Click **Course Catalog** (Tab 4)
 - See the **Role Tracks panel** at the top — click any role to filter courses for that track
@@ -101,6 +101,9 @@ Now that the application is running, let's explore!
 - Browse 240 sample courses across 23 providers — each shows role badge, competency area, and learning goal
 - Click "View Details" on any course
 - Try filtering by "Certification" goal to see all cert-prep courses
+- Click **Role Profiles** (Tab 5) to explore curated learning paths per role
+- Browse 15 pre-built profiles like "DevOps Engineer - Container Path" or "Senior Developer - Python Full Stack"
+- Click any profile to see its ordered course sequence
 
 ---
 
@@ -115,7 +118,7 @@ Now that the application is running, let's explore!
 - **Emma Brown** - Frontend Developer (Berlin) - $3,500 budget
 
 ### 18 Competencies
-Across 5 categories:
+Across 6 categories:
 - **Programming**: Python, JavaScript, Java, Go
 - **Cloud**: AWS, Azure, GCP, Kubernetes
 - **DevOps**: Docker, CI/CD, Terraform
@@ -280,7 +283,7 @@ If you want to start fresh:
 
 ### The 6-Step Wizard
 
-1. **Navigate**: Go to **Training Plans** tab (Tab 5)
+1. **Navigate**: Go to **Training Plans** tab (Tab 6)
 2. **Start**: Click **"+ Create Training Plan"**
 
 **Step 1: Select Resource**
@@ -403,7 +406,7 @@ AI-powered features dramatically improve training plan quality:
 **A:** In your browser's localStorage. It's private and local-only. **Export to JSON regularly for backups.**
 
 ### Q: Can I access this from another computer?
-**A:** No, not by default. The server runs on localhost:3000 (local only). Your data is in your browser's localStorage on one machine.
+**A:** In standalone mode, the server runs on localhost:3000 (local only). With SSO enabled, the app can be deployed on a shared server and accessed by multiple users — each authenticates via their organization's identity provider.
 
 ### Q: Can I use this offline?
 **A:** Partially. The app works offline, but AI features require internet connection. The server runs locally.
@@ -423,7 +426,7 @@ AI-powered features dramatically improve training plan quality:
 **A:** Browser localStorage limit is ~5-10MB. This can handle hundreds of resources and thousands of competencies.
 
 ### Q: Is this secure?
-**A:** Yes! All data stays on your computer. Only AI API calls go to external servers (Anthropic/OpenAI/Google). API keys are stored in browser localStorage and sent via the backend proxy for secure handling.
+**A:** Yes! All data stays in your browser. The server is hardened with HTTP security headers (CSP, HSTS), rate limiting, SSRF protection, and input validation. API keys are encrypted in the browser (standalone mode) or stored server-side (SSO mode). The Docker container runs as non-root with a read-only filesystem and dropped capabilities.
 
 ### Q: How do I stop the application?
 **A:**
@@ -500,5 +503,5 @@ GitHub: https://github.com/Ottomatic-Mike/Resource-Training-Planning
 *For installation help, see [INSTALLATION.md](INSTALLATION.md)*
 *For AI setup, see [API_INTEGRATION.md](API_INTEGRATION.md)*
 
-**Version:** 2.0.4
+**Version:** 2.1.0-dev
 **Last Updated:** February 2026

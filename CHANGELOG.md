@@ -7,6 +7,150 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0-dev] - 2026-02-18
+
+### Added - Multi-Role Course Assignments
+
+**Problem:** Courses had a single `role` field (1:1 mapping), but many courses logically belong to multiple roles (e.g., a SQL course is relevant to both Senior Developers and Data Engineers).
+
+**Solution:** Changed courses from `role: 'string'` to `roles: ['string', ...]`. Approximately 20-30 courses that span roles now carry multiple role tags.
+
+**Changes:**
+- Sample course data uses `roles` array instead of single `role` field
+- Course mapper produces `roleTracks` array instead of single `roleTrack`
+- Migration in `loadFromLocalStorage()` converts legacy single-role data to arrays
+- All 15+ `roleTrack` references updated: Role Tracks panel, filters, search, course table badges, Add Course form
+- Course table now displays multiple role badges per course
+- Add Course form uses multi-select checkboxes instead of single dropdown
+
+### Added - Role Profiles Tab (Tab 5)
+
+**New feature:** Curated, ordered learning path curricula per role. Each profile defines a named sequence of courses for a specific role track.
+
+**Data Model:**
+- Profile name, role track, description, target level
+- Ordered `courseSequence` with step numbers, required/optional flags, and notes
+- Duration and cost calculated on-the-fly from course lookups
+- Active/inactive status, created/modified dates
+
+**UI:**
+- New Tab 5 between Course Catalog and Training Plans
+- List view grouped by role track with summary metrics
+- Detail modal with visual ordered learning path (numbered steps)
+- Create/Edit modal with drag-to-reorder course sequence builder (SortableJS)
+- Course selector dropdown grouped by role when role is selected
+- CRUD operations: create, view, edit, delete profiles
+- Dashboard integration: Role Profiles metric card and quick action button
+
+**Sample Data:** 15 profiles across 7 role tracks:
+- Cross-Role Foundations: New Hire Onboarding, Certification Fast Track
+- Senior Developer: Python Full Stack, Java Enterprise, ServiceNow Platform Architect
+- Security Engineer: Defensive Security, Offensive Security
+- DevOps Engineer: Container Path, Cloud & IaC, ITSM Platform
+- QA / Test Engineer: Automation Path
+- Data Engineer: Foundations, ML & AI
+- Frontend Developer: React Path, Full Breadth
+
+**Tab Renumbering:** Training Plans → Tab 6, Calendars → Tab 7, Reports → Tab 8
+
+### Added - SSO Authentication (OIDC + SAML 2.0)
+
+**New feature:** Enterprise Single Sign-On support for corporate deployments. When enabled, users authenticate via their organization's identity provider instead of accessing the app anonymously.
+
+**Supported Protocols:**
+- **OpenID Connect (OIDC):** Azure AD, Okta, Google Workspace, Auth0, Keycloak, OneLogin, Ping Identity, AWS SSO
+- **SAML 2.0:** ADFS, Shibboleth, any SAML 2.0 compliant IdP
+
+**Server-Side API Key Injection:**
+- When SSO is enabled, AI API keys (Anthropic, OpenAI, Google) are configured as server environment variables
+- Server injects keys into API proxy requests — users never see or manage API keys
+- Frontend detects server-managed keys and hides API key configuration UI
+- Dual-mode: standalone (user-managed keys) and corporate (server-managed keys) work from the same codebase
+
+**Implementation:**
+- Passport.js with `passport-openidconnect` and `@node-saml/passport-saml`
+- Express session management with `express-session`
+- Config-driven: `SSO_ENABLED=true` activates authentication; without it, app works as before
+- Auth routes: `/auth/login`, `/auth/callback` (GET + POST), `/auth/logout`, `/auth/logged-out`
+- `/api/config` endpoint for frontend to detect SSO state
+- SAML metadata endpoint at `/auth/metadata`
+- `.env.example` with full documentation for all SSO configuration variables
+
+**New Dependencies:** `express-session`, `passport`, `passport-openidconnect`, `@node-saml/passport-saml`
+
+### Added - Security Hardening (28 Findings Addressed)
+
+Full penetration test audit performed and all findings remediated:
+
+**Critical (3):**
+- [C1] **SSRF Protection:** `/api/proxy` now validates target URLs against `ALLOWED_PROXY_HOSTS` allowlist (`api.anthropic.com`, `api.openai.com`, `generativelanguage.googleapis.com`) and blocks private/internal IP ranges
+- [C2] **Session Secret:** Application fails on startup if `SESSION_SECRET` is not set when SSO is enabled in production; generates random secret in development
+- [C3] **XSS Prevention:** SSO user fields rendered via `textContent` (not `innerHTML`); `escapeHtml()` used in Settings modal
+
+**High (9):**
+- [H1] CORS restricted to `ALLOWED_ORIGIN` when SSO enabled
+- [H2] Security headers via `helmet` (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
+- [H3] Input validation: method allowlist, header sanitization, prototype pollution blocking
+- [H4] Session fixation prevention via `req.session.regenerate()` in auth callback
+- [H5] Rate limiting: 30 req/min for proxy, 20 req/15min for auth endpoints
+- [H6] Error sanitization: generic messages to client, no stack traces or internal details
+- [H7] SAML hardened: `wantAuthnResponseSigned: true`
+- [H8] JSON import: schema validation, prototype pollution guard, settings whitelist
+- [H9] Cookie `secure` flag always set in production
+
+**Medium (12):**
+- Environment variable validation on startup
+- Removed `node-fetch` (EOL), using Node 18+ built-in `fetch()`
+- `/api/config` no longer exposes SSO protocol
+- `/health` returns minimal `{status, timestamp}` only
+- Passport user serialization whitelist (safe attributes only)
+- JSON body limit reduced from 50MB to 10MB
+- SAML `validateInResponseTo: 'always'`
+- Session cleanup on expiry (clears decrypted keys, security state)
+
+**Low (4):** Structured security event logging, PII redaction in logs
+
+**Docker Hardening:**
+- `user: "1001"` (non-root)
+- `read_only: true` filesystem
+- `tmpfs: /tmp`
+- `security_opt: no-new-privileges:true`
+- `cap_drop: ALL`
+- Resource limits: 1 CPU, 512MB memory
+- Base image pinned by SHA256 digest
+
+**New Dependencies:** `helmet`, `express-rate-limit`
+**Removed:** `node-fetch` (replaced by Node 18+ built-in fetch)
+
+### Fixed - Docker Build Failure
+
+- Regenerated `package-lock.json` after dependency changes
+- Changed Dockerfile from deprecated `npm ci --only=production` to `npm ci --omit=dev`
+
+### Fixed - CSP Blocking Inline Event Handlers
+
+- Helmet v8 defaults `script-src-attr` to `'none'`, which blocked all inline `onclick`/`onchange` handlers used throughout the SPA
+- Added `scriptSrcAttr: ["'unsafe-inline'"]` to CSP directives
+- Added `'unsafe-eval'` to `scriptSrc` for Plotly.js compatibility
+- Added `upgradeInsecureRequests: null` for local/HTTP deployments
+- Set cross-origin policies for CDN resource loading
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `app/server.js` | Complete rewrite: 181 → 720 lines. SSO auth, security hardening, helmet CSP, rate limiting, SSRF protection |
+| `app/package.json` | Added 6 new deps (helmet, express-rate-limit, express-session, passport, passport-openidconnect, @node-saml/passport-saml), removed node-fetch, version → 2.1.0-dev |
+| `app/package-lock.json` | Regenerated |
+| `app/public/training-plan-manager.html` | Multi-role courses, Role Profiles tab, SSO frontend integration, XSS fixes, JSON import hardening |
+| `training-plan-manager.html` | Mirror copy |
+| `docker-compose.yml` | SSO env vars, security hardening (read_only, cap_drop, resource limits), version → 2.1.0-dev |
+| `Dockerfile` | Base image pinned by digest, npm ci --omit=dev |
+| `.env.example` | Full SSO configuration documentation |
+| `.gitignore` | Added security patterns (*.pem, *.key, credentials*, IDE files, logs) |
+
+---
+
 ## [2.0.5] - 2026-02-16
 
 ### Added - Role-Based Course Filtering & Data Management Improvements

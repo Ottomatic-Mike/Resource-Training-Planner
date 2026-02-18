@@ -2,7 +2,7 @@
 
 **AI-Assisted Training Planning for Engineering Teams**
 
-![Version](https://img.shields.io/badge/version-2.0.4-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1.0--dev-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-blue.svg)
 ![Node.js](https://img.shields.io/badge/node-20%2B-brightgreen.svg)
@@ -45,7 +45,8 @@ Training Plan Manager helps engineering managers build structured, AI-powered tr
 
 - **Resource Management** — Add team members with job titles, departments, locations, budgets, and weekly training hours
 - **Competency Library** — Define skills across categories (Programming, Cloud, DevOps, Security, Data, Soft Skills) with 5-level proficiency scales
-- **Course Catalog** — Maintain a searchable, filterable database of training courses. Pre-filter by role track, competency area, learning goal, provider, or format
+- **Course Catalog** — Maintain a searchable, filterable database of training courses. Pre-filter by role track, competency area, learning goal, provider, or format. Courses support multi-role tagging
+- **Role Profiles** — Create curated, ordered learning path curricula per role (e.g., "DevOps Engineer - Container Path"). Drag-to-reorder course sequences with required/optional flags
 - **Training Plan Wizard** — Create plans through a guided 6-step process: select resource, assess competencies, set goals, choose courses, schedule training, and review
 - **Regional Calendars** — Manage holiday calendars per region to avoid scheduling conflicts
 - **Reports & Analytics** — Budget breakdowns, progress tracking, competency gap analysis, and visual charts
@@ -60,11 +61,18 @@ When configured with an API key from any supported provider, unlock:
 - **Course Discovery** — Search the web for real courses from major training providers, matched to specific competencies
 - **Schedule Optimization** — AI creates balanced learning timelines that respect workload and availability
 
+### Enterprise Features
+
+- **SSO Authentication** — Optional Single Sign-On via OpenID Connect (Azure AD, Okta, Google Workspace, Auth0, Keycloak) or SAML 2.0. Users authenticate through their organization's identity provider
+- **Server-Managed API Keys** — When SSO is enabled, AI API keys are configured server-side. Users never see or manage API keys — they just log in and use AI features
+- **Standalone Mode** — Without SSO, the app works as a single-user tool with browser-managed API keys. No accounts required
+
 ### Security & Data
 
 - **Browser-Based Storage** — All data stays in your browser's localStorage. Nothing is sent to a server or stored externally (except optional AI API calls you initiate)
-- **Encrypted API Keys** — API keys are encrypted locally using AES-256-GCM with PBKDF2 key derivation
-- **No Account Required** — No sign-ups, no user databases, no tracking
+- **Encrypted API Keys** — API keys are encrypted locally using AES-256-GCM with PBKDF2 key derivation (standalone mode) or managed server-side (SSO mode)
+- **Security Hardening** — HTTP security headers (CSP, HSTS, X-Frame-Options) via Helmet, rate limiting, SSRF protection, input validation, session fixation prevention
+- **Hardened Container** — Read-only filesystem, dropped capabilities, non-root user, resource limits, base image pinned by digest
 
 ---
 
@@ -97,7 +105,7 @@ Open **http://localhost:3000** in your browser.
 
 1. Click **Settings** (gear icon) and select **Load Sample Data** to populate the app with example team members, competencies, and courses
 2. Explore the **Dashboard** to see an overview of your team
-3. Navigate through the tabs: Resources, Competencies, Course Catalog, Training Plans, Calendars, Reports
+3. Navigate through the tabs: Resources, Competencies, Course Catalog, Role Profiles, Training Plans, Calendars, Reports
 4. When ready, replace sample data with your own team information
 
 > For detailed platform-specific instructions (Windows, macOS, Linux), see [INSTALLATION.md](INSTALLATION.md).
@@ -142,46 +150,50 @@ Your manager creates a training plan visible in the app. You can see:
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────┐
-│  Browser (http://localhost:3000)             │
-│  ┌───────────────────────────────────────┐   │
-│  │  Single-Page Application (HTML/JS)    │   │
-│  │  - Dashboard, Resources, Competencies │   │
-│  │  - Courses, Plans, Calendars, Reports │   │
-│  │  - Data stored in localStorage        │   │
-│  └────────────────┬──────────────────────┘   │
-└───────────────────┼──────────────────────────┘
-                    │ HTTP
-┌───────────────────┼──────────────────────────┐
-│  Node.js + Express Server                    │
-│  ┌────────────────┴──────────────────────┐   │
-│  │  GET  /        → Serves the SPA       │   │
-│  │  GET  /health  → Health check         │   │
-│  │  POST /api/proxy → CORS proxy for AI  │   │
-│  └────────────────┬──────────────────────┘   │
-└───────────────────┼──────────────────────────┘
-                    │ HTTPS (optional)
-        ┌───────────┼───────────┐
-        ▼           ▼           ▼
-   Anthropic     OpenAI      Google
-    Claude        GPT        Gemini
+┌─────────────────────────────────────────────────────┐
+│  Browser (http://localhost:3000)                     │
+│  ┌───────────────────────────────────────────────┐   │
+│  │  Single-Page Application (HTML/JS)            │   │
+│  │  - Dashboard, Resources, Competencies         │   │
+│  │  - Courses, Role Profiles, Plans, Calendars   │   │
+│  │  - Reports · Data stored in localStorage      │   │
+│  └────────────────────┬──────────────────────────┘   │
+└───────────────────────┼──────────────────────────────┘
+                        │ HTTP
+┌───────────────────────┼──────────────────────────────┐
+│  Node.js + Express Server (720 lines)                │
+│  ┌────────────────────┴──────────────────────────┐   │
+│  │  GET  /            → Serves the SPA           │   │
+│  │  GET  /health      → Health check             │   │
+│  │  GET  /api/config  → SSO/auth state           │   │
+│  │  POST /api/proxy   → CORS proxy for AI        │   │
+│  │  GET  /auth/*      → SSO login/callback/logout│   │
+│  └────────────────────┬──────────────────────────┘   │
+│  Helmet · Rate Limiting · SSRF Protection            │
+└───────────────────────┼──────────────────────────────┘
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+     Anthropic       OpenAI        Google        Identity Provider
+      Claude          GPT          Gemini        (OIDC / SAML 2.0)
 ```
 
 | Component | Technology | Notes |
 |-----------|-----------|-------|
-| **Backend** | Node.js 20 + Express 4.18 | Lightweight server, CORS proxy for AI API calls |
-| **Frontend** | Vanilla HTML/CSS/JavaScript | Single-file SPA (~10,000+ lines), no framework dependencies |
+| **Backend** | Node.js 20 + Express 4.18 | Server with CORS proxy, SSO auth, security middleware (~720 lines) |
+| **Frontend** | Vanilla HTML/CSS/JavaScript | Single-file SPA (~11,200 lines), no framework dependencies |
+| **Auth** | Passport.js | Optional SSO via OIDC (`passport-openidconnect`) or SAML 2.0 (`@node-saml/passport-saml`) |
+| **Security** | Helmet, express-rate-limit | CSP, HSTS, rate limiting, SSRF protection, input validation |
 | **Charts** | Chart.js 4.4 | Visual analytics in Reports tab |
-| **Container** | Docker (Alpine Linux) | Multi-stage build, non-root user, health checks |
-| **Orchestration** | Docker Compose | One-command deployment with restart policies |
+| **Container** | Docker (Alpine Linux) | Multi-stage build, non-root user, read-only FS, health checks, pinned by digest |
+| **Orchestration** | Docker Compose | One-command deployment with restart policies and resource limits |
 | **Data Storage** | Browser localStorage | Client-side only; JSON import/export for portability |
-| **AI Providers** | Anthropic, OpenAI, Google | Optional; multi-provider adapter pattern |
+| **AI Providers** | Anthropic, OpenAI, Google | Optional; multi-provider adapter pattern; server-managed keys in SSO mode |
 
 ---
 
 ## AI Integration (Optional)
 
-AI features are entirely optional. The app works fully without them. To enable AI assistance, configure an API key from any supported provider:
+AI features are entirely optional. The app works fully without them. To enable AI assistance, configure an API key from any supported provider (or have your admin configure server-side keys when using SSO):
 
 | Provider | Models | Get an API Key |
 |----------|--------|----------------|
@@ -189,7 +201,9 @@ AI features are entirely optional. The app works fully without them. To enable A
 | **OpenAI** | GPT-5.2, o4-mini, o3 | [platform.openai.com](https://platform.openai.com/) |
 | **Google** | Gemini 3 Pro, Gemini 3 Flash, Gemini 2.5 Pro | [aistudio.google.com](https://aistudio.google.com/) |
 
-Configure your key in the app under **Settings** > **AI Configuration**. Keys are encrypted locally and never leave your browser except when making API calls through the server's CORS proxy.
+**Standalone mode:** Configure your key in the app under **Settings** > **AI Configuration**. Keys are encrypted locally and never leave your browser except when making API calls through the server's CORS proxy.
+
+**SSO mode:** API keys are configured server-side by your administrator. Users just log in and AI features work automatically. See [.env.example](.env.example) for configuration.
 
 For detailed setup and troubleshooting, see [API_INTEGRATION.md](API_INTEGRATION.md).
 
@@ -201,7 +215,8 @@ The app ships with pre-loaded sample data you can activate from **Settings > Loa
 
 - **6 Team Members** — Senior Developer, Security Engineer, DevOps Engineer, QA Lead, Data Engineer, Frontend Developer
 - **18 Competencies** — Across Programming, Cloud, DevOps, Security, Data, and Soft Skills categories
-- **240 Courses** — Organized by 7 role tracks and ~30 competency areas across 23 providers. Every course is tagged with a **role track** (e.g., Senior Developer, Security Engineer), **competency area** (e.g., Programming Languages, Containers & Orchestration), and **learning goal** (Foundation Building, Skill Development, Certification, or Career Growth). A clickable **Role Tracks panel** maps each role to its team members. Prices range from free to $17,000. Use AI-powered "Search Online" for live course discovery.
+- **240 Courses** — Organized by 7 role tracks and ~30 competency areas across 23 providers. Courses support multi-role tagging (e.g., a SQL course tagged Senior Developer AND Data Engineer). Every course is tagged with **role tracks**, **competency area**, and **learning goal**. A clickable **Role Tracks panel** maps each role to its team members. Prices range from free to $17,000. Use AI-powered "Search Online" for live course discovery.
+- **15 Role Profiles** — Curated learning path curricula across 7 roles: New Hire Onboarding, Python Full Stack, Defensive Security, Container Path, Automation Path, and more. Each profile defines an ordered sequence of courses with required/optional flags
 - **32 Holiday Calendars** — Worldwide coverage across Americas (7), Europe (9), Asia-Pacific (11), Middle East & Africa (5) with correct 2026 dates for all moveable holidays
 - **Data Management** — Load Sample Data, Clear All Data, Export/Import JSON and Excel — all accessible from the Settings modal
 
@@ -238,7 +253,9 @@ All data is stored in your browser's localStorage. Nothing is sent to a server o
 <details>
 <summary><strong>Can multiple people use the same instance?</strong></summary>
 
-The app is designed for single-user use (typically one engineering manager per browser). Each browser maintains its own independent data. Multiple team members can each run their own instance, or a manager can share exported plans.
+**Standalone mode:** The app is designed for single-user use (typically one engineering manager per browser). Each browser maintains its own independent data.
+
+**SSO mode:** Multiple users can access the same server instance. Each user authenticates via their organization's identity provider. Data is still per-browser (localStorage), but AI API keys are shared server-side.
 </details>
 
 <details>
@@ -250,13 +267,17 @@ Click **Settings** (gear icon), scroll to **Data Management**, and click **Expor
 <details>
 <summary><strong>Is my API key safe?</strong></summary>
 
-API keys are encrypted in your browser using AES-256-GCM with PBKDF2 key derivation (100,000 iterations). Keys are only decrypted when making an AI request and are sent through the local server's CORS proxy — they never leave your machine unencrypted.
+**Standalone mode:** API keys are encrypted in your browser using AES-256-GCM with PBKDF2 key derivation (100,000 iterations). Keys are only decrypted when making an AI request and are sent through the local server's CORS proxy — they never leave your machine unencrypted.
+
+**SSO mode:** API keys are stored as server environment variables and never exposed to the browser. The server injects them into AI API requests on behalf of authenticated users.
 </details>
 
 <details>
 <summary><strong>Can I run this on a shared server for my team?</strong></summary>
 
-The app can be deployed on a shared server and accessed by multiple users over the network. However, each user's data is stored in their own browser, so there is no shared database or collaboration features. Each person sees only their own data.
+Yes. Deploy on a shared server and enable SSO for authentication. Each user logs in via your organization's identity provider (Azure AD, Okta, Google Workspace, etc.). AI API keys are managed server-side so users don't need their own. Each user's training data is stored in their own browser's localStorage, so there is no shared database — but AI features work for everyone.
+
+Without SSO, the app still works on a shared server but each user manages their own API key.
 </details>
 
 <details>
@@ -289,4 +310,4 @@ See the full license in the repository.
 
 ---
 
-*Version 2.0.4 — Web Service Architecture with Embedded CORS Proxy*
+*Version 2.1.0-dev — SSO Authentication, Security Hardening, Role Profiles*

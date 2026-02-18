@@ -254,7 +254,7 @@ docker compose ps
 
 **Health Check:**
 - Visit: `http://localhost:3000/health`
-- Expected response: `{"status":"healthy","service":"training-plan-manager","version":"2.0.4",...}`
+- Expected response: `{"status":"ok","timestamp":"..."}`
 
 ---
 
@@ -393,7 +393,34 @@ Open browser and navigate to: `http://localhost:3000`
 To explore the application with example data:
 1. Click "Settings" → "Data Management"
 2. Click "Load Sample Data"
-3. Explore pre-configured resources, competencies, and courses
+3. Explore pre-configured resources, competencies, courses, and role profiles
+
+### Configure SSO Authentication (Optional — Corporate Deployments)
+
+For shared server deployments where users authenticate via their organization's identity provider:
+
+1. **Copy the environment template:**
+   ```bash
+   cp .env.example .env
+   ```
+2. **Edit `.env`** and configure:
+   - `SSO_ENABLED=true`
+   - `SESSION_SECRET=<random-string>` (required in production)
+   - Choose `SSO_PROTOCOL=oidc` or `SSO_PROTOCOL=saml`
+   - Fill in your identity provider details (OIDC issuer, client ID/secret, or SAML entry point/cert)
+   - Add server-side AI API keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`)
+3. **Uncomment `env_file`** in `docker-compose.yml`:
+   ```yaml
+   env_file:
+     - .env
+   ```
+4. **Rebuild and restart:**
+   ```bash
+   docker compose down
+   docker compose up -d --build
+   ```
+
+See [.env.example](.env.example) for detailed configuration with examples for Azure AD, Okta, Google Workspace, Auth0, and Keycloak.
 
 ---
 
@@ -471,7 +498,7 @@ After installation, verify everything works:
 - [ ] Application loads at `http://localhost:3000`
 - [ ] Health check shows "healthy" at `http://localhost:3000/health`
 - [ ] Dashboard displays without errors
-- [ ] Can navigate between all tabs (Dashboard, Resources, Competencies, Courses, etc.)
+- [ ] Can navigate between all 8 tabs (Dashboard, Resources, Competencies, Course Catalog, Role Profiles, Training Plans, Calendars, Reports)
 - [ ] Can create a new resource
 - [ ] Can add a competency
 - [ ] Settings page opens
@@ -560,6 +587,6 @@ If you encounter issues not covered here:
 
 ---
 
-**Version:** 2.0.4
+**Version:** 2.1.0-dev
 **Last Updated:** February 2026
 **License:** MIT

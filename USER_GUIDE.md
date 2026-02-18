@@ -2,7 +2,7 @@
 
 **Complete reference documentation for all features and workflows.**
 
-Version 2.0.4 | Last Updated: February 16, 2026
+Version 2.1.0-dev | Last Updated: February 18, 2026
 
 ---
 
@@ -13,13 +13,14 @@ Version 2.0.4 | Last Updated: February 16, 2026
 3. [Resource Management](#2-resource-management-tab)
 4. [Competency Library](#3-competency-library-tab)
 5. [Course Catalog](#4-course-catalog-tab)
-6. [Training Plans](#5-training-plans-tab)
-7. [Calendar Management](#6-calendar-management-tab)
-8. [Reports & Analytics](#7-reports--analytics-tab)
-9. [Settings](#settings)
-10. [Data Management](#data-management)
-11. [Best Practices](#best-practices)
-12. [Troubleshooting](#troubleshooting)
+6. [Role Profiles](#5-role-profiles-tab)
+7. [Training Plans](#6-training-plans-tab)
+8. [Calendar Management](#7-calendar-management-tab)
+9. [Reports & Analytics](#8-reports--analytics-tab)
+10. [Settings](#settings)
+11. [Data Management](#data-management)
+12. [Best Practices](#best-practices)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -44,14 +45,15 @@ The Training Plan Manager helps engineering managers:
 
 ### Navigation
 
-The application has 7 main tabs:
+The application has 8 main tabs:
 1. **Dashboard** - Overview and quick actions
 2. **Resources** - Team member management
 3. **Competencies** - Skill library
 4. **Course Catalog** - Available training
-5. **Training Plans** - Plan creation and management
-6. **Calendars** - Holiday and availability management
-7. **Reports** - Analytics and data management
+5. **Role Profiles** - Curated learning path curricula per role
+6. **Training Plans** - Plan creation and management
+7. **Calendars** - Holiday and availability management
+8. **Reports** - Analytics and data management
 
 ---
 
@@ -483,7 +485,7 @@ At the top of the Course Catalog, a **Role Tracks panel** displays all role trac
 ### List View
 
 **Course table rows show:**
-- Title with **role badge** (colored tag showing role track)
+- Title with **role badge(s)** (colored tags showing role tracks — courses can belong to multiple roles)
 - **Competency area** and **learning goal** subtitle
 - Provider, format, skill level
 - Duration (hours), cost, rating
@@ -590,7 +592,94 @@ Click **"View Details"** to see:
 
 ---
 
-## 5. Training Plans Tab
+## 5. Role Profiles Tab
+
+### Purpose
+
+Create curated, ordered learning path curricula for specific roles. Role Profiles define the recommended course sequence a team member should follow to build competency in a given role track.
+
+### Key Concepts
+
+**Role Profile** — A named learning path for a specific role track (e.g., "DevOps Engineer - Container Path"). Each profile contains an ordered sequence of courses with required/optional flags.
+
+**Multiple Profiles Per Role** — A single role can have multiple profiles representing different specialization paths (e.g., "DevOps Engineer - Container Path" vs "DevOps Engineer - Cloud & IaC Path").
+
+### List View
+
+Profiles are grouped by role track. Each group shows:
+- Role track name
+- Number of profiles in that group
+- Profile cards with: name, description, course count, total duration, estimated cost, target level
+
+**Summary Metrics:**
+- Total profiles across all roles
+- Role tracks covered
+- Total courses referenced
+
+### Viewing Profile Details
+
+Click any profile card to open a detail modal showing:
+- **Visual ordered learning path** — Numbered step circles (1, 2, 3...) with course details
+- Each step shows: course title, provider, duration, cost, level
+- **Required/Optional** badge on each step
+- **Certification** badge if applicable
+- Summary bar: course count, total duration, estimated cost
+- Footer buttons: Close, Edit, Delete
+
+### Creating a Profile
+
+1. Click **"+ Create Profile"**
+2. Fill in:
+   - **Profile Name** (e.g., "Container Path")
+   - **Role Track** (dropdown of available roles)
+   - **Target Level** (Beginner, Intermediate, Advanced, Expert)
+   - **Description** (what this learning path covers)
+3. **Build the course sequence:**
+   - Select a course from the dropdown (grouped by role when a role is selected)
+   - Click **Add** to append it to the sequence
+   - **Drag to reorder** steps using the handle (SortableJS)
+   - Mark each step as **Required** or **Optional**
+   - Remove steps with the remove button
+4. Click **Save**
+
+### Editing a Profile
+
+1. View the profile detail
+2. Click **Edit**
+3. Modify any field or reorder/add/remove courses
+4. Click **Save**
+
+### Deleting a Profile
+
+1. View the profile detail
+2. Click **Delete**
+3. Confirm deletion
+
+### Sample Role Profiles
+
+The sample data includes 15 profiles across 7 role tracks:
+
+| Role Track | Profile Name | Courses | Level |
+|-----------|-------------|---------|-------|
+| Cross-Role Foundations | New Hire Onboarding Path | 6 | Beginner |
+| Cross-Role Foundations | Certification Fast Track | 5 | Intermediate |
+| Senior Developer | Python Full Stack | 6 | Intermediate |
+| Senior Developer | Java Enterprise | 7 | Intermediate |
+| Senior Developer | ServiceNow Platform Architect | 9 | Advanced |
+| Security Engineer | Defensive Security Path | 7 | Intermediate |
+| Security Engineer | Offensive Security Path | 5 | Advanced |
+| DevOps Engineer | Container Path | 5 | Intermediate |
+| DevOps Engineer | Cloud & IaC Path | 6 | Intermediate |
+| DevOps Engineer | ITSM Platform Path | 6 | Intermediate |
+| QA / Test Engineer | Automation Path | 7 | Intermediate |
+| Data Engineer | Foundations Path | 6 | Intermediate |
+| Data Engineer | ML & AI Path | 5 | Advanced |
+| Frontend Developer | React Path | 7 | Intermediate |
+| Frontend Developer | Full Breadth Path | 7 | Intermediate |
+
+---
+
+## 6. Training Plans Tab
 
 ### Purpose
 
@@ -831,7 +920,7 @@ Click **"+ Create Training Plan"** to start.
 
 ---
 
-## 6. Calendar Management Tab
+## 7. Calendar Management Tab
 
 ### Purpose
 
@@ -839,9 +928,13 @@ Manage regional holiday calendars and resource availability to improve schedule 
 
 ### Calendar Templates
 
-**Pre-loaded:**
-- US Federal Holidays 2026 (8 holidays)
-- UK Bank Holidays 2026 (8 holidays)
+**Pre-loaded (32 regional calendars):**
+- **Americas** (7): US, Canada, Mexico, Brazil, Argentina, Colombia
+- **Europe** (9): UK, Germany, France, Italy, Spain, Netherlands, Sweden, Switzerland, Poland, Ireland
+- **Asia-Pacific** (11): Japan, South Korea, China, Hong Kong, Taiwan, Singapore, India, Philippines, Thailand, Australia, New Zealand
+- **Middle East & Africa** (5): UAE, Saudi Arabia, Israel, South Africa, Nigeria
+
+Each calendar includes all 2026 public holidays with correct dates for moveable holidays (Easter, Chinese New Year, Islamic holidays, Diwali, etc.).
 
 **Custom:**
 - Create your own
@@ -924,7 +1017,7 @@ Click any calendar to see:
 
 ---
 
-## 7. Reports & Analytics Tab
+## 8. Reports & Analytics Tab
 
 ### Budget Utilization Report
 
@@ -999,7 +1092,7 @@ Click any calendar to see:
 - Opens in Excel, Google Sheets, etc.
 
 **Load Sample Data:**
-- 6 resources, 18 competencies, 12 courses
+- 6 resources, 18 competencies, 240 courses, 32 calendars, 15 role profiles
 - For testing and demonstration
 - Replaces current data
 
@@ -1013,6 +1106,16 @@ Click any calendar to see:
 ## Settings
 
 Access via **⚙️ Settings** button in header.
+
+### SSO Authentication (Corporate Deployments)
+
+When SSO is enabled by your administrator:
+- A **login button** and user display appear in the header
+- The AI Configuration section shows **"API keys managed by server"** instead of the API key input
+- Session expiry redirects to login page automatically
+- Your administrator configures SSO and API keys in the server's `.env` file
+
+See [INSTALLATION.md](INSTALLATION.md) for SSO setup instructions.
 
 ### AI Configuration
 
@@ -1373,5 +1476,5 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ---
 
-*This guide covers version 1.0.0 of the Training Plan Manager.*
+*This guide covers version 2.1.0-dev of the Training Plan Manager.*
 *For the latest version, visit: https://github.com/Ottomatic-Mike/Resource-Training-Planning*
