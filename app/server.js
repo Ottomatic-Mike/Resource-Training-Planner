@@ -650,88 +650,65 @@ app.get('/setup', (req, res) => {
 
 // Save setup configuration and restart server
 app.post('/admin/api/setup', async (req, res) => {
-    const { mode, provider, domain, clientId, clientSecret, callbackUrl, aiKeys } = req.body;
+    const { mode, passcode, aiKeys } = req.body;
 
     // Validate input
-    if (!mode || !['standalone', 'sso'].includes(mode)) {
-        return res.status(400).json({ error: 'Invalid mode. Must be "standalone" or "sso".' });
+    if (!mode || mode !== 'passcode') {
+        return res.status(400).json({ error: 'Invalid mode.' });
     }
 
-    if (mode === 'sso') {
-        if (!provider || typeof provider !== 'string') {
-            return res.status(400).json({ error: 'Identity provider is required.' });
-        }
-        if (!clientId || typeof clientId !== 'string') {
-            return res.status(400).json({ error: 'Client ID is required.' });
-        }
-        if (!clientSecret || typeof clientSecret !== 'string') {
-            return res.status(400).json({ error: 'Client Secret is required.' });
-        }
-        if (!aiKeys || typeof aiKeys !== 'object') {
-            return res.status(400).json({ error: 'AI API keys configuration is required.' });
-        }
-        if (!aiKeys.anthropic && !aiKeys.openai && !aiKeys.google) {
-            return res.status(400).json({ error: 'At least one AI API key is required for SSO mode.' });
-        }
+    if (!passcode || typeof passcode !== 'string' || passcode.trim().length < 1) {
+        return res.status(400).json({ error: 'Access code is required.' });
     }
 
-    // Compute OIDC issuer from provider + domain
-    let issuer = '';
-    if (mode === 'sso') {
-        const safeDomain = String(domain || '').trim();
-        switch (provider) {
-            case 'okta':
-                issuer = `https://${safeDomain}/oauth2/default`;
-                break;
-            case 'azure':
-                issuer = `https://login.microsoftonline.com/${safeDomain}/v2.0`;
-                break;
-            case 'google':
-                issuer = 'https://accounts.google.com';
-                break;
-            case 'auth0':
-                issuer = `https://${safeDomain}`;
-                break;
-            case 'keycloak':
-                issuer = safeDomain; // User enters full URL with realm
-                break;
-            default:
-                issuer = safeDomain; // Custom OIDC - user enters full issuer URL
-        }
-    }
-
-    // Build config object
-    const config = {
-        version: 1,
-        setupComplete: true,
-        mode: mode,
-        createdAt: new Date().toISOString(),
-        sessionSecret: crypto.randomBytes(32).toString('hex')
+    // Hash the passcode with PBKDF2
+    const salt = crypto.randomBytes(16);
+    const passcodeHash = {
+        hash: crypto.pbkdf2Sync(passcode.trim(), salt, 100000, 32, 'sha512').toString('hex'),
+        salt: salt.toString('hex')
     };
 
-    if (mode === 'sso') {
-        config.sso = {
-            provider: String(provider).slice(0, 50),
-            protocol: 'oidc',
-            issuer: issuer.slice(0, 500),
-            clientId: String(clientId).slice(0, 255),
-            clientSecret: String(clientSecret).slice(0, 500),
-            callbackUrl: String(callbackUrl || `http://localhost:${PORT}/auth/callback`).slice(0, 500)
-        };
-        config.aiKeys = {
-            anthropic: String(aiKeys.anthropic || '').slice(0, 255),
-            openai: String(aiKeys.openai || '').slice(0, 255),
-            google: String(aiKeys.google || '').slice(0, 255)
-        };
-    }
+    // Build encrypted config (same format as CLI setup script)
+    const config = {
+        version: 2,
+        setupComplete: true,
+        mode: 'passcode',
+        createdAt: new Date().toISOString(),
+        sessionSecret: crypto.randomBytes(32).toString('hex'),
+        passcodeHash: passcodeHash,
+        aiKeys: {
+            anthropic: String((aiKeys && aiKeys.anthropic) || '').slice(0, 255),
+            openai: String((aiKeys && aiKeys.openai) || '').slice(0, 255),
+            google: String((aiKeys && aiKeys.google) || '').slice(0, 255)
+        }
+    };
 
-    // Write config file
+    // Encrypt and save using AES-256-GCM (same as credential-store.js)
     try {
         if (!fs.existsSync(CONFIG_DIR)) {
-            fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
+            fs.mkdirSync(CONFIG_DIR, { recursive: true });
         }
-        fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
-        console.log('[SETUP] Configuration saved to setup.json');
+
+        const passphrase = crypto.randomBytes(32).toString('hex');
+        const encSalt = crypto.randomBytes(32);
+        const iv = crypto.randomBytes(12);
+        const key = crypto.pbkdf2Sync(passphrase, encSalt, 100000, 32, 'sha512');
+
+        const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+        const plaintext = Buffer.from(JSON.stringify(config), 'utf8');
+        const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+        const authTag = cipher.getAuthTag();
+
+        const blob = {
+            salt: encSalt.toString('base64'),
+            iv: iv.toString('base64'),
+            authTag: authTag.toString('base64'),
+            ciphertext: ciphertext.toString('base64')
+        };
+
+        fs.writeFileSync(CRED_FILE, JSON.stringify(blob, null, 2));
+        fs.writeFileSync(CRED_KEY_FILE, passphrase);
+        console.log('[SETUP] Encrypted credentials saved via web setup');
     } catch (err) {
         console.error('[SETUP] Failed to save config:', err.message);
         return res.status(500).json({
