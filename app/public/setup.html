@@ -107,13 +107,21 @@
         }
         .sso-info h3 { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
         .sso-info p { font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 14px; }
-        .sso-info .cmd-box {
-            background: #1e293b; color: #e2e8f0; padding: 12px 16px; border-radius: 8px;
+        .sso-info .cmd-line {
+            background: #1e293b; color: #e2e8f0; border-radius: 8px;
             font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 13px;
-            text-align: left; margin-bottom: 14px; line-height: 1.6;
-            -webkit-user-select: all; user-select: all;
+            text-align: left; margin-bottom: 8px;
+            display: flex; align-items: center; overflow: hidden;
         }
-        .sso-info .cmd-comment { color: #64748b; }
+        .sso-info .cmd-line code { flex: 1; padding: 10px 14px; -webkit-user-select: all; user-select: all; }
+        .sso-info .cmd-line .cmd-label { color: #94a3b8; font-size: 11px; padding-left: 14px; white-space: nowrap; }
+        .sso-info .cmd-copy {
+            background: #334155; border: none; color: #94a3b8; padding: 10px 12px;
+            font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
+            font-family: inherit; transition: all 0.15s;
+        }
+        .sso-info .cmd-copy:hover { background: #475569; color: #e2e8f0; }
+        .sso-info .cmd-copy.copied { background: #166534; color: #bbf7d0; }
         .sso-info .providers { font-size: 12px; color: #94a3b8; }
         .sso-info .providers strong { color: #64748b; }
 
@@ -195,10 +203,15 @@
                     <h3>Browser-Based SSO Setup</h3>
                     <p>SSO setup uses a script that opens your identity provider in a browser.
                        You authenticate normally — credentials are captured and encrypted automatically.</p>
-                    <div class="cmd-box">
-                        <span class="cmd-comment"># Run from the project directory</span><br>
-                        cd scripts<br>
-                        node setup.js
+                    <div class="cmd-line">
+                        <span class="cmd-label">Windows</span>
+                        <code>scripts\setup.bat</code>
+                        <button class="cmd-copy" onclick="copyCmd(this, 'scripts\\setup.bat')">Copy</button>
+                    </div>
+                    <div class="cmd-line">
+                        <span class="cmd-label">Mac/Linux</span>
+                        <code>scripts/setup.sh</code>
+                        <button class="cmd-copy" onclick="copyCmd(this, 'scripts/setup.sh')">Copy</button>
                     </div>
                     <p>The script will:</p>
                     <div style="text-align: left; font-size: 13px; color: #475569; line-height: 1.8; padding-left: 8px;">
@@ -286,6 +299,30 @@
                 errEl.classList.remove('hidden');
                 btn.disabled = false;
                 btn.innerHTML = 'Save &amp; Activate';
+            }
+        }
+
+        function copyCmd(btn, text) {
+            function showCopied() {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+            }
+            function fallbackCopy() {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showCopied();
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(showCopied).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
             }
         }
 

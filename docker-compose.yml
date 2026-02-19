@@ -1,18 +1,14 @@
 # Training Plan Manager - Docker Compose Configuration
 # Version: 2.1.0-dev
 #
-# Quick Start (Standalone - no SSO):
-#   docker-compose up -d        # Start in background
-#   docker-compose logs -f      # View logs
-#   docker-compose down         # Stop and remove containers
+# Quick Start:
+#   docker compose up -d             # Start the app
+#   open http://localhost:3000        # Open in browser
 #
-# With SSO (OIDC example - Azure AD, Okta, Google, etc.):
-#   1. Copy .env.example to .env
-#   2. Fill in your SSO and API key values
-#   3. docker-compose up -d
-#
-# With SSO (SAML example):
-#   Same as above, but set SSO_PROTOCOL=saml and SAML_* variables
+# Setup (configure authentication + API keys):
+#   scripts/setup.bat                # Windows - interactive CLI setup
+#   scripts/setup.sh                 # Mac/Linux - interactive CLI setup
+#   -OR- open http://localhost:3000/setup in your browser
 
 services:
   training-manager:

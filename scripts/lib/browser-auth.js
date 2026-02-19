@@ -185,13 +185,15 @@ async function authenticateManual(provider, domain, rl) {
     const config = IDP_CONFIG[provider] || IDP_CONFIG.okta;
     const loginUrl = config.loginUrl(domain);
 
-    console.log(`\n  Opening your browser to: ${loginUrl}`);
-    console.log('  Please log in with your company credentials.\n');
+    console.log(`\n  Open this URL in your browser to sign in:`);
+    console.log(`\n    ${loginUrl}\n`);
 
-    // Open default browser
-    const openCmd = process.platform === 'win32' ? 'start'
-                  : process.platform === 'darwin' ? 'open' : 'xdg-open';
-    exec(`${openCmd} "${loginUrl}"`);
+    // Try to open default browser (works on host, not in Docker)
+    try {
+        const openCmd = process.platform === 'win32' ? 'start'
+                      : process.platform === 'darwin' ? 'open' : 'xdg-open';
+        exec(`${openCmd} "${loginUrl}"`);
+    } catch { /* ignore — user can open the URL manually */ }
 
     // Wait for user to confirm login
     const confirmed = await question(rl, '  Press Enter after you have logged in successfully...');
@@ -226,13 +228,7 @@ async function authenticate(provider, domain, rl) {
 
     // Playwright not available or failed — manual flow
     if (!result) {
-        let hasPlaywright = false;
-        try { require('playwright'); hasPlaywright = true; } catch {}
-
-        if (!hasPlaywright) {
-            console.log('\n  Tip: Install Playwright for automatic sign-in capture:');
-            console.log('    npm install playwright && npx playwright install chromium\n');
-        }
+        console.log('\n  (Automatic browser capture not available — using manual flow)');
     }
 
     return authenticateManual(provider, domain, rl);

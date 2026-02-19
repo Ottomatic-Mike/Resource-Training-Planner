@@ -36,6 +36,10 @@ COPY --chown=nodejs:nodejs app/server.js ./
 COPY --chown=nodejs:nodejs app/package.json ./
 COPY --chown=nodejs:nodejs app/public ./public
 
+# Copy setup scripts (for `docker compose run setup`)
+COPY --chown=nodejs:nodejs scripts/setup.js ./setup/setup.js
+COPY --chown=nodejs:nodejs scripts/lib/ ./setup/lib/
+
 # Create data directory for persistent config (writable volume mount point)
 RUN mkdir -p /app/data && chown nodejs:nodejs /app/data
 
