@@ -55,6 +55,8 @@ services:
     # Uncomment to load env vars from .env file (copy .env.example to .env first):
     # env_file:
     #   - .env
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped
     read_only: true
     tmpfs:

@@ -14,6 +14,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
 const session = require('express-session');
 const passport = require('passport');
 const helmet = require('helmet');
@@ -22,6 +23,99 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+// ============================================================
+// Config file support (browser-based setup wizard + CLI setup script)
+// ============================================================
+const CONFIG_DIR = path.join(__dirname, 'data');
+const CONFIG_FILE = path.join(CONFIG_DIR, 'setup.json');
+const CRED_FILE = path.join(CONFIG_DIR, 'credentials.enc');
+const CRED_KEY_FILE = path.join(CONFIG_DIR, 'credentials.key');
+
+// Load setup.json (web-based setup wizard config)
+function loadSetupConfig() {
+    try {
+        if (fs.existsSync(CONFIG_FILE)) {
+            const data = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+            if (data && data.setupComplete) return data;
+        }
+    } catch (e) {
+        console.warn('[CONFIG] Could not load setup.json:', e.message);
+    }
+    return null;
+}
+
+// Load encrypted credentials (CLI setup script config)
+function loadEncryptedCredentials() {
+    try {
+        if (fs.existsSync(CRED_FILE) && fs.existsSync(CRED_KEY_FILE)) {
+            const passphrase = fs.readFileSync(CRED_KEY_FILE, 'utf8').trim();
+            const blob = JSON.parse(fs.readFileSync(CRED_FILE, 'utf8'));
+
+            // Decrypt using AES-256-GCM
+            const salt = Buffer.from(blob.salt, 'base64');
+            const iv = Buffer.from(blob.iv, 'base64');
+            const authTag = Buffer.from(blob.authTag, 'base64');
+            const ciphertext = Buffer.from(blob.ciphertext, 'base64');
+            const key = crypto.pbkdf2Sync(passphrase, salt, 100000, 32, 'sha512');
+
+            const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+            decipher.setAuthTag(authTag);
+            const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+            const data = JSON.parse(decrypted.toString('utf8'));
+
+            if (data && data.setupComplete) return data;
+        }
+    } catch (e) {
+        console.warn('[CONFIG] Could not load encrypted credentials:', e.message);
+    }
+    return null;
+}
+
+const setupConfig = loadSetupConfig();
+const encryptedConfig = loadEncryptedCredentials();
+
+// Token/passcode auth from CLI setup script
+let TOKEN_AUTH_CONFIG = null;
+if (encryptedConfig && (encryptedConfig.mode === 'token' || encryptedConfig.mode === 'passcode')) {
+    TOKEN_AUTH_CONFIG = encryptedConfig;
+    // Apply session secret
+    if (encryptedConfig.sessionSecret && !process.env.SESSION_SECRET) {
+        process.env.SESSION_SECRET = encryptedConfig.sessionSecret;
+    }
+    // Apply AI keys
+    if (encryptedConfig.aiKeys) {
+        if (encryptedConfig.aiKeys.anthropic && !process.env.ANTHROPIC_API_KEY) process.env.ANTHROPIC_API_KEY = encryptedConfig.aiKeys.anthropic;
+        if (encryptedConfig.aiKeys.openai && !process.env.OPENAI_API_KEY) process.env.OPENAI_API_KEY = encryptedConfig.aiKeys.openai;
+        if (encryptedConfig.aiKeys.google && !process.env.GOOGLE_API_KEY) process.env.GOOGLE_API_KEY = encryptedConfig.aiKeys.google;
+    }
+    console.log(`[CONFIG] Loaded encrypted credentials (mode: ${encryptedConfig.mode})`);
+}
+
+// Apply setup.json config to env (OIDC setup wizard mode)
+if (setupConfig) {
+    if (setupConfig.mode === 'sso' && setupConfig.sso) {
+        if (!process.env.SSO_ENABLED) process.env.SSO_ENABLED = 'true';
+        if (!process.env.SSO_PROTOCOL) process.env.SSO_PROTOCOL = setupConfig.sso.protocol || 'oidc';
+        if (!process.env.OIDC_ISSUER && setupConfig.sso.issuer) process.env.OIDC_ISSUER = setupConfig.sso.issuer;
+        if (!process.env.OIDC_CLIENT_ID && setupConfig.sso.clientId) process.env.OIDC_CLIENT_ID = setupConfig.sso.clientId;
+        if (!process.env.OIDC_CLIENT_SECRET && setupConfig.sso.clientSecret) process.env.OIDC_CLIENT_SECRET = setupConfig.sso.clientSecret;
+        if (!process.env.OIDC_CALLBACK_URL && setupConfig.sso.callbackUrl) process.env.OIDC_CALLBACK_URL = setupConfig.sso.callbackUrl;
+    }
+    if (setupConfig.sessionSecret && !process.env.SESSION_SECRET) {
+        process.env.SESSION_SECRET = setupConfig.sessionSecret;
+    }
+    if (setupConfig.aiKeys) {
+        if (setupConfig.aiKeys.anthropic && !process.env.ANTHROPIC_API_KEY) process.env.ANTHROPIC_API_KEY = setupConfig.aiKeys.anthropic;
+        if (setupConfig.aiKeys.openai && !process.env.OPENAI_API_KEY) process.env.OPENAI_API_KEY = setupConfig.aiKeys.openai;
+        if (setupConfig.aiKeys.google && !process.env.GOOGLE_API_KEY) process.env.GOOGLE_API_KEY = setupConfig.aiKeys.google;
+    }
+    console.log(`[CONFIG] Loaded setup.json (mode: ${setupConfig.mode})`);
+}
+
+// Determine active auth mode
+const TOKEN_AUTH_ENABLED = !!TOKEN_AUTH_CONFIG;
+const SETUP_AVAILABLE = !setupConfig && !encryptedConfig && process.env.SSO_ENABLED !== 'true';
 
 // ============================================================
 // Configuration from environment variables
@@ -246,13 +340,13 @@ const authLimiter = rateLimit({
 });
 
 // ============================================================
-// Session & Passport (SSO mode only)
+// Session & Passport (SSO or Token auth mode)
 // ============================================================
-if (SSO_ENABLED) {
+if (SSO_ENABLED || TOKEN_AUTH_ENABLED) {
     // Handle reverse proxy BEFORE session middleware
     if (process.env.TRUST_PROXY === 'true') {
         app.set('trust proxy', 1);
-    } else if (IS_PRODUCTION) {
+    } else if (IS_PRODUCTION && SSO_ENABLED) {
         console.warn('[SECURITY] TRUST_PROXY not set in production. Set to "true" if behind a reverse proxy.');
     }
 
@@ -262,49 +356,87 @@ if (SSO_ENABLED) {
         saveUninitialized: false,
         name: 'tpm.sid',
         cookie: {
-            secure: IS_PRODUCTION,               // [H9] always secure in production
+            secure: IS_PRODUCTION && !TOKEN_AUTH_ENABLED, // Token auth often runs locally
             httpOnly: true,
             sameSite: 'lax',                      // [H1] CSRF protection (lax for OIDC redirect compat)
             maxAge: 4 * 60 * 60 * 1000            // 4 hours (reduced from 8)
         }
     }));
 
-    app.use(passport.initialize());
-    app.use(passport.session());
+    if (SSO_ENABLED) {
+        app.use(passport.initialize());
+        app.use(passport.session());
 
-    // [M7] Passport serialize — whitelist safe attributes only
-    const SAFE_USER_ATTRS = ['id', 'displayName', 'email', 'provider', 'issuer'];
+        // [M7] Passport serialize — whitelist safe attributes only
+        const SAFE_USER_ATTRS = ['id', 'displayName', 'email', 'provider', 'issuer'];
 
-    passport.serializeUser((user, done) => {
-        const safe = {};
-        for (const attr of SAFE_USER_ATTRS) {
-            if (attr in user && typeof user[attr] === 'string') {
-                safe[attr] = user[attr].slice(0, 255);
+        passport.serializeUser((user, done) => {
+            const safe = {};
+            for (const attr of SAFE_USER_ATTRS) {
+                if (attr in user && typeof user[attr] === 'string') {
+                    safe[attr] = user[attr].slice(0, 255);
+                }
             }
+            done(null, safe);
+        });
+
+        passport.deserializeUser((user, done) => {
+            if (!user || !user.id) return done(new Error('Invalid session user'));
+            done(null, user);
+        });
+
+        if (SSO_PROTOCOL === 'saml') {
+            configureSAML();
+        } else {
+            // OIDC configuration is async (requires endpoint discovery)
+            configureOIDC().catch(err => {
+                console.error('[SSO] OIDC configuration failed:', err.message);
+                console.error('[SSO] SSO login will not work. Fix the OIDC issuer and restart.');
+            });
         }
-        done(null, safe);
-    });
-
-    passport.deserializeUser((user, done) => {
-        if (!user || !user.id) return done(new Error('Invalid session user'));
-        done(null, user);
-    });
-
-    if (SSO_PROTOCOL === 'saml') {
-        configureSAML();
-    } else {
-        configureOIDC();
     }
 }
 
 // ============================================================
 // SSO Strategy Configuration
 // ============================================================
-function configureOIDC() {
+async function configureOIDC() {
     const OpenIDConnectStrategy = require('passport-openidconnect');
+
+    // passport-openidconnect@0.1.x requires explicit endpoint URLs.
+    // Perform OIDC discovery to resolve them from the issuer.
+    const discoveryUrl = OIDC_ISSUER.replace(/\/$/, '') + '/.well-known/openid-configuration';
+    console.log(`[SSO] Discovering OIDC endpoints from ${discoveryUrl}`);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    let oidcConfig;
+    try {
+        const response = await fetch(discoveryUrl, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (!response.ok) {
+            throw new Error(`Discovery returned HTTP ${response.status}`);
+        }
+        oidcConfig = await response.json();
+    } catch (e) {
+        clearTimeout(timeout);
+        console.error(`[SSO] OIDC discovery failed for ${OIDC_ISSUER}: ${e.message}`);
+        console.error('[SSO] Server will start, but SSO login will not work until the issuer is accessible.');
+        console.error('[SSO] To reconfigure, delete data/setup.json and restart.');
+        return; // Don't crash — server starts without SSO strategy
+    }
+
+    if (!oidcConfig.authorization_endpoint || !oidcConfig.token_endpoint) {
+        console.error('[SSO] OIDC discovery document missing required endpoints (authorization_endpoint, token_endpoint).');
+        return;
+    }
 
     passport.use('oidc', new OpenIDConnectStrategy({
         issuer: OIDC_ISSUER,
+        authorizationURL: oidcConfig.authorization_endpoint,
+        tokenURL: oidcConfig.token_endpoint,
+        userInfoURL: oidcConfig.userinfo_endpoint,
         clientID: OIDC_CLIENT_ID,
         clientSecret: OIDC_CLIENT_SECRET,
         callbackURL: OIDC_CALLBACK_URL,
@@ -320,8 +452,9 @@ function configureOIDC() {
         return done(null, user);
     }));
 
-    console.log('[SSO] OIDC strategy configured');
+    console.log('[SSO] OIDC strategy configured successfully');
     console.log(`[SSO] Issuer: ${OIDC_ISSUER}`);
+    console.log(`[SSO] Authorization: ${oidcConfig.authorization_endpoint}`);
 }
 
 function configureSAML() {
@@ -359,6 +492,17 @@ function configureSAML() {
 // Auth middleware
 // ============================================================
 function requireAuth(req, res, next) {
+    // Token/passcode auth mode (from CLI setup script)
+    if (TOKEN_AUTH_ENABLED) {
+        if (req.session && req.session.tokenAuthenticated) return next();
+
+        if (req.path.startsWith('/api/')) {
+            return res.status(401).json({ error: 'Authentication required', authMode: TOKEN_AUTH_CONFIG.mode });
+        }
+        return res.redirect('/login');
+    }
+
+    // OIDC/SAML SSO mode
     if (!SSO_ENABLED) return next();
 
     // Check for invalidated session
@@ -497,21 +641,212 @@ app.get('/health', (req, res) => {
 });
 
 // ============================================================
+// Browser-Based Setup Wizard (always available for initial setup or reconfiguration)
+// ============================================================
+// Serve setup wizard page
+app.get('/setup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'setup.html'));
+});
+
+// Save setup configuration and restart server
+app.post('/admin/api/setup', async (req, res) => {
+    const { mode, provider, domain, clientId, clientSecret, callbackUrl, aiKeys } = req.body;
+
+    // Validate input
+    if (!mode || !['standalone', 'sso'].includes(mode)) {
+        return res.status(400).json({ error: 'Invalid mode. Must be "standalone" or "sso".' });
+    }
+
+    if (mode === 'sso') {
+        if (!provider || typeof provider !== 'string') {
+            return res.status(400).json({ error: 'Identity provider is required.' });
+        }
+        if (!clientId || typeof clientId !== 'string') {
+            return res.status(400).json({ error: 'Client ID is required.' });
+        }
+        if (!clientSecret || typeof clientSecret !== 'string') {
+            return res.status(400).json({ error: 'Client Secret is required.' });
+        }
+        if (!aiKeys || typeof aiKeys !== 'object') {
+            return res.status(400).json({ error: 'AI API keys configuration is required.' });
+        }
+        if (!aiKeys.anthropic && !aiKeys.openai && !aiKeys.google) {
+            return res.status(400).json({ error: 'At least one AI API key is required for SSO mode.' });
+        }
+    }
+
+    // Compute OIDC issuer from provider + domain
+    let issuer = '';
+    if (mode === 'sso') {
+        const safeDomain = String(domain || '').trim();
+        switch (provider) {
+            case 'okta':
+                issuer = `https://${safeDomain}/oauth2/default`;
+                break;
+            case 'azure':
+                issuer = `https://login.microsoftonline.com/${safeDomain}/v2.0`;
+                break;
+            case 'google':
+                issuer = 'https://accounts.google.com';
+                break;
+            case 'auth0':
+                issuer = `https://${safeDomain}`;
+                break;
+            case 'keycloak':
+                issuer = safeDomain; // User enters full URL with realm
+                break;
+            default:
+                issuer = safeDomain; // Custom OIDC - user enters full issuer URL
+        }
+    }
+
+    // Build config object
+    const config = {
+        version: 1,
+        setupComplete: true,
+        mode: mode,
+        createdAt: new Date().toISOString(),
+        sessionSecret: crypto.randomBytes(32).toString('hex')
+    };
+
+    if (mode === 'sso') {
+        config.sso = {
+            provider: String(provider).slice(0, 50),
+            protocol: 'oidc',
+            issuer: issuer.slice(0, 500),
+            clientId: String(clientId).slice(0, 255),
+            clientSecret: String(clientSecret).slice(0, 500),
+            callbackUrl: String(callbackUrl || `http://localhost:${PORT}/auth/callback`).slice(0, 500)
+        };
+        config.aiKeys = {
+            anthropic: String(aiKeys.anthropic || '').slice(0, 255),
+            openai: String(aiKeys.openai || '').slice(0, 255),
+            google: String(aiKeys.google || '').slice(0, 255)
+        };
+    }
+
+    // Write config file
+    try {
+        if (!fs.existsSync(CONFIG_DIR)) {
+            fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
+        }
+        fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
+        console.log('[SETUP] Configuration saved to setup.json');
+    } catch (err) {
+        console.error('[SETUP] Failed to save config:', err.message);
+        return res.status(500).json({
+            error: 'Failed to save configuration.',
+            details: err.code === 'EROFS' ? 'Filesystem is read-only. Ensure a writable volume is mounted at /app/data.' : err.message
+        });
+    }
+
+    // Send success response
+    res.json({ success: true, message: 'Configuration saved. Server restarting...' });
+
+    // Restart server after response is sent (Docker will auto-restart the container)
+    setTimeout(() => {
+        console.log('[SETUP] Restarting server to apply new configuration...');
+        process.exit(0);
+    }, 1000);
+});
+
+// ============================================================
+// Token/Passcode Authentication (from CLI setup script)
+// ============================================================
+if (TOKEN_AUTH_ENABLED) {
+    // Serve login page
+    app.get('/login', (req, res) => {
+        if (req.session && req.session.tokenAuthenticated) {
+            return res.redirect('/');
+        }
+        res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    });
+
+    // Validate token/passcode and create session
+    app.post('/auth/token', authLimiter, (req, res) => {
+        const { token } = req.body;
+        if (!token || typeof token !== 'string') {
+            return res.status(400).json({ error: 'Token is required.' });
+        }
+
+        let valid = false;
+        let user = null;
+
+        if (TOKEN_AUTH_CONFIG.mode === 'token') {
+            // Compare SHA-256 hash of submitted token with stored hash
+            const hash = crypto.createHash('sha256').update(token.trim()).digest('hex');
+            valid = hash === TOKEN_AUTH_CONFIG.accessTokenHash;
+            if (valid && TOKEN_AUTH_CONFIG.verifiedUser) {
+                user = TOKEN_AUTH_CONFIG.verifiedUser;
+            }
+        } else if (TOKEN_AUTH_CONFIG.mode === 'passcode') {
+            // Verify passcode via PBKDF2
+            const stored = TOKEN_AUTH_CONFIG.passcodeHash;
+            if (stored && stored.salt && stored.hash) {
+                const salt = Buffer.from(stored.salt, 'hex');
+                const hash = crypto.pbkdf2Sync(token.trim(), salt, 100000, 32, 'sha512').toString('hex');
+                valid = hash === stored.hash;
+            }
+        }
+
+        if (!valid) {
+            securityLog('AUTH_FAILURE', { mode: TOKEN_AUTH_CONFIG.mode });
+            return res.status(401).json({ error: 'Invalid access token or code.' });
+        }
+
+        // Regenerate session to prevent fixation
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error('[AUTH] Session regeneration error:', err);
+                return res.status(500).json({ error: 'Session error.' });
+            }
+            req.session.tokenAuthenticated = true;
+            req.session.authenticatedAt = Date.now();
+            if (user) {
+                req.session.user = {
+                    email: String(user.email).slice(0, 255),
+                    displayName: String(user.name || user.email).slice(0, 255),
+                    provider: String(user.provider || 'token').slice(0, 50)
+                };
+            }
+            securityLog('AUTH_SUCCESS', { mode: TOKEN_AUTH_CONFIG.mode, user: user ? user.email : 'passcode' });
+            res.json({ success: true });
+        });
+    });
+
+    // Logout for token auth
+    app.get('/auth/logout', (req, res) => {
+        req.session.destroy(() => {
+            res.clearCookie('tpm.sid');
+            res.redirect('/login');
+        });
+    });
+}
+
+// ============================================================
 // [M3] App config endpoint — only expose what frontend needs
 // ============================================================
 app.get('/api/config', (req, res) => {
+    const authActive = SSO_ENABLED || TOKEN_AUTH_ENABLED;
+    const isAuthed = TOKEN_AUTH_ENABLED
+        ? !!(req.session && req.session.tokenAuthenticated)
+        : (SSO_ENABLED && req.isAuthenticated ? req.isAuthenticated() : false);
+
     const config = {
-        ssoEnabled: SSO_ENABLED,
-        serverManagedKeys: SSO_ENABLED ? {
+        ssoEnabled: authActive,
+        authMode: TOKEN_AUTH_ENABLED ? TOKEN_AUTH_CONFIG.mode : (SSO_ENABLED ? 'oidc' : 'none'),
+        setupAvailable: SETUP_AVAILABLE,
+        serverManagedKeys: authActive ? {
             anthropic: !!SERVER_ANTHROPIC_KEY,
             openai: !!SERVER_OPENAI_KEY,
             google: !!SERVER_GOOGLE_KEY
         } : null,
-        user: SSO_ENABLED && req.isAuthenticated && req.isAuthenticated() ? {
-            displayName: req.user.displayName,
-            email: req.user.email
-        } : null,
-        authenticated: SSO_ENABLED ? (req.isAuthenticated ? req.isAuthenticated() : false) : null
+        user: isAuthed ? (
+            TOKEN_AUTH_ENABLED && req.session.user
+                ? { displayName: req.session.user.displayName, email: req.session.user.email }
+                : (req.user ? { displayName: req.user.displayName, email: req.user.email } : null)
+        ) : null,
+        authenticated: authActive ? isAuthed : null
     };
     res.json(config);
 });
@@ -521,7 +856,7 @@ app.get('/api/config', (req, res) => {
 // ============================================================
 
 // Static files
-if (SSO_ENABLED) {
+if (SSO_ENABLED || TOKEN_AUTH_ENABLED) {
     app.use('/public', requireAuth, express.static('public'));
 } else {
     app.use(express.static('public'));
@@ -683,7 +1018,23 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Health check:      http://localhost:${PORT}/health`);
     console.log(`Environment:       ${IS_PRODUCTION ? 'production' : 'development'}`);
     console.log('-'.repeat(60));
-    if (SSO_ENABLED) {
+    if (TOKEN_AUTH_ENABLED) {
+        console.log(`Auth:              ${TOKEN_AUTH_CONFIG.mode.toUpperCase()} (CLI setup script)`);
+        console.log(`Login:             http://localhost:${PORT}/login`);
+        if (TOKEN_AUTH_CONFIG.verifiedUser) {
+            console.log(`Admin:             ${TOKEN_AUTH_CONFIG.verifiedUser.email}`);
+        }
+        console.log('-'.repeat(60));
+        console.log('Server-side API keys:');
+        console.log(`  Anthropic:       ${SERVER_ANTHROPIC_KEY ? 'configured' : 'NOT SET'}`);
+        console.log(`  OpenAI:          ${SERVER_OPENAI_KEY ? 'configured' : 'NOT SET'}`);
+        console.log(`  Google:          ${SERVER_GOOGLE_KEY ? 'configured' : 'NOT SET'}`);
+        console.log('-'.repeat(60));
+        console.log('Security:');
+        console.log(`  Credentials:     AES-256-GCM encrypted`);
+        console.log(`  Session secret:  configured (from encrypted config)`);
+        console.log(`  Rate limiting:   30 req/min (proxy), 20 req/15min (auth)`);
+    } else if (SSO_ENABLED) {
         console.log(`SSO:               ENABLED (${SSO_PROTOCOL.toUpperCase()})`);
         console.log(`Login:             http://localhost:${PORT}/auth/login`);
         if (SSO_PROTOCOL === 'saml') {
@@ -703,6 +1054,11 @@ app.listen(PORT, '0.0.0.0', () => {
     } else {
         console.log('SSO:               DISABLED (standalone mode)');
         console.log('                   Users provide their own API keys');
+        if (SETUP_AVAILABLE) {
+            console.log('-'.repeat(60));
+            console.log('SSO Setup Wizard:  http://localhost:' + PORT + '/setup');
+            console.log('                   Configure team login via browser');
+        }
     }
     console.log('='.repeat(60));
 });

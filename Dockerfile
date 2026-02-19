@@ -36,6 +36,9 @@ COPY --chown=nodejs:nodejs app/server.js ./
 COPY --chown=nodejs:nodejs app/package.json ./
 COPY --chown=nodejs:nodejs app/public ./public
 
+# Create data directory for persistent config (writable volume mount point)
+RUN mkdir -p /app/data && chown nodejs:nodejs /app/data
+
 # Switch to non-root user
 USER nodejs
 

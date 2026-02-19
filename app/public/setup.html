@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Plan Manager - SSO Setup</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+            background: linear-gradient(135deg, #044d4b 0%, #056663 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #1e293b;
+        }
+        .setup-container { width: 100%; max-width: 580px; }
+        .setup-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            padding: 36px 40px;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header */
+        .setup-header { text-align: center; margin-bottom: 28px; }
+        .setup-header h1 { font-size: 20px; font-weight: 700; color: #0f172a; }
+        .setup-header p { font-size: 14px; color: #64748b; margin-top: 6px; line-height: 1.5; }
+
+        /* Section dividers */
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #044d4b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            margin-top: 4px;
+        }
+        .divider { height: 1px; background: #e5e7eb; margin: 22px 0; }
+
+        /* Provider selector */
+        .provider-select {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .provider-option {
+            padding: 10px 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            position: relative;
+        }
+        .provider-option:hover { border-color: #0a8a87; background: #f0fafa; }
+        .provider-option.selected { border-color: #044d4b; background: #e6f5f5; color: #044d4b; }
+        .provider-option small { display: block; font-weight: 400; font-size: 11px; color: #64748b; margin-top: 2px; }
+        .provider-option.selected small { color: #056663; }
+        .provider-option .popular-badge {
+            position: absolute;
+            top: -7px;
+            right: 8px;
+            font-size: 9px;
+            font-weight: 700;
+            color: #044d4b;
+            background: white;
+            padding: 0 5px;
+            border: 1px solid #044d4b;
+            border-radius: 3px;
+        }
+
+        /* Form elements */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #044d4b;
+            box-shadow: 0 0 0 3px rgba(4,77,75,0.1);
+        }
+        .form-input::placeholder { color: #9ca3af; }
+        .form-input.mono { font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 13px; }
+        .form-help { font-size: 12px; color: #6b7280; margin-top: 3px; line-height: 1.4; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+        .input-with-suffix {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input-with-suffix:focus-within { border-color: #044d4b; box-shadow: 0 0 0 3px rgba(4,77,75,0.1); }
+        .input-with-suffix input { border: none; padding: 9px 12px; flex: 1; font-size: 14px; outline: none; min-width: 0; }
+        .input-suffix { padding: 9px 12px; background: #f3f4f6; color: #6b7280; font-size: 13px; white-space: nowrap; border-left: 1px solid #d1d5db; }
+
+        /* Callback URL */
+        .callback-box {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .callback-box code { font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 12px; color: #0f172a; word-break: break-all; }
+        .copy-btn {
+            background: #e2e8f0;
+            border: none;
+            border-radius: 5px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .copy-btn:hover { background: #cbd5e1; }
+        .copy-btn.copied { background: #bbf7d0; color: #166534; }
+
+        /* Instructions toggle */
+        .instructions-toggle {
+            font-size: 12px;
+            color: #044d4b;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .instructions-toggle:hover { text-decoration: underline; }
+        .instructions-toggle .arrow { transition: transform 0.2s; display: inline-block; }
+        .instructions-toggle.open .arrow { transform: rotate(90deg); }
+        .instructions {
+            background: #fefce8;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .instructions.show { display: block; }
+        .instructions ol { padding-left: 18px; font-size: 13px; color: #451a03; line-height: 1.6; }
+        .instructions li { margin-bottom: 3px; }
+        .instructions a { color: #044d4b; font-weight: 600; text-decoration: none; }
+        .instructions a:hover { text-decoration: underline; }
+
+        /* AI key rows */
+        .ai-key-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .ai-key-row .provider-label { width: 80px; font-size: 13px; font-weight: 600; color: #374151; flex-shrink: 0; }
+        .ai-key-row .provider-label small { display: block; font-weight: 400; color: #9ca3af; font-size: 11px; }
+        .ai-key-row input { flex: 1; }
+        .ai-key-row .get-key {
+            font-size: 11px;
+            color: #044d4b;
+            text-decoration: none;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .ai-key-row .get-key:hover { text-decoration: underline; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: #044d4b; color: white; }
+        .btn-primary:hover:not(:disabled) { background: #033d3b; }
+
+        /* Alert */
+        .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; line-height: 1.4; }
+        .alert-info { background: #e6f5f5; border: 1px solid #b3e0df; color: #044d4b; }
+        .alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+        /* Spinner */
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .hidden { display: none !important; }
+
+        /* Skip link */
+        .skip-link { text-align: center; margin-top: 14px; font-size: 13px; color: rgba(255,255,255,0.7); }
+        .skip-link a { color: white; text-decoration: none; font-weight: 500; }
+        .skip-link a:hover { text-decoration: underline; }
+
+        /* Saving overlay */
+        .saving-overlay {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .saving-spinner {
+            width: 36px; height: 36px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #044d4b;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <!-- Main form -->
+        <div class="setup-card" id="setupForm">
+            <div class="setup-header">
+                <h1>Set Up Team Login (SSO)</h1>
+                <p>Connect your identity provider so your team can sign in with company credentials.</p>
+            </div>
+
+            <!-- Provider selection -->
+            <div class="section-label">Identity Provider</div>
+            <div class="provider-select">
+                <div class="provider-option" onclick="selectProvider('okta')" id="provOkta">
+                    <span class="popular-badge">Popular</span>
+                    Okta
+                </div>
+                <div class="provider-option" onclick="selectProvider('azure')" id="provAzure">
+                    Microsoft
+                    <small>Entra ID</small>
+                </div>
+                <div class="provider-option" onclick="selectProvider('google')" id="provGoogle">
+                    Google
+                    <small>Workspace</small>
+                </div>
+                <div class="provider-option" onclick="selectProvider('auth0')" id="provAuth0">
+                    Auth0
+                </div>
+                <div class="provider-option" onclick="selectProvider('keycloak')" id="provKeycloak">
+                    Keycloak
+                </div>
+                <div class="provider-option" onclick="selectProvider('custom')" id="provCustom">
+                    Other OIDC
+                </div>
+            </div>
+
+            <!-- Provider config (shown after selection) -->
+            <div id="providerConfig" class="hidden">
+                <!-- Callback URL -->
+                <div class="form-group">
+                    <label class="form-label">Redirect URI <span style="font-weight:400; color:#9ca3af;">(paste this into your identity provider)</span></label>
+                    <div class="callback-box">
+                        <code id="callbackUrl"></code>
+                        <button class="copy-btn" onclick="copyCallback(this)">Copy</button>
+                    </div>
+                </div>
+
+                <!-- Setup instructions (collapsible) -->
+                <div class="instructions-toggle" onclick="toggleInstructions()" id="instrToggle">
+                    <span class="arrow">&#9654;</span> <span id="instrToggleLabel">Show setup instructions</span>
+                </div>
+                <div class="instructions" id="instrPanel">
+                    <ol id="instrSteps"></ol>
+                </div>
+
+                <!-- Provider-specific domain field -->
+                <div id="domainField"></div>
+
+                <!-- Client ID + Secret -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Client ID</label>
+                        <input type="text" class="form-input mono" id="clientId" placeholder="Paste Client ID" oninput="validate()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Client Secret</label>
+                        <input type="password" class="form-input mono" id="clientSecret" placeholder="Paste Client Secret" oninput="validate()">
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- AI API Keys -->
+                <div class="section-label">AI API Keys <span style="font-weight:400; text-transform:none; letter-spacing:0; color:#6b7280;">&mdash; at least one required</span></div>
+                <div class="ai-key-row">
+                    <div class="provider-label">Anthropic <small>Claude</small></div>
+                    <input type="password" class="form-input mono" id="keyAnthropic" placeholder="sk-ant-api03-..." oninput="validate()">
+                    <a href="https://console.anthropic.com/" target="_blank" rel="noopener" class="get-key">Get key</a>
+                </div>
+                <div class="ai-key-row">
+                    <div class="provider-label">OpenAI <small>GPT</small></div>
+                    <input type="password" class="form-input mono" id="keyOpenai" placeholder="sk-..." oninput="validate()">
+                    <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" class="get-key">Get key</a>
+                </div>
+                <div class="ai-key-row">
+                    <div class="provider-label">Google <small>Gemini</small></div>
+                    <input type="password" class="form-input mono" id="keyGoogle" placeholder="AIza..." oninput="validate()">
+                    <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="get-key">Get key</a>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 14px;">
+                    Keys are stored server-side. Team members authenticate via SSO and never see API keys.
+                </div>
+
+                <div id="saveError" class="alert alert-error hidden"></div>
+
+                <div style="margin-top: 20px; text-align: right;">
+                    <button class="btn btn-primary" onclick="saveConfig()" id="saveBtn" disabled>Save &amp; Activate SSO</button>
+                </div>
+            </div>
+
+            <!-- Prompt to select a provider -->
+            <div id="providerPrompt" style="text-align: center; padding: 12px 0 0; color: #9ca3af; font-size: 13px;">
+                Select your identity provider above to continue.
+            </div>
+        </div>
+
+        <!-- Saving/restarting card (replaces form) -->
+        <div class="setup-card hidden" id="savingCard">
+            <div class="saving-overlay">
+                <div class="saving-spinner"></div>
+                <h2 style="font-size: 18px; font-weight: 600; color: #0f172a;">Activating SSO...</h2>
+                <p style="font-size: 14px; color: #64748b; margin-top: 8px;">The server is restarting. You'll be redirected to sign in shortly.</p>
+                <p style="margin-top: 16px; font-size: 13px; color: #94a3b8;">If not redirected in 15 seconds, <a href="/" style="color: #044d4b;">click here</a>.</p>
+            </div>
+        </div>
+
+        <div class="skip-link">
+            <a href="/">Skip &mdash; use without SSO</a>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // State
+        // ============================================================
+        let selectedProvider = null;
+        const callbackUrl = window.location.origin + '/auth/callback';
+
+        // Provider configs: display name, domain field HTML, instruction steps, issuer builder
+        const providers = {
+            okta: {
+                name: 'Okta',
+                domainHtml: `
+                    <div class="form-group">
+                        <label class="form-label">Okta Domain</label>
+                        <div class="input-with-suffix">
+                            <input type="text" id="domainInput" placeholder="your-company" oninput="validate()">
+                            <span class="input-suffix">.okta.com</span>
+                        </div>
+                        <div class="form-help">Your Okta subdomain, e.g. <strong>your-company</strong> or <strong>dev-12345</strong></div>
+                    </div>`,
+                instructions: [
+                    'Sign in to your <a href="https://login.okta.com" target="_blank" rel="noopener">Okta Admin Console</a>',
+                    'Go to <strong>Applications</strong> &rarr; <strong>Create App Integration</strong>',
+                    'Select <strong>OIDC - OpenID Connect</strong> and <strong>Web Application</strong>',
+                    'Set the <strong>Sign-in redirect URI</strong> to the Redirect URI shown above',
+                    'Under <strong>Assignments</strong>, grant access to users/groups who need this app',
+                    'Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> into the fields below'
+                ],
+                getDomain: () => {
+                    const v = document.getElementById('domainInput')?.value.trim();
+                    return v ? v + '.okta.com' : '';
+                },
+                needsDomain: true
+            },
+            azure: {
+                name: 'Microsoft Entra ID',
+                domainHtml: `
+                    <div class="form-group">
+                        <label class="form-label">Tenant ID</label>
+                        <input type="text" class="form-input mono" id="domainInput" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" oninput="validate()">
+                        <div class="form-help">Azure Portal &rarr; Microsoft Entra ID &rarr; Overview &rarr; Tenant ID</div>
+                    </div>`,
+                instructions: [
+                    'Open <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noopener">Azure Portal &rarr; App Registrations</a>',
+                    'Click <strong>New registration</strong>, name it <strong>Training Plan Manager</strong>',
+                    'Set Redirect URI (Web) to the Redirect URI shown above',
+                    'Go to <strong>Certificates &amp; secrets</strong> &rarr; <strong>New client secret</strong>',
+                    'Copy the <strong>Application (client) ID</strong> and <strong>Secret Value</strong> below'
+                ],
+                getDomain: () => document.getElementById('domainInput')?.value.trim() || '',
+                needsDomain: true
+            },
+            google: {
+                name: 'Google Workspace',
+                domainHtml: `<div class="alert alert-info" style="margin-bottom:16px;">Google uses a fixed issuer &mdash; just enter your Client ID and Secret below.</div>`,
+                instructions: [
+                    'Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console &rarr; Credentials</a>',
+                    'Click <strong>Create Credentials</strong> &rarr; <strong>OAuth client ID</strong>',
+                    'Application type: <strong>Web application</strong>',
+                    'Add the Redirect URI shown above to <strong>Authorized redirect URIs</strong>',
+                    'Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> below'
+                ],
+                getDomain: () => '',
+                needsDomain: false
+            },
+            auth0: {
+                name: 'Auth0',
+                domainHtml: `
+                    <div class="form-group">
+                        <label class="form-label">Auth0 Domain</label>
+                        <input type="text" class="form-input" id="domainInput" placeholder="your-app.us.auth0.com" oninput="validate()">
+                        <div class="form-help">Auth0 Dashboard &rarr; Applications &rarr; Settings &rarr; Domain</div>
+                    </div>`,
+                instructions: [
+                    'Open your <a href="https://manage.auth0.com" target="_blank" rel="noopener">Auth0 Dashboard</a>',
+                    'Go to <strong>Applications</strong> &rarr; <strong>Create Application</strong>',
+                    'Choose <strong>Regular Web Applications</strong>',
+                    'In Settings, add the Redirect URI above to <strong>Allowed Callback URLs</strong>',
+                    'Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> below'
+                ],
+                getDomain: () => document.getElementById('domainInput')?.value.trim() || '',
+                needsDomain: true
+            },
+            keycloak: {
+                name: 'Keycloak',
+                domainHtml: `
+                    <div class="form-group">
+                        <label class="form-label">Keycloak Issuer URL</label>
+                        <input type="text" class="form-input mono" id="domainInput" placeholder="https://keycloak.company.com/realms/your-realm" oninput="validate()">
+                        <div class="form-help">Format: https://your-keycloak/realms/your-realm</div>
+                    </div>`,
+                instructions: [
+                    'Open your Keycloak Admin Console',
+                    'Select your realm &rarr; <strong>Clients</strong> &rarr; <strong>Create client</strong>',
+                    'Client type: <strong>OpenID Connect</strong>',
+                    'Set <strong>Valid redirect URIs</strong> to the Redirect URI shown above',
+                    'Enable <strong>Client authentication</strong> to generate a secret',
+                    'Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> below'
+                ],
+                getDomain: () => document.getElementById('domainInput')?.value.trim() || '',
+                needsDomain: true
+            },
+            custom: {
+                name: 'Custom OIDC',
+                domainHtml: `
+                    <div class="form-group">
+                        <label class="form-label">OIDC Issuer URL</label>
+                        <input type="text" class="form-input mono" id="domainInput" placeholder="https://idp.example.com" oninput="validate()">
+                        <div class="form-help">The base URL of your OIDC provider (must support .well-known/openid-configuration)</div>
+                    </div>`,
+                instructions: [
+                    'Register a new <strong>Web Application</strong> in your OIDC provider',
+                    'Set the <strong>Redirect / Callback URI</strong> to the Redirect URI shown above',
+                    'Ensure scopes <strong>openid</strong>, <strong>profile</strong>, <strong>email</strong> are enabled',
+                    'Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> below'
+                ],
+                getDomain: () => document.getElementById('domainInput')?.value.trim() || '',
+                needsDomain: true
+            }
+        };
+
+        // ============================================================
+        // Provider Selection
+        // ============================================================
+        function selectProvider(provider) {
+            selectedProvider = provider;
+            document.querySelectorAll('.provider-option').forEach(el => el.classList.remove('selected'));
+            const el = document.getElementById('prov' + provider.charAt(0).toUpperCase() + provider.slice(1));
+            if (el) el.classList.add('selected');
+
+            const cfg = providers[provider];
+
+            // Show config section, hide prompt
+            document.getElementById('providerConfig').classList.remove('hidden');
+            document.getElementById('providerPrompt').classList.add('hidden');
+
+            // Set callback URL
+            document.getElementById('callbackUrl').textContent = callbackUrl;
+
+            // Set domain field
+            document.getElementById('domainField').innerHTML = cfg.domainHtml;
+
+            // Set instructions
+            document.getElementById('instrSteps').innerHTML = cfg.instructions.map(s => '<li>' + s + '</li>').join('');
+            document.getElementById('instrToggleLabel').textContent = 'Show ' + cfg.name + ' setup instructions';
+
+            // Close instructions panel on provider switch
+            document.getElementById('instrPanel').classList.remove('show');
+            document.getElementById('instrToggle').classList.remove('open');
+
+            validate();
+        }
+
+        // ============================================================
+        // Toggle Instructions
+        // ============================================================
+        function toggleInstructions() {
+            const panel = document.getElementById('instrPanel');
+            const toggle = document.getElementById('instrToggle');
+            panel.classList.toggle('show');
+            toggle.classList.toggle('open');
+        }
+
+        // ============================================================
+        // Validation
+        // ============================================================
+        function validate() {
+            if (!selectedProvider) { setSubmit(false); return; }
+
+            const cfg = providers[selectedProvider];
+            const clientId = document.getElementById('clientId').value.trim();
+            const clientSecret = document.getElementById('clientSecret').value.trim();
+            const domain = cfg.getDomain();
+            const hasKey = document.getElementById('keyAnthropic').value.trim()
+                        || document.getElementById('keyOpenai').value.trim()
+                        || document.getElementById('keyGoogle').value.trim();
+
+            const valid = clientId && clientSecret && (!cfg.needsDomain || domain) && hasKey;
+            setSubmit(valid);
+        }
+
+        function setSubmit(enabled) {
+            document.getElementById('saveBtn').disabled = !enabled;
+        }
+
+        // ============================================================
+        // Save
+        // ============================================================
+        async function saveConfig() {
+            const btn = document.getElementById('saveBtn');
+            const errEl = document.getElementById('saveError');
+            errEl.classList.add('hidden');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+            const cfg = providers[selectedProvider];
+            const payload = {
+                mode: 'sso',
+                provider: selectedProvider,
+                domain: cfg.getDomain(),
+                clientId: document.getElementById('clientId').value.trim(),
+                clientSecret: document.getElementById('clientSecret').value.trim(),
+                callbackUrl: callbackUrl,
+                aiKeys: {
+                    anthropic: document.getElementById('keyAnthropic').value.trim(),
+                    openai: document.getElementById('keyOpenai').value.trim(),
+                    google: document.getElementById('keyGoogle').value.trim()
+                }
+            };
+
+            try {
+                const res = await fetch('/admin/api/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || data.details || 'Unknown error');
+
+                // Show saving state
+                document.getElementById('setupForm').classList.add('hidden');
+                document.getElementById('savingCard').classList.remove('hidden');
+                pollForRestart();
+
+            } catch (err) {
+                errEl.textContent = 'Error: ' + err.message;
+                errEl.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = 'Save &amp; Activate SSO';
+            }
+        }
+
+        function pollForRestart() {
+            let attempts = 0;
+            setTimeout(() => {
+                const interval = setInterval(async () => {
+                    attempts++;
+                    try {
+                        const res = await fetch('/health', { cache: 'no-store' });
+                        if (res.ok) {
+                            clearInterval(interval);
+                            window.location.href = '/';
+                        }
+                    } catch (e) { /* server still restarting */ }
+                    if (attempts >= 30) {
+                        clearInterval(interval);
+                        window.location.href = '/';
+                    }
+                }, 1000);
+            }, 2000);
+        }
+
+        // ============================================================
+        // Utilities
+        // ============================================================
+        function copyCallback(btn) {
+            navigator.clipboard.writeText(callbackUrl).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = callbackUrl;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

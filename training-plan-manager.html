@@ -1309,6 +1309,7 @@ let masterPasswordHash = null;
 // SSO state (populated from server /api/config)
 let ssoConfig = {
     ssoEnabled: false,
+    setupAvailable: false,
     ssoProtocol: null,
     serverManagedKeys: null,
     user: null,
@@ -1601,6 +1602,7 @@ async function checkLibrariesAndInitialize() {
             if (raw && typeof raw === 'object') {
                 ssoConfig = {
                     ssoEnabled: Boolean(raw.ssoEnabled),
+                    setupAvailable: Boolean(raw.setupAvailable),
                     ssoProtocol: typeof raw.ssoProtocol === 'string' ? raw.ssoProtocol : null,
                     authenticated: Boolean(raw.authenticated),
                     user: null,
@@ -2475,6 +2477,19 @@ function openSettings() {
             `}
         </div>
         `}
+
+        ${!isSSO && ssoConfig.setupAvailable ? `
+        <div style="padding: 16px 0 8px 0;">
+            <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">&#x1F465; Team Login (SSO)</h3>
+            <div style="background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border: 1px solid #c7d2fe; border-radius: 10px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                <div>
+                    <div style="font-weight: 600; font-size: 14px; color: #1e293b;">Enable team authentication</div>
+                    <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Set up Okta, Azure AD, or Google Workspace SSO so your team can sign in with company credentials. AI keys are managed centrally.</div>
+                </div>
+                <a href="/setup" target="_blank" class="btn btn-primary" style="text-decoration: none; white-space: nowrap; flex-shrink: 0;">Set Up SSO</a>
+            </div>
+        </div>
+        ` : ''}
 
         <div style="padding: 24px 0 8px 0;">
             <h3 style="margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px;">AI Configuration</h3>
